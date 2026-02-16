@@ -334,3 +334,7 @@ Configuration files in `frontend/`:
 2. Make your changes and write tests
 3. Run tests and linting: `npm run lint && npm run test`
 4. Submit a pull request
+
+## Project Demo
+
+[Fintech Fraud Detection Enginer.webm](https://github.com/user-attachments/assets/42ca9ee7-99e5-4c0d-afd0-0cd9f127ea64)
