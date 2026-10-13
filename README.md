@@ -10,19 +10,19 @@ This project implements an intelligent fraud detection and prevention system des
 
 ### Backend
 
-- **Framework**: Ruby on Rails 7+
-- **Database**: PostgreSQL
-- **Queue System**: Redis-based job processing
+- **Framework**: Ruby on Rails 8.1 (API mode), Ruby 3.2
+- **Database**: PostgreSQL 16
+- **Queue System**: Solid Queue (database-backed, no Redis)
 - **Security**: Brakeman, Bundler Audit
-- **Testing**: RSpec/Minitest
+- **Testing**: Minitest
 
 ### Frontend
 
-- **Framework**: React 18+ with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
+- **Framework**: React 19 with TypeScript
+- **Build Tool**: Vite 7
+- **Styling**: Tailwind CSS 3
 - **Testing**: Vitest
-- **State Management**: Redux/Context API
+- **State Management**: Redux Toolkit, TanStack Query
 - **API Client**: Axios
 
 ## Project Structure
@@ -95,79 +95,73 @@ fintech-fraud-detection/
 - User and device management
 - Analytics and reporting
 
-## Getting Started
+## Run it locally
 
-### Prerequisites
+Works on Windows (Git Bash), macOS and Linux. You need **Docker** (Docker Desktop on Windows and macOS, started first) and **Node 24**. Ruby and PostgreSQL are not installed on the host: they run in containers.
 
-- Ruby 3.0+
-- Node.js 18+
-- PostgreSQL 12+
-- Redis (for background jobs)
-- Docker (optional, for containerization)
+### 1. API and database (Docker Compose)
 
-### Backend Setup
-
-1. Navigate to the backend directory:
-
-   ```bash
-   cd backend
-   ```
-
-2. Install Ruby dependencies:
-
-   ```bash
-   bundle install
-   ```
-
-3. Set up the database:
-
-   ```bash
-   rails db:create db:migrate db:seed
-   ```
-
-4. Configure credentials:
-
-   ```bash
-   EDITOR=nano rails credentials:edit
-   ```
-
-5. Start the Rails server:
-   ```bash
-   rails server
-   ```
-
-The API will be available at `http://localhost:3000`
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-
-   ```bash
-   cd frontend
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-The application will be available at `http://localhost:5173`
-
-### Docker Setup
-
-Build and run the entire application using Docker:
+From the repository root:
 
 ```bash
-cd backend
-docker build -t fraud-detection-backend .
-docker run -p 3000:3000 fraud-detection-backend
+docker compose up
 ```
+
+The first run installs the gems, creates, migrates and seeds the database, and takes a few minutes. It is ready when this returns `"status":"ok"`:
+
+```bash
+curl http://localhost:3000/api/v1/health
+```
+
+The API is at `http://localhost:3000/api/v1`. Stop it with `docker compose down` (add `-v` to also drop the database and the gem cache).
+
+### 2. Frontend (Vite)
+
+Node is pinned in `frontend/mise.toml`. With [mise](https://mise.jdx.dev) installed, it picks Node 24 for you; otherwise use any Node 24.
+
+```bash
+cd frontend
+cp .env.example .env      # points the app at the local API
+mise install              # skip if you manage Node another way
+npm ci
+npm run dev
+```
+
+Open `http://localhost:5173` and sign in with a seeded demo user: `john@example.com` / `password123`.
+
+### Try the fraud rules
+
+On the dashboard, create a transaction: a small card payment from the browser (a device the user has not used before) comes back **flagged** for an untrusted device; a very large one (for example 95,000) is **blocked**, with the triggered rules listed.
+
+### Without Docker
+
+Install Ruby 3.2 and PostgreSQL yourself, copy `backend/.env.development.example` to `backend/.env` and fill in your database user, then from `backend/`: `bundle install`, `bin/rails db:prepare`, `bin/rails server`.
+
+## Environment variables
+
+Local runs need nothing beyond the defaults above: `compose.yaml` sets the backend variables and `frontend/.env.example` the frontend ones.
+
+### Frontend (`frontend/.env`)
+
+| Variable | What it is | Local value |
+|---|---|---|
+| `VITE_API_BASE_URL` | Base URL of the backend API | `http://localhost:3000/api/v1` |
+| `VITE_APP_NAME` | Name shown in the UI | `Fintech Risk Engine` |
+
+### Backend (see `backend/.env.development.example` and `backend/.env.production.example`)
+
+| Variable | What it is | Needed |
+|---|---|---|
+| `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME` | PostgreSQL connection for development | local |
+| `DATABASE_URL` | PostgreSQL connection string | production |
+| `RAILS_MASTER_KEY` | Decrypts `config/credentials.yml.enc` | production |
+| `FRONTEND_URL` | Origin allowed by CORS | always |
+| `APP_HOST` | Host used in links in emails | always |
+| `SOLID_QUEUE_IN_PUMA` | `true` runs background jobs inside the web process | optional |
+| `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | Mail server for notification emails | production |
+| `RAILS_LOG_LEVEL` | Log level | optional |
+
+Never commit a real `.env` file; only the `.example` files are tracked.
 
 ## API Documentation
 
@@ -222,12 +216,15 @@ OpenAPI specification available at: [public/openapi.yaml](backend/public/openapi
 
 ### Backend
 
+With the Docker setup (API container running):
+
 ```bash
-cd backend
-rails test                    # Run all tests
-rails test test/models       # Run model tests
-rails test test/services     # Run service tests
+docker compose exec api bin/rails test                  # Run all tests
+docker compose exec api bin/rails test test/models      # Run model tests
+docker compose exec api bin/rails test test/services    # Run service tests
 ```
+
+Without Docker, run the same `bin/rails test ...` commands from `backend/`.
 
 ### Frontend
 
@@ -334,6 +331,13 @@ Configuration files in `frontend/`:
 2. Make your changes and write tests
 3. Run tests and linting: `npm run lint && npm run test`
 4. Submit a pull request
+
+## Credits
+
+Built by two people:
+
+- **Aryan Deshmukh** ([A-RYAN-1](https://github.com/A-RYAN-1)): backend (Rails API, risk rules engine, PostgreSQL, Solid Queue jobs).
+- **[OldStager01](https://github.com/OldStager01)**: frontend and the original deployment. The original repository is [OldStager01/fintech-fraud-detection](https://github.com/OldStager01/fintech-fraud-detection).
 
 ## Project Demo
 
