@@ -1,0 +1,41 @@
+# Local development: PostgreSQL and the Rails API, no Ruby or Postgres install needed.
+#   docker compose up        # first run installs gems, creates and seeds the database
+#   docker compose down      # stop; add -v to also drop the database and gem cache
+# The frontend runs on the host (see README, "Run it locally").
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    image: ruby:3.2.9
+    working_dir: /app
+    # The pid file is removed first: a container stopped uncleanly leaves it behind and Rails then refuses to start.
+    command: bash -c "rm -f tmp/pids/server.pid && bundle install && bin/rails db:prepare && bin/rails server -b 0.0.0.0"
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      FRONTEND_URL: http://localhost:5173
+      SOLID_QUEUE_IN_PUMA: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - gems:/usr/local/bundle
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  gems:
