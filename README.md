@@ -2,9 +2,15 @@
 
 A comprehensive fraud detection system for fintech applications, built with a robust backend API and modern frontend interface.
 
+Last updated: 2026-10-14. Runs locally; free deployment (Render, Neon, Vercel) in progress, not live yet.
+
 ## Overview
 
 This project implements an intelligent fraud detection and prevention system designed to protect financial transactions in real-time. It features advanced risk evaluation, transaction monitoring, audit logging, and a user-friendly dashboard for managing fraud cases and viewing transaction analytics.
+
+## Why it exists
+
+A learning project: the two of us built it to learn rule-based risk scoring and background jobs in Rails 8 on a realistic fintech problem. It taught how to keep scoring rules explainable (each blocked or flagged transaction lists the rules that fired) and how much a small app has to handle once sessions, devices and audit logs are real.
 
 ## Tech Stack
 
@@ -332,6 +338,13 @@ The frontend proxies `/api/*` to the API (`frontend/vercel.json`), so the sessio
 2. Set `VITE_API_BASE_URL=/api/v1`. If the Render service URL differs from the one in `frontend/vercel.json`, update the rewrite destination.
 3. Put the Vercel URL in the API's `FRONTEND_URL`.
 
+## Status and roadmap
+
+- Reached: runs locally from a fresh clone on Windows and Linux (Docker Compose for the API and PostgreSQL, mise for Node), checked 2026-10-13. Backend 37 tests, frontend 174 tests, all passing.
+- In progress: free deployment (API on Render, PostgreSQL on Neon, frontend on Vercel). The production image was verified locally on 2026-10-14; the live URL goes here once it is up.
+- Known limitations: the Render free instance sleeps after 15 minutes idle, so the first request after that takes about a minute. No CI runs yet: the Rails template workflow sits in `backend/.github/`, where GitHub does not pick it up.
+- Planned: CI (GitHub Actions) running both test suites on every push, an uptime check on the live URL, Lighthouse numbers for the frontend.
+
 ## Contributing
 
 1. Create a feature branch: `git checkout -b feature/your-feature`
@@ -349,3 +362,7 @@ Built by two people:
 ## Project Demo
 
 [Fintech Fraud Detection Enginer.webm](https://github.com/user-attachments/assets/42ca9ee7-99e5-4c0d-afd0-0cd9f127ea64)
+
+## License
+
+No license yet: all rights reserved by both authors. This may change once the two of us agree on one.
