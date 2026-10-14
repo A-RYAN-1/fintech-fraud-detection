@@ -66,6 +66,8 @@ Rails.application.configure do
     authentication: :plain,
     enable_starttls_auto: true
   }
+  # Without SMTP credentials (e.g. the public demo), skip sending instead of failing jobs.
+  config.action_mailer.perform_deliveries = ENV["SMTP_USERNAME"].present?
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
@@ -82,6 +84,9 @@ Rails.application.configure do
     ENV.fetch("APP_HOST", "your-app.onrender.com"),
     /.*\.onrender\.com/  # Allow Render subdomains
   ]
+  # The frontend proxies /api to this service (frontend/vercel.json), so requests arrive
+  # with X-Forwarded-Host set to the frontend's host.
+  config.hosts << URI(ENV["FRONTEND_URL"]).host if ENV["FRONTEND_URL"].present?
 
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }

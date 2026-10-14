@@ -66,6 +66,8 @@ production:
   primary: &primary_production
     url: <%= ENV["DATABASE_URL"] %>
     prepared_statements: false
+  # Solid Queue shares the primary database; its tables come from db/schema.rb,
+  # so the queue connection runs no schema or migration tasks of its own.
   queue:
     <<: *primary_production
-    migrations_paths: db/queue_migrate
+    database_tasks: false

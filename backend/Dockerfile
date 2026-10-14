@@ -68,6 +68,8 @@ COPY --chown=rails:rails --from=build /rails /rails
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server via Thruster by default, this can be overwritten at runtime
-EXPOSE 80
-CMD ["./bin/start-combined"]
+# Puma listens on $PORT (Render sets it; 3000 otherwise). Background jobs run inside
+# Puma when SOLID_QUEUE_IN_PUMA=true, so one process fits a small free instance.
+# The entrypoint runs db:prepare before the server starts.
+EXPOSE 3000
+CMD ["./bin/rails", "server"]

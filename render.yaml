@@ -1,0 +1,25 @@
+# Render Blueprint for the API (free web service, Docker). Create it from the Render
+# dashboard: New > Blueprint > this repo. Values marked sync: false are asked for once.
+services:
+  - type: web
+    name: fintech-fraud-detection-api
+    runtime: docker
+    plan: free
+    region: singapore
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL # Neon direct (unpooled) connection string
+        sync: false
+      - key: SECRET_KEY_BASE # signs the session cookie
+        generateValue: true
+      - key: FRONTEND_URL # the Vercel frontend origin, e.g. https://<project>.vercel.app
+        sync: false
+      - key: APP_HOST # this service's host, e.g. fintech-fraud-detection-api.onrender.com
+        sync: false
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "true"
+      - key: RAILS_MAX_THREADS
+        value: "3"

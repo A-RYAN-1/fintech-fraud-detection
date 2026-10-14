@@ -145,7 +145,7 @@ Local runs need nothing beyond the defaults above: `compose.yaml` sets the backe
 
 | Variable | What it is | Local value |
 |---|---|---|
-| `VITE_API_BASE_URL` | Base URL of the backend API | `http://localhost:3000/api/v1` |
+| `VITE_API_BASE_URL` | Base URL of the backend API (`/api/v1` on Vercel) | `http://localhost:3000/api/v1` |
 | `VITE_APP_NAME` | Name shown in the UI | `Fintech Risk Engine` |
 
 ### Backend (see `backend/.env.development.example` and `backend/.env.production.example`)
@@ -154,11 +154,11 @@ Local runs need nothing beyond the defaults above: `compose.yaml` sets the backe
 |---|---|---|
 | `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME` | PostgreSQL connection for development | local |
 | `DATABASE_URL` | PostgreSQL connection string | production |
-| `RAILS_MASTER_KEY` | Decrypts `config/credentials.yml.enc` | production |
-| `FRONTEND_URL` | Origin allowed by CORS | always |
-| `APP_HOST` | Host used in links in emails | always |
+| `SECRET_KEY_BASE` | Signs the session cookie (`bin/rails secret`) | production |
+| `FRONTEND_URL` | Frontend origin: allowed by CORS and by host authorization (it proxies `/api`) | always |
+| `APP_HOST` | The API's own host: host authorization and links in emails | always |
 | `SOLID_QUEUE_IN_PUMA` | `true` runs background jobs inside the web process | optional |
-| `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | Mail server for notification emails | production |
+| `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | Mail server for blocked-transaction emails; without `SMTP_USERNAME` mail is skipped | optional |
 | `RAILS_LOG_LEVEL` | Log level | optional |
 
 Never commit a real `.env` file; only the `.example` files are tracked.
@@ -299,7 +299,6 @@ Configuration files are located in `backend/config/`:
 - `database.yml` - Database connection settings
 - `environments/` - Environment-specific settings (development, test, production)
 - `puma.rb` - Web server configuration
-- `credentials.yml.enc` - Encrypted secrets (use `rails credentials:edit`)
 
 ### Frontend
 
@@ -312,18 +311,26 @@ Configuration files in `frontend/`:
 
 ## Production Deployment
 
-### Backend
+Free tiers only: the API on a Render free web service (Docker), PostgreSQL on Neon, the frontend on Vercel.
 
-1. Build Docker image
-2. Set environment variables and encrypted credentials
-3. Run database migrations: `rails db:migrate`
-4. Start Puma server with production configuration
+```
+browser ──> Vercel (static frontend) ──/api/*──> Render (Rails API, Solid Queue in Puma) ──> Neon (PostgreSQL)
+```
 
-### Frontend
+The frontend proxies `/api/*` to the API (`frontend/vercel.json`), so the session cookie is first-party and works in browsers that block third-party cookies. The Render free instance sleeps after 15 minutes idle; the first request after that takes about a minute.
 
-1. Build production bundle: `npm run build`
-2. Deploy `dist/` folder to CDN or static hosting
-3. Configure CORS and API endpoints for production
+### Backend (Render)
+
+1. Neon: create a project, open *Connect*, turn connection pooling off and copy the direct connection string (migrations take advisory locks, which a pooler breaks).
+2. Render: *New > Blueprint*, pick this repository. `render.yaml` creates the free web service from `backend/Dockerfile`, generates `SECRET_KEY_BASE`, and asks for `DATABASE_URL`, `FRONTEND_URL` and `APP_HOST`.
+3. The container runs `bin/rails db:prepare` on every start, then Puma on `$PORT` with Solid Queue inside it (about 210 MB of the 512 MB free instance, measured locally). Health check: `/up`.
+4. Demo data: on an empty database `db:prepare` loads the schema and runs `db/seeds.rb` once (5 users, 32 transactions); later restarts only migrate.
+
+### Frontend (Vercel)
+
+1. Import the repository with root directory `frontend` (framework preset: Vite).
+2. Set `VITE_API_BASE_URL=/api/v1`. If the Render service URL differs from the one in `frontend/vercel.json`, update the rewrite destination.
+3. Put the Vercel URL in the API's `FRONTEND_URL`.
 
 ## Contributing
 
