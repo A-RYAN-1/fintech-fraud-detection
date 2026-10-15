@@ -118,7 +118,6 @@ export default function DashboardPage() {
             <StatsCard
               title="Total Transactions"
               value={formatNumber(stats.totalTransactions)}
-              change={12.5}
               icon={Activity}
               isLoading={analyticsLoading}
             />
@@ -127,7 +126,6 @@ export default function DashboardPage() {
             <StatsCard
               title="Successful"
               value={formatNumber(stats.successfulTransactions)}
-              change={8.2}
               icon={CheckCircle}
               iconColor="text-success-600 dark:text-success-400"
               isLoading={analyticsLoading}
@@ -137,7 +135,6 @@ export default function DashboardPage() {
             <StatsCard
               title="Flagged"
               value={formatNumber(stats.flaggedTransactions)}
-              change={-3.1}
               icon={AlertTriangle}
               iconColor="text-warning-600 dark:text-warning-400"
               isLoading={analyticsLoading}
@@ -147,7 +144,6 @@ export default function DashboardPage() {
             <StatsCard
               title="Blocked"
               value={formatNumber(stats.blockedTransactions)}
-              change={2.4}
               icon={Shield}
               iconColor="text-danger-600 dark:text-danger-400"
               isLoading={analyticsLoading}
@@ -157,7 +153,6 @@ export default function DashboardPage() {
             <StatsCard
               title="Total Volume"
               value={formatCurrency(stats.totalVolume)}
-              change={15.8}
               icon={DollarSign}
               isLoading={analyticsLoading}
             />
@@ -166,7 +161,6 @@ export default function DashboardPage() {
             <StatsCard
               title="Success Rate"
               value={`${stats.successRate.toFixed(1)}%`}
-              change={1.2}
               icon={TrendingUp}
               isLoading={analyticsLoading}
             />
