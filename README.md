@@ -60,7 +60,6 @@
 - [Deployment](#deployment)
 - [Status and roadmap](#status-and-roadmap)
 - [Credits](#credits)
-- [License](#license)
 
 ## About
 
@@ -103,10 +102,6 @@ Things to try in the first two minutes:
     <td width="50%"><img src="docs/images/risk-analysis.png" alt="Risk analysis: counts, score distribution and status breakdown"><p align="center"><sub>Risk analysis by period, status and method</sub></p></td>
   </tr>
 </table>
-
-Demo video:
-
-[Fintech Fraud Detection Engine.webm](https://github.com/user-attachments/assets/42ca9ee7-99e5-4c0d-afd0-0cd9f127ea64)
 
 ## Features
 
