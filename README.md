@@ -2,7 +2,17 @@
 
 A comprehensive fraud detection system for fintech applications, built with a robust backend API and modern frontend interface.
 
-Last updated: 2026-10-14. Runs locally; free deployment (Render, Neon, Vercel) in progress, not live yet.
+Last updated: 2026-10-15. Live on free tiers (Vercel, Render, Neon).
+
+## Try it live
+
+https://fintech-fraud-detection-aryan.vercel.app
+
+Demo login: `john@example.com` / `password123` (seeded demo data; anyone can use it). The API sleeps after 15 minutes idle, so the first login can take about a minute.
+
+1. Log in and open the dashboard: transactions, risk scores and spending stats for the demo customer.
+2. Create a small card payment: this browser is a device the account has not used, so it comes back **flagged** (UNTRUSTED_DEVICE).
+3. Create a 95,000 card payment: it comes back **blocked**, with the rules that fired listed (for example AMOUNT_DEVIATION_HIGH, UNTRUSTED_DEVICE).
 
 ## Overview
 
@@ -341,7 +351,7 @@ The frontend proxies `/api/*` to the API (`frontend/vercel.json`), so the sessio
 ## Status and roadmap
 
 - Reached: runs locally from a fresh clone on Windows and Linux (Docker Compose for the API and PostgreSQL, mise for Node), checked 2026-10-13. Backend 37 tests, frontend 174 tests, all passing.
-- In progress: free deployment (API on Render, PostgreSQL on Neon, frontend on Vercel). The production image was verified locally on 2026-10-14; the live URL goes here once it is up.
+- Deployed free on 2026-10-15: frontend on Vercel (https://fintech-fraud-detection-aryan.vercel.app), Rails API on a Render free web service (Docker, Singapore), PostgreSQL on Neon. Checked live that day: login, session cookie, transaction list, a 95,000 payment from a new device blocked.
 - Known limitations: the Render free instance sleeps after 15 minutes idle, so the first request after that takes about a minute. No CI runs yet: the Rails template workflow sits in `backend/.github/`, where GitHub does not pick it up.
 - Planned: CI (GitHub Actions) running both test suites on every push, an uptime check on the live URL, Lighthouse numbers for the frontend.
 
