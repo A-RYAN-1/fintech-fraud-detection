@@ -402,10 +402,6 @@ Built by two people:
 
 - **Aryan Deshmukh** ([A-RYAN-1](https://github.com/A-RYAN-1)): the backend (Rails API, risk rules
   engine, PostgreSQL, Solid Queue jobs) and this free deployment.
-- **[OldStager01](https://github.com/OldStager01)**: the frontend and the original deployment. The
+- **Tanmay Tambat** ([OldStager01](https://github.com/OldStager01)): the frontend and the original deployment. The
   original repository is
   [OldStager01/fintech-fraud-detection](https://github.com/OldStager01/fintech-fraud-detection).
-
-## License
-
-No license yet: all rights reserved by both authors. This may change once the two of us agree on one.
