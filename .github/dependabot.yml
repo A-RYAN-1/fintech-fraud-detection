@@ -1,0 +1,23 @@
+# Weekly version-update pull requests, grouped so each ecosystem opens at most one PR a week.
+version: 2
+updates:
+  - package-ecosystem: bundler
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      gems:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

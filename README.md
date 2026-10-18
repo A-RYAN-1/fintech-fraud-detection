@@ -25,6 +25,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/A-RYAN-1/fintech-fraud-detection/actions/workflows/ci.yml"><img src="https://github.com/A-RYAN-1/fintech-fraud-detection/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Rails-8.1-D30001?logo=rubyonrails&logoColor=white" alt="Rails 8.1">
   <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 16">
   <img src="https://img.shields.io/badge/jobs-Solid%20Queue-555555" alt="Solid Queue">
@@ -247,7 +248,8 @@ API documentation: the [OpenAPI specification](backend/public/openapi.yaml) and 
 | Tests | Backend: 37 Minitest runs (70 assertions) over models, the risk evaluator, integration tests of auth, transactions, notifications and analytics, and mailers. Frontend: 174 Vitest tests in 23 files (UI components, hooks, Redux slices, form schemas, utils), all passing on 2026-10-15 |
 | Security | Session in an httpOnly, Secure, SameSite=None cookie; CORS and Rails host authorization limited to the frontend origin; `SECRET_KEY_BASE` from the environment, never committed; secrets only in `.example` files |
 | Consistency | Each decision and its side effects are written in one database transaction |
-| Checks available | Brakeman, bundler-audit and RuboCop (backend); ESLint and Prettier (frontend) |
+| CI | GitHub Actions on every push and pull request: Minitest against PostgreSQL 16, Vitest, the TypeScript check and the production build (`.github/workflows/ci.yml`); CodeQL for Ruby, TypeScript and the workflows; Dependabot version updates, grouped weekly |
+| Checks available, not in CI yet | Brakeman, bundler-audit and RuboCop (backend); ESLint and Prettier (frontend). They report existing findings, fixed in the next iteration before they become required |
 | Measured | Production image under a 512 MB limit: about 210 MB in use, healthy in 9 s (2026-10-14) |
 
 Run them:
@@ -379,12 +381,13 @@ free tiers since 2026-10-15. Checked live that day: sign-in, session cookie, tra
 - The live demo sends no email (no mail server is configured), so block alerts and weekly reports
   appear only as in-app notifications and audit entries.
 - The frontend has admin pages (users, audit logs) whose API endpoints are not built yet.
-- No CI yet: the Rails template workflow sits in `backend/.github/`, where GitHub does not run it.
+- CI runs the tests and the build only; lint, Brakeman and bundler-audit join once their existing findings are fixed.
 - Ruby 3.2 is past end of life, and `bundler-audit` reports advisories in the locked gems.
 
 **Planned**
 
-- [ ] CI (GitHub Actions) running both test suites and the security checks on every push
+- [x] CI (GitHub Actions) running both test suites and the build on every push, CodeQL and Dependabot
+- [ ] Lint and the security checks (Brakeman, bundler-audit, `npm audit`) required in CI
 - [ ] An uptime check on the live URL and Lighthouse numbers for the frontend
 - [ ] Ruby and gem upgrades until Brakeman and bundler-audit are clean
 - [ ] Period-over-period change on the dashboard cards, computed by the analytics API
