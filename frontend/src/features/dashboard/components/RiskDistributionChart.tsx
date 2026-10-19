@@ -66,10 +66,13 @@ export default function RiskDistributionChart({
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number | undefined) => [
-                  `${value} (${(((value || 0) / total) * 100).toFixed(1)}%)`,
-                  "Count",
-                ]}
+                formatter={(value) => {
+                  const count = Number(value) || 0;
+                  return [
+                    `${count} (${((count / total) * 100).toFixed(1)}%)`,
+                    "Count",
+                  ];
+                }}
                 contentStyle={{
                   backgroundColor: "var(--tooltip-bg, #fff)",
                   border: "1px solid var(--tooltip-border, #e5e5e5)",
