@@ -19,6 +19,10 @@ updates:
       npm:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    ignore:
+      # Tailwind 4 moved its PostCSS plugin; migrate on purpose, not through a bump PR
+      - dependency-name: tailwindcss
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
