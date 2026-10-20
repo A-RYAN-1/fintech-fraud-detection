@@ -6,6 +6,7 @@ module Api
       DEFAULT_PAGE = 1
       DEFAULT_PER_PAGE = 10
       MAX_PER_PAGE = 100
+      SORT_COLUMNS = { "created_at" => :created_at, "amount" => :amount, "risk_score" => :risk_score }.freeze
 
       # GET /api/v1/transactions
       def index
@@ -58,9 +59,9 @@ module Api
         end
 
         # Sorting
-        sort_field = %w[created_at amount risk_score].include?(params[:sort_by]) ? params[:sort_by] : "created_at"
-        sort_order = params[:sort_order] == "asc" ? "asc" : "desc"
-        transactions = transactions.order("#{sort_field} #{sort_order}")
+        sort_column = SORT_COLUMNS.fetch(params[:sort_by].to_s, :created_at)
+        sort_direction = params[:sort_order] == "asc" ? :asc : :desc
+        transactions = transactions.order(sort_column => sort_direction)
 
         # Pagination
         page = (params[:page] || DEFAULT_PAGE).to_i
