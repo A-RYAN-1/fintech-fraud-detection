@@ -15,6 +15,22 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil json_response["data"]["transactions"]
   end
 
+  test "sorts by amount ascending and descending" do
+    get api_v1_transactions_url, params: { sort_by: "amount", sort_order: "asc" }
+    assert_response :success
+    assert_equal [ 100.0, 500.0 ], listed_amounts
+
+    get api_v1_transactions_url, params: { sort_by: "amount", sort_order: "desc" }
+    assert_equal [ 500.0, 100.0 ], listed_amounts
+  end
+
+  test "an unknown sort column falls back to newest first" do
+    get api_v1_transactions_url, params: { sort_by: "amount; DROP TABLE transactions", sort_order: "asc; --" }
+    assert_response :success
+    assert_equal [ 100.0, 500.0 ], listed_amounts
+    assert Transaction.count.positive?
+  end
+
   test "should create transaction" do
     assert_difference("Transaction.count") do
       post api_v1_transactions_url, params: { 
@@ -36,5 +52,11 @@ class TransactionsControllerTest < ActionDispatch::IntegrationTest
       } 
     }
     assert_response :unprocessable_entity
+  end
+
+  private
+
+  def listed_amounts
+    JSON.parse(response.body)["data"]["transactions"].map { |t| t["amount"].to_f }
   end
 end
