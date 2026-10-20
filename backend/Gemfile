@@ -42,7 +42,7 @@ gem "pundit", "~> 2.3"
 gem "rack-attack", "~> 6.6"
 
 # Environment variables
-gem "dotenv-rails", "~> 2.8"
+gem "dotenv-rails", "~> 3.2"
 
 # Pagination
 gem "kaminari", "~> 1.2"
