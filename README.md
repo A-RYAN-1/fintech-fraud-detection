@@ -108,6 +108,9 @@ Things to try in the first two minutes:
 
 - **Rule-based risk scoring** on every new transaction, synchronous: the API answers with the
   outcome, the score and the rules that fired (see [the rules](#the-rules)).
+- **Explainable second score**: a small logistic regression runs next to the rules, returns a risk
+  estimate and the three strongest reasons, and can raise a flag but never blocks (see
+  [the second score](#the-second-score)).
 - **Per-customer baseline**: transaction count, total and average amount, updated only from approved
   payments, so a fraudster's blocked attempts never move the average. The first device used for an
   approved payment becomes the trusted device.
@@ -184,6 +187,43 @@ transaction, as a background job.
 
 Outcome: under 30 approved, 30 to 69 **flagged**, 70 or more **blocked**. The thresholds and points
 are constants in [`risk_rules_processor.rb`](backend/app/services/risk_rules_processor.rb).
+
+### The second score
+
+The rules are fixed constants, so they cannot see the hour, the payment method, a new IP address or
+a burst over the last hour. A logistic regression adds those signals as a second opinion:
+
+- **What it returns**: `ml_score` (a probability) and `ml_explanation` (the top three features that
+  pushed it up, each with its contribution) on every transaction. The contributions are exact for a
+  linear model: coefficient times the feature's distance from the training average.
+- **What it can do**: lift an approved payment to flagged, with the rule `ML_RISK_SCORE`. It never
+  blocks, never lowers a rule result, and if it fails the rules decide alone. `ML_SCORE_ENABLED=false`
+  turns it off.
+- **How it is served**: a versioned file of coefficients ([`risk_model_v1.json`](backend/config/ml/risk_model_v1.json))
+  evaluated in plain Ruby ([`ml_risk_scorer.rb`](backend/app/services/ml_risk_scorer.rb)). No extra gem, no
+  extra service, no cost, no cold start.
+- **How it was built**: [`ml/`](ml/) holds the synthetic data generator, the training script and the
+  results. Training ran on Kaggle, not on a laptop. A golden test replays vectors from the training run in Ruby, so
+  the two implementations cannot drift apart unnoticed.
+
+**Measured on 40,000 held-out synthetic transactions (3.4% fraud), 2026-10-21**
+
+| | Precision | Recall | False positive rate | PR-AUC |
+|---|---|---|---|---|
+| Rules alone (flagged or blocked) | 5.5% | 18.3% | 11.0% | 0.045 |
+| Rules or logistic regression (shipped) | 7.7% | 31.4% | 13.1% | 0.112 (model alone) |
+| Rules or gradient boosting | 7.8% | 31.7% | 13.0% | 0.127 (model alone) |
+| Rules or isolation forest | 6.0% | 23.8% | 13.0% | 0.071 (model alone) |
+
+The cut-off was chosen on a separate validation set so the second score adds at most two points of
+false positives. Gradient boosting is 0.3 points better on recall, not enough to give up exact
+explanations and a dependency-free scorer, so logistic regression ships. Full numbers:
+[`ml/results/metrics.json`](ml/results/metrics.json) and [`docs/ml-second-score.md`](docs/ml-second-score.md).
+
+**Limit, stated plainly:** there is no real labelled fraud data. The labels come from a generator I
+wrote ([`ml/synthetic.py`](ml/synthetic.py)), so these numbers show the second score adds signal the
+rules lack on that generator, not that it detects real fraud. The customer feedback (accurate or not)
+already stored on each evaluation is the route to real labels.
 
 ### Tech stack
 
@@ -331,6 +371,7 @@ Local runs need nothing beyond the defaults above: `compose.yaml` sets the backe
 | `SECRET_KEY_BASE` | Signs the session cookie (`bin/rails secret`) | production |
 | `FRONTEND_URL` | Frontend origin: allowed by CORS and by host authorization (it proxies `/api`) | always |
 | `APP_HOST` | The API's own host: host authorization and links in emails | always |
+| `ML_SCORE_ENABLED` | `false` switches the second score off; default on | optional |
 | `SOLID_QUEUE_IN_PUMA` | `true` runs background jobs inside the web process | optional |
 | `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | Mail server for the emails; without `SMTP_USERNAME` mail is skipped | optional |
 | `RAILS_LOG_LEVEL` | Log level | optional |
@@ -391,6 +432,7 @@ free tiers since 2026-10-15. Checked live that day: sign-in, session cookie, tra
 - [ ] An uptime check on the live URL and Lighthouse numbers for the frontend
 - [ ] Ruby and gem upgrades until Brakeman and bundler-audit are clean
 - [ ] Period-over-period change on the dashboard cards, computed by the analytics API
+- [x] Explainable second risk score next to the rules (2026-10-21)
 - [ ] Admin API for the users and audit-log pages
 - [ ] Confirm the weekly report schedule (`config/recurring.yml`) runs in production
 

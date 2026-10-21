@@ -23,8 +23,16 @@ class TransactionPostProcessor
     FraudEvaluation.create!(
       financial_transaction: @transaction,
       risk_score: @risk_score,
-      rules_triggered: @triggered_rules.join(',')
+      rules_triggered: @triggered_rules.join(','),
+      **ml_attributes
     )
+  end
+
+  def ml_attributes
+    ml = @result[:ml]
+    return {} unless ml
+
+    { ml_score: ml[:probability], ml_version: ml[:version], ml_explanation: ml[:reasons] }
   end
 
   def update_transaction_status!

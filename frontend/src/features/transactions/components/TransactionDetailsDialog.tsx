@@ -10,6 +10,7 @@ import {
 import { cn, formatDateTime } from "@/utils";
 import { formatCurrency } from "@/features/dashboard";
 import type { Transaction, TransactionStatus } from "@/types";
+import MlScoreSection from "./MlScoreSection";
 
 interface TransactionDetailsDialogProps {
   transaction: Transaction | null;
@@ -149,6 +150,11 @@ export default function TransactionDetailsDialog({
               </div>
             </div>
           )}
+
+          <MlScoreSection
+            score={transaction.ml_score}
+            reasons={transaction.ml_explanation}
+          />
 
           <Separator />
 
