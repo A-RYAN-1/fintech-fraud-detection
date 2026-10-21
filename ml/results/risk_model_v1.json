@@ -1,0 +1,59 @@
+{
+  "version": "v1",
+  "type": "logistic_regression",
+  "trained_on": "synthetic labelled transactions (ml/synthetic.py), not real fraud data",
+  "features": [
+    "log_amount",
+    "log_amount_ratio",
+    "first_txn",
+    "log_txns_1m",
+    "log_txns_1h",
+    "night",
+    "pay_upi",
+    "pay_bank_transfer",
+    "pay_wallet",
+    "new_ip",
+    "untrusted_device"
+  ],
+  "mean": [
+    7.196186,
+    0.696441,
+    0.08037,
+    0.203258,
+    0.534681,
+    0.25106,
+    0.29955,
+    0.121,
+    0.07996,
+    0.11066,
+    0.05435
+  ],
+  "scale": [
+    1.246913,
+    0.549479,
+    0.271865,
+    0.416701,
+    0.524935,
+    0.433623,
+    0.458061,
+    0.326127,
+    0.271231,
+    0.313711,
+    0.226707
+  ],
+  "coef": [
+    0.022708,
+    0.276793,
+    0.007312,
+    0.12305,
+    0.102465,
+    0.340024,
+    0.150668,
+    -0.018556,
+    0.196254,
+    0.373579,
+    0.066942
+  ],
+  "intercept": -3.615453,
+  "flag_threshold": 0.097308
+}
