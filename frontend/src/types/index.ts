@@ -49,7 +49,16 @@ export interface Transaction {
   ip_address: string;
   created_at: string;
   rules_triggered: string | null;
+  ml_score?: number | null;
+  ml_explanation?: MlReason[];
   feedback_submitted: boolean;
+}
+
+// One reason the second-score model gave, largest contribution first.
+export interface MlReason {
+  feature: string;
+  label: string;
+  contribution: number;
 }
 
 // User Stats
