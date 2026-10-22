@@ -14,6 +14,16 @@ Rails.application.routes.draw do
 
       get "analytics", to: "analytics#show"
 
+      namespace :admin do
+        resources :users, only: [ :index ] do
+          member do
+            patch :status, action: :update_status
+            patch :role, action: :update_role
+          end
+        end
+        resources :audit_logs, only: [ :index ]
+      end
+
       resources :transactions, only: [ :index, :create ] do
         post "feedback", to: "fraud_feedbacks#create"
       end

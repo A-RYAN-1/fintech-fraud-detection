@@ -119,7 +119,8 @@ Things to try in the first two minutes:
   recorded in the audit log.
 - **Notifications** for every flagged or blocked payment (list, mark read, mark all read, delete) and
   an **email** on every block, sent in the background by Solid Queue.
-- **Audit log** of every decision and every piece of feedback.
+- **Audit log** of every decision and every piece of feedback, and of every role or status change an admin makes.
+- **Admin API** (`/api/v1/admin`): admins and managers list users with filters and pagination; admins suspend or reactivate an account and change a role, each change written to the audit log, and read the audit log itself. A suspended user's open session ends on its next request.
 - **Weekly report** job (`WeeklyReportJob`) that emails each customer a summary of their last 7 days.
 - **Analytics API and dashboard**: totals by outcome, volume over 7, 30 or 90 days, risk distribution,
   a day-by-hour heatmap, score ranges, top triggered rules and high-risk payments, filterable by
@@ -261,7 +262,7 @@ already stored on each evaluation is the route to real labels.
 compose.yaml                     local API + PostgreSQL
 render.yaml                      Render blueprint for the API
 backend/                         Rails API
-  app/controllers/api/v1/        auth, transactions, feedback, notifications, analytics, health
+  app/controllers/api/v1/        auth, transactions, feedback, notifications, analytics, health, admin
   app/services/                  risk_rules_processor, transaction_risk_evaluator,
                                  transaction_post_processor
   app/models/                    user, transaction, device, fraud_evaluation,
@@ -285,7 +286,7 @@ API documentation: the [OpenAPI specification](backend/public/openapi.yaml) and 
 
 | Area | What is in place |
 |---|---|
-| Tests | Backend: 37 Minitest runs (70 assertions) over models, the risk evaluator, integration tests of auth, transactions, notifications and analytics, and mailers. Frontend: 174 Vitest tests in 23 files (UI components, hooks, Redux slices, form schemas, utils), all passing on 2026-10-15 |
+| Tests | Backend: 73 Minitest runs (195 assertions, 2026-10-22) over models, the risk evaluator, integration tests of auth, transactions, notifications, analytics and the admin API, and mailers. Frontend: 174 Vitest tests in 23 files (UI components, hooks, Redux slices, form schemas, utils), all passing on 2026-10-15 |
 | Security | Session in an httpOnly, Secure, SameSite=None cookie; CORS and Rails host authorization limited to the frontend origin; `SECRET_KEY_BASE` from the environment, never committed; secrets only in `.example` files |
 | Consistency | Each decision and its side effects are written in one database transaction |
 | CI | GitHub Actions on every push and pull request: Minitest against PostgreSQL 16, Vitest, the TypeScript check and the production build (`.github/workflows/ci.yml`); CodeQL for Ruby, TypeScript and the workflows; Dependabot version updates, grouped weekly |
@@ -421,7 +422,7 @@ free tiers since 2026-10-15. Checked live that day: sign-in, session cookie, tra
   minute.
 - The live demo sends no email (no mail server is configured), so block alerts and weekly reports
   appear only as in-app notifications and audit entries.
-- The frontend has admin pages (users, audit logs) whose API endpoints are not built yet.
+- The admin pages are in the frontend code but not linked from the navigation yet; the admin API behind them is live.
 - CI runs the tests and the build only; lint, Brakeman and bundler-audit join once their existing findings are fixed.
 - Ruby 3.2 is past end of life, and `bundler-audit` reports advisories in the locked gems.
 
@@ -433,7 +434,7 @@ free tiers since 2026-10-15. Checked live that day: sign-in, session cookie, tra
 - [ ] Ruby and gem upgrades until Brakeman and bundler-audit are clean
 - [ ] Period-over-period change on the dashboard cards, computed by the analytics API
 - [x] Explainable second risk score next to the rules (2026-10-21)
-- [ ] Admin API for the users and audit-log pages
+- [x] Admin API for the users and audit-log pages (2026-10-22)
 - [ ] Confirm the weekly report schedule (`config/recurring.yml`) runs in production
 
 ## Credits

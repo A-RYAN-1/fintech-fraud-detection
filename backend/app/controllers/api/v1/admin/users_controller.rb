@@ -1,0 +1,90 @@
+module Api
+  module V1
+    module Admin
+      class UsersController < BaseController
+        before_action :require_staff!, only: :index
+        before_action :require_admin!, only: [ :update_status, :update_role ]
+        before_action :set_user, only: [ :update_status, :update_role ]
+
+        # GET /api/v1/admin/users?page=1&per_page=10&role=customer&status=active&search=jane
+        def index
+          users = User.order(created_at: :desc, id: :desc)
+
+          if params[:role].present?
+            return render_error("Invalid role", :unprocessable_entity) unless User.roles.key?(params[:role])
+
+            users = users.where(role: params[:role])
+          end
+
+          if params[:status].present?
+            return render_error("Invalid status", :unprocessable_entity) unless User.statuses.key?(params[:status])
+
+            users = users.where(status: params[:status])
+          end
+
+          if params[:search].present?
+            term = "%#{ActiveRecord::Base.sanitize_sql_like(params[:search].to_s.strip)}%"
+            users = users.where("email ILIKE :term OR first_name ILIKE :term OR last_name ILIKE :term", term: term)
+          end
+
+          records, pagination = paginate(users)
+          render_success({ users: records.map { |u| serialize_user(u) }, pagination: pagination })
+        end
+
+        # PATCH /api/v1/admin/users/:id/status
+        def update_status
+          change_attribute(:status, User.statuses)
+        end
+
+        # PATCH /api/v1/admin/users/:id/role
+        def update_role
+          change_attribute(:role, User.roles)
+        end
+
+        private
+
+        def set_user
+          @user = User.find(params[:id])
+        rescue ActiveRecord::RecordNotFound
+          render_error("User not found", :not_found)
+        end
+
+        # Changes one enum attribute and records who did it, in one transaction.
+        # An admin cannot change their own role or status, so the last admin cannot lock everyone out.
+        def change_attribute(attribute, allowed)
+          return render_error("You cannot change your own #{attribute}", :unprocessable_entity) if @user == current_user
+
+          new_value = params[attribute].to_s
+          return render_error("Invalid #{attribute}", :unprocessable_entity) unless allowed.key?(new_value)
+
+          old_value = @user.public_send(attribute)
+          unless old_value == new_value
+            ActiveRecord::Base.transaction do
+              @user.update!(attribute => new_value)
+              AuditLog.create!(
+                event_type: "USER_#{attribute.to_s.upcase}_CHANGED",
+                entity_type: "User",
+                entity_id: @user.id.to_s,
+                description: "#{current_user.email} changed #{attribute} of #{@user.email} from #{old_value} to #{new_value}"
+              )
+            end
+          end
+
+          render_success(serialize_user(@user), "User #{attribute} updated")
+        end
+
+        def serialize_user(user)
+          {
+            id: user.id,
+            email: user.email,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            role: user.role,
+            status: user.status,
+            created_at: user.created_at
+          }
+        end
+      end
+    end
+  end
+end

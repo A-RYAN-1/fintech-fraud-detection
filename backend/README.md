@@ -167,6 +167,12 @@ Handles all database writes and external actions:
 - If a user identifies an error in the risk decision, they submit feedback via `POST /api/v1/transactions/:id/feedback`.
 - Feedback submission and audit logging are wrapped in a **database transaction** — if the audit log fails, the feedback update is rolled back.
 
+### Admin API
+- `GET /api/v1/admin/users` (admin, manager): filters `role`, `status`, `search`, plus `page` and `per_page` (max 100).
+- `PATCH /api/v1/admin/users/:id/status` and `PATCH /api/v1/admin/users/:id/role` (admin only): each change is written to the audit log in the same database transaction. An admin cannot change their own role or status.
+- `GET /api/v1/admin/audit_logs` (admin only): filters `event_type`, `entity_type`, newest first.
+- Suspending a user also ends that user's open session on its next request.
+
 ### 6. Recurring Intelligence
 - **SolidQueue Scheduler:** Runs every Monday at 08:00 AM.
 - **WeeklyReportJob:** Collects 7-day transaction volumes, average spending, and security alert counts.
@@ -182,6 +188,7 @@ app/
 ├── controllers/
 │   └── api/v1/
 │       ├── auth/                    # Registration & Session management
+│       ├── admin/                   # Users and audit-log endpoints for admins and managers
 │       ├── analytics_controller.rb  # Dashboard analytics with risk constants
 │       ├── fraud_feedbacks_controller.rb  # User feedback with atomic writes
 │       ├── health_controller.rb     # Health check endpoint
