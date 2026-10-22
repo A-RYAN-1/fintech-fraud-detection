@@ -173,6 +173,12 @@ Handles all database writes and external actions:
 - `GET /api/v1/admin/audit_logs` (admin only): filters `event_type`, `entity_type`, newest first.
 - Suspending a user also ends that user's open session on its next request.
 
+### Editable risk rules
+The numbers behind the rules (19 keys: the block and flag thresholds, each rule's points, the deviation multipliers, the amount bounds, the velocity window) are stored in the `risk_rule_settings` table (`key` unique, `value`, `updated_by`). The migration seeds today's values, so scoring is unchanged until someone edits; a missing row falls back to the default in `RiskRuleConfig`, which also holds each key's allowed range. Values are read once per request.
+- `GET /api/v1/admin/risk_rules` (admin, manager): every key with `value`, `default`, `min`, `max`, `whole_number` and a description.
+- `PATCH /api/v1/admin/risk_rules/:key` with `value` (admin only): writes a `RISK_RULE_CHANGED` audit entry holding the old and new value. 422 for a non-number, a value outside the range, a fractional value on a whole-number key, or one that breaks an order (`flag_threshold` < `block_threshold`; low < medium < high multipliers; medium < large < very large amount bounds); 404 for an unknown key.
+- `POST /api/v1/admin/risk_rules/reset` (admin only): restores every default and writes one `RISK_RULES_RESET` audit entry.
+
 ### 6. Recurring Intelligence
 - **SolidQueue Scheduler:** Runs every Monday at 08:00 AM.
 - **WeeklyReportJob:** Collects 7-day transaction volumes, average spending, and security alert counts.

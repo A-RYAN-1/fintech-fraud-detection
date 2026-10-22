@@ -74,7 +74,7 @@ module Api
         total_volume = transactions.where(status: [ :success, :flagged ]).sum(:amount).to_f
         average_spending = total > 0 ? (total_volume / total).round(2) : 0
         avg_risk_score = total > 0 ? transactions.average(:risk_score).to_f.round(1) : 0
-        high_risk_count = transactions.where("risk_score >= ?", RiskRulesProcessor::BLOCKED_SCORE_THRESHOLD).count
+        high_risk_count = transactions.where("risk_score >= ?", RiskRuleConfig.get(:block_threshold)).count
 
         {
           total_transactions: total,
@@ -113,9 +113,9 @@ module Api
       end
 
       def build_risk_distribution(transactions)
-        low = transactions.where("risk_score < ?", RiskRulesProcessor::FLAGGED_SCORE_THRESHOLD).count
-        medium = transactions.where("risk_score >= ? AND risk_score < ?", RiskRulesProcessor::FLAGGED_SCORE_THRESHOLD, RiskRulesProcessor::BLOCKED_SCORE_THRESHOLD).count
-        high = transactions.where("risk_score >= ?", RiskRulesProcessor::BLOCKED_SCORE_THRESHOLD).count
+        low = transactions.where("risk_score < ?", RiskRuleConfig.get(:flag_threshold)).count
+        medium = transactions.where("risk_score >= ? AND risk_score < ?", RiskRuleConfig.get(:flag_threshold), RiskRuleConfig.get(:block_threshold)).count
+        high = transactions.where("risk_score >= ?", RiskRuleConfig.get(:block_threshold)).count
 
         [
           { name: "Low Risk", value: low, color: "#22c55e" },
@@ -150,8 +150,8 @@ module Api
             count = entry ? entry[:count] : 0
             avg_risk = entry ? entry[:avg_risk] : 0
 
-            risk_level = if avg_risk >= RiskRulesProcessor::BLOCKED_SCORE_THRESHOLD then "high"
-                         elsif avg_risk >= RiskRulesProcessor::FLAGGED_SCORE_THRESHOLD then "medium"
+            risk_level = if avg_risk >= RiskRuleConfig.get(:block_threshold) then "high"
+                         elsif avg_risk >= RiskRuleConfig.get(:flag_threshold) then "medium"
                          else "low"
                          end
 
@@ -192,7 +192,7 @@ module Api
 
       def build_high_risk_transactions(transactions)
         transactions
-          .where("risk_score >= ?", RiskRulesProcessor::FLAGGED_SCORE_THRESHOLD)
+          .where("risk_score >= ?", RiskRuleConfig.get(:flag_threshold))
           .order(risk_score: :desc)
           .limit(5)
           .map do |t|

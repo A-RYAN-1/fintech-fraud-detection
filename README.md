@@ -120,7 +120,7 @@ Things to try in the first two minutes:
 - **Notifications** for every flagged or blocked payment (list, mark read, mark all read, delete) and
   an **email** on every block, sent in the background by Solid Queue.
 - **Audit log** of every decision and every piece of feedback, and of every role or status change an admin makes.
-- **Admin API** (`/api/v1/admin`): admins and managers list users with filters and pagination; admins suspend or reactivate an account and change a role, each change written to the audit log, and read the audit log itself. A suspended user's open session ends on its next request.
+- **Admin API** (`/api/v1/admin`): admins and managers list users with filters and pagination; admins suspend or reactivate an account and change a role, each change written to the audit log, and read the audit log itself. Admins also tune the risk rules (thresholds, points, multipliers) with an audited change and a reset to defaults; managers can read them. A suspended user's open session ends on its next request.
 - **Weekly report** job (`WeeklyReportJob`) that emails each customer a summary of their last 7 days.
 - **Analytics API and dashboard**: totals by outcome, volume over 7, 30 or 90 days, risk distribution,
   a day-by-hour heatmap, score ranges, top triggered rules and high-risk payments, filterable by
@@ -186,8 +186,10 @@ transaction, as a background job.
 | `UNTRUSTED_DEVICE` | the device differs from the customer's trusted device | 30 |
 | `MISSING_DEVICE_ID` | no device id was sent | 50 |
 
-Outcome: under 30 approved, 30 to 69 **flagged**, 70 or more **blocked**. The thresholds and points
-are constants in [`risk_rules_processor.rb`](backend/app/services/risk_rules_processor.rb).
+Outcome: under 30 approved, 30 to 69 **flagged**, 70 or more **blocked**. These numbers are the shipped
+defaults. Nineteen of them (thresholds, points, multipliers, amount bounds, the velocity window) live in the
+`risk_rule_settings` table and an admin can change them through the API without a deploy; see
+[`RiskRuleConfig`](backend/app/models/risk_rule_config.rb) for each key, its default and its allowed range.
 
 ### The second score
 
@@ -286,7 +288,7 @@ API documentation: the [OpenAPI specification](backend/public/openapi.yaml) and 
 
 | Area | What is in place |
 |---|---|
-| Tests | Backend: 73 Minitest runs (195 assertions, 2026-10-22) over models, the risk evaluator, integration tests of auth, transactions, notifications, analytics and the admin API, and mailers. Frontend: 174 Vitest tests in 23 files (UI components, hooks, Redux slices, form schemas, utils), all passing on 2026-10-15 |
+| Tests | Backend: 92 Minitest runs (298 assertions, 2026-10-22) over models, the risk evaluator, integration tests of auth, transactions, notifications, analytics, the admin API and the editable rules, and mailers. Frontend: 174 Vitest tests in 23 files (UI components, hooks, Redux slices, form schemas, utils), all passing on 2026-10-15 |
 | Security | Session in an httpOnly, Secure, SameSite=None cookie; CORS and Rails host authorization limited to the frontend origin; `SECRET_KEY_BASE` from the environment, never committed; secrets only in `.example` files |
 | Consistency | Each decision and its side effects are written in one database transaction |
 | CI | GitHub Actions on every push and pull request: Minitest against PostgreSQL 16, Vitest, the TypeScript check and the production build (`.github/workflows/ci.yml`); CodeQL for Ruby, TypeScript and the workflows; Dependabot version updates, grouped weekly |
@@ -422,7 +424,7 @@ free tiers since 2026-10-15. Checked live that day: sign-in, session cookie, tra
   minute.
 - The live demo sends no email (no mail server is configured), so block alerts and weekly reports
   appear only as in-app notifications and audit entries.
-- The admin pages are in the frontend code but not linked from the navigation yet; the admin API behind them is live.
+- The admin pages are in the frontend code but not linked from the navigation yet; the admin API behind them is live. There is no screen for the editable risk rules yet, only the API.
 - CI runs the tests and the build only; lint, Brakeman and bundler-audit join once their existing findings are fixed.
 - Ruby 3.2 is past end of life, and `bundler-audit` reports advisories in the locked gems.
 
@@ -435,6 +437,7 @@ free tiers since 2026-10-15. Checked live that day: sign-in, session cookie, tra
 - [ ] Period-over-period change on the dashboard cards, computed by the analytics API
 - [x] Explainable second risk score next to the rules (2026-10-21)
 - [x] Admin API for the users and audit-log pages (2026-10-22)
+- [x] Risk rules editable by an admin, audited, with defaults and limits (2026-10-22)
 - [ ] Confirm the weekly report schedule (`config/recurring.yml`) runs in production
 
 ## Credits
