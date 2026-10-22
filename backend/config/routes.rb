@@ -22,6 +22,10 @@ Rails.application.routes.draw do
           end
         end
         resources :audit_logs, only: [ :index ]
+        resources :risk_rules, only: [ :index ], param: :key do
+          collection { post :reset }
+        end
+        patch "risk_rules/:key", to: "risk_rules#update", as: :risk_rule
       end
 
       resources :transactions, only: [ :index, :create ] do

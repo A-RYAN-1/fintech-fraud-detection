@@ -39,7 +39,7 @@ class TransactionRiskEvaluator
 
     results.merge(
       status: :flagged,
-      risk_score: RiskRulesProcessor::FLAGGED_SCORE_THRESHOLD,
+      risk_score: RiskRuleConfig.get(:flag_threshold).to_i,
       triggered_rules: rule_results[:triggered_rules] + [ "ML_RISK_SCORE" ]
     )
   end

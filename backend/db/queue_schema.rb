@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_09_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -44,6 +44,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_09_120000) do
     t.uuid "transaction_id", null: false
     t.datetime "updated_at", null: false
     t.text "user_feedback"
+    t.float "ml_score"
+    t.string "ml_version"
+    t.jsonb "ml_explanation"
     t.index ["is_accurate"], name: "index_fraud_evaluations_on_is_accurate"
     t.index ["transaction_id"], name: "index_fraud_evaluations_on_transaction_id"
   end
@@ -63,6 +66,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_09_120000) do
     t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
     t.index ["user_id", "read"], name: "index_notifications_on_user_id_and_read"
     t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
+  create_table "risk_rule_settings", force: :cascade do |t|
+    t.string "key", null: false
+    t.decimal "value", precision: 14, scale: 2, null: false
+    t.bigint "updated_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_risk_rule_settings_on_key", unique: true
+    t.index ["updated_by_id"], name: "index_risk_rule_settings_on_updated_by_id"
   end
 
   create_table "solid_queue_blocked_executions", force: :cascade do |t|
@@ -229,6 +242,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_09_120000) do
   add_foreign_key "devices", "users"
   add_foreign_key "fraud_evaluations", "transactions"
   add_foreign_key "notifications", "users"
+  add_foreign_key "risk_rule_settings", "users", column: "updated_by_id", on_delete: :nullify
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

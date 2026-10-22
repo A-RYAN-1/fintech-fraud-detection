@@ -87,7 +87,7 @@ class TransactionRiskEvaluatorTest < ActiveSupport::TestCase
     status = with_ml_score(FLAGGING_ML.merge(probability: 0.999)) { TransactionRiskEvaluator.new(transaction).evaluate }
 
     assert_not_equal :blocked, status
-    assert_operator transaction.reload.risk_score, :<, RiskRulesProcessor::BLOCKED_SCORE_THRESHOLD
+    assert_operator transaction.reload.risk_score, :<, RiskRuleConfig.get(:block_threshold)
   end
 
   test "a rule block stays blocked whatever the ML score says" do
