@@ -15,9 +15,13 @@ class ApplicationController < ActionController::API
   end
 
   def authenticate_user!
-    return if current_user
+    return render_error("Authentication required", :unauthorized) unless current_user
+    return if current_user.active?
 
-    render_error("Authentication required", :unauthorized)
+    # An admin can suspend an account that already has a session; its next request ends it.
+    reset_session
+    @current_user = nil
+    render_error("Account is suspended", :forbidden)
   end
 
   protected
