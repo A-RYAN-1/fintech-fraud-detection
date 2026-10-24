@@ -28,6 +28,9 @@ Rails.application.routes.draw do
         patch "risk_rules/:key", to: "risk_rules#update", as: :risk_rule
       end
 
+      post "paypal/orders", to: "paypal_orders#create"
+      post "paypal/orders/:order_id/authorize", to: "paypal_orders#authorize"
+
       resources :transactions, only: [ :index, :create ] do
         post "feedback", to: "fraud_feedbacks#create"
       end
