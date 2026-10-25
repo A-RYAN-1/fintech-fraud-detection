@@ -106,4 +106,32 @@ class TransactionRiskEvaluatorTest < ActiveSupport::TestCase
     assert_equal :success, status
     assert_nil transaction.reload.fraud_evaluation.ml_score
   end
+
+  def with_ai_verdict(result)
+    original = AiAnalyst.instance_method(:verdict)
+    AiAnalyst.send(:define_method, :verdict) { |_facts| result }
+    yield
+  ensure
+    AiAnalyst.send(:define_method, :verdict, original)
+  end
+
+  AI_VERDICT = { action: "approve", confidence: 0.9, explanation: "Nothing unusual.", model: "test" }.freeze
+
+  test "the AI verdict is stored next to the evaluation and never changes the status" do
+    transaction = Transaction.create!(amount: 1001, payment_method: "card", device_id: "untrusted_device", user: @user)
+
+    status = with_ai_verdict(AI_VERDICT) { TransactionRiskEvaluator.new(transaction).evaluate }
+
+    assert_equal :blocked, status
+    assert_equal "approve", transaction.reload.fraud_evaluation.ai_verdict["action"]
+  end
+
+  test "evaluation works when the AI analyst has nothing to say" do
+    transaction = Transaction.create!(amount: 100, payment_method: "card", device_id: @device.device_id, user: @user)
+
+    status = with_ai_verdict(nil) { TransactionRiskEvaluator.new(transaction).evaluate }
+
+    assert_equal :success, status
+    assert_nil transaction.reload.fraud_evaluation.ai_verdict
+  end
 end

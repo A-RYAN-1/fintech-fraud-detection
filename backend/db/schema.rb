@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_24_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_25_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -47,6 +47,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_120000) do
     t.float "ml_score"
     t.string "ml_version"
     t.jsonb "ml_explanation"
+    t.jsonb "ai_verdict"
     t.index ["is_accurate"], name: "index_fraud_evaluations_on_is_accurate"
     t.index ["transaction_id"], name: "index_fraud_evaluations_on_transaction_id"
   end

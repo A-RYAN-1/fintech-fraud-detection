@@ -1,0 +1,654 @@
+[
+  {
+    "id": "A01",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "under 50",
+      "payment_method": "card",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.02,
+      "model_top_reasons": []
+    }
+  },
+  {
+    "id": "A02",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "50 to 250",
+      "payment_method": "wallet",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 1,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.05,
+      "model_top_reasons": []
+    }
+  },
+  {
+    "id": "A03",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "50 to 250",
+      "payment_method": "upi",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "1.5 to 3 times the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.08,
+      "model_top_reasons": []
+    }
+  },
+  {
+    "id": "A04",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "250 to 1,000",
+      "payment_method": "card",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.06,
+      "model_top_reasons": []
+    }
+  },
+  {
+    "id": "A05",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "under 50",
+      "payment_method": "bank_transfer",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": true,
+      "amount_vs_user_average": "no history",
+      "transactions_by_user_last_hour": 0,
+      "device": "no trusted device yet",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.12,
+      "model_top_reasons": [
+        "First transaction of the user"
+      ]
+    }
+  },
+  {
+    "id": "A06",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "50 to 250",
+      "payment_method": "card",
+      "time_of_day_utc": "night (00:00 to 06:00)",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.1,
+      "model_top_reasons": [
+        "Night-time transaction (00:00 to 06:00 UTC)"
+      ]
+    }
+  },
+  {
+    "id": "A07",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "250 to 1,000",
+      "payment_method": "wallet",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "1.5 to 3 times the average",
+      "transactions_by_user_last_hour": 2,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.11,
+      "model_top_reasons": []
+    }
+  },
+  {
+    "id": "A08",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "under 50",
+      "payment_method": "upi",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.03,
+      "model_top_reasons": []
+    }
+  },
+  {
+    "id": "A09",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "50 to 250",
+      "payment_method": "card",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": true,
+      "amount_vs_user_average": "no history",
+      "transactions_by_user_last_hour": 0,
+      "device": "no trusted device yet",
+      "rules_decision": "review",
+      "rules_risk_score": 30,
+      "rules_triggered": [
+        "MISSING_DEVICE_ID"
+      ],
+      "model_risk_probability": 0.15,
+      "model_top_reasons": [
+        "First transaction of the user"
+      ]
+    }
+  },
+  {
+    "id": "A10",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "250 to 1,000",
+      "payment_method": "bank_transfer",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.09,
+      "model_top_reasons": []
+    }
+  },
+  {
+    "id": "R01",
+    "label": "review",
+    "facts": {
+      "amount_band_usd": "1,000 to 5,000",
+      "payment_method": "card",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "3 to 10 times the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "trusted",
+      "rules_decision": "review",
+      "rules_risk_score": 30,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_MEDIUM"
+      ],
+      "model_risk_probability": 0.45,
+      "model_top_reasons": [
+        "Amount far above the user's average"
+      ]
+    }
+  },
+  {
+    "id": "R02",
+    "label": "review",
+    "facts": {
+      "amount_band_usd": "250 to 1,000",
+      "payment_method": "wallet",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "different from the trusted device",
+      "rules_decision": "review",
+      "rules_risk_score": 30,
+      "rules_triggered": [
+        "UNTRUSTED_DEVICE"
+      ],
+      "model_risk_probability": 0.38,
+      "model_top_reasons": [
+        "Device differs from the trusted device"
+      ]
+    }
+  },
+  {
+    "id": "R03",
+    "label": "review",
+    "facts": {
+      "amount_band_usd": "1,000 to 5,000",
+      "payment_method": "upi",
+      "time_of_day_utc": "night (00:00 to 06:00)",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "1.5 to 3 times the average",
+      "transactions_by_user_last_hour": 1,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.41,
+      "model_top_reasons": [
+        "Large amount",
+        "Night-time transaction (00:00 to 06:00 UTC)"
+      ]
+    }
+  },
+  {
+    "id": "R04",
+    "label": "review",
+    "facts": {
+      "amount_band_usd": "5,000 and above",
+      "payment_method": "card",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": true,
+      "amount_vs_user_average": "no history",
+      "transactions_by_user_last_hour": 0,
+      "device": "no trusted device yet",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.52,
+      "model_top_reasons": [
+        "Large amount",
+        "First transaction of the user"
+      ]
+    }
+  },
+  {
+    "id": "R05",
+    "label": "review",
+    "facts": {
+      "amount_band_usd": "250 to 1,000",
+      "payment_method": "card",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "3 to 10 times the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "trusted",
+      "rules_decision": "review",
+      "rules_risk_score": 30,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_MEDIUM"
+      ],
+      "model_risk_probability": 0.33,
+      "model_top_reasons": [
+        "Amount far above the user's average"
+      ]
+    }
+  },
+  {
+    "id": "R06",
+    "label": "review",
+    "facts": {
+      "amount_band_usd": "50 to 250",
+      "payment_method": "wallet",
+      "time_of_day_utc": "night (00:00 to 06:00)",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "different from the trusted device",
+      "rules_decision": "review",
+      "rules_risk_score": 30,
+      "rules_triggered": [
+        "UNTRUSTED_DEVICE"
+      ],
+      "model_risk_probability": 0.36,
+      "model_top_reasons": [
+        "Device differs from the trusted device",
+        "Night-time transaction (00:00 to 06:00 UTC)"
+      ]
+    }
+  },
+  {
+    "id": "R07",
+    "label": "review",
+    "facts": {
+      "amount_band_usd": "1,000 to 5,000",
+      "payment_method": "bank_transfer",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "1.5 to 3 times the average",
+      "transactions_by_user_last_hour": 3,
+      "device": "trusted",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.47,
+      "model_top_reasons": [
+        "Several transactions in the last hour",
+        "Large amount"
+      ]
+    }
+  },
+  {
+    "id": "R08",
+    "label": "review",
+    "facts": {
+      "amount_band_usd": "5,000 and above",
+      "payment_method": "wallet",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "trusted",
+      "rules_decision": "review",
+      "rules_risk_score": 30,
+      "rules_triggered": [],
+      "model_risk_probability": 0.31,
+      "model_top_reasons": [
+        "Large amount"
+      ]
+    }
+  },
+  {
+    "id": "R09",
+    "label": "review",
+    "facts": {
+      "amount_band_usd": "1,000 to 5,000",
+      "payment_method": "upi",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": true,
+      "amount_vs_user_average": "no history",
+      "transactions_by_user_last_hour": 0,
+      "device": "no trusted device yet",
+      "rules_decision": "approve",
+      "rules_risk_score": 0,
+      "rules_triggered": [],
+      "model_risk_probability": 0.44,
+      "model_top_reasons": [
+        "First transaction of the user",
+        "Large amount"
+      ]
+    }
+  },
+  {
+    "id": "R10",
+    "label": "approve",
+    "facts": {
+      "amount_band_usd": "250 to 1,000",
+      "payment_method": "card",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "about the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "different from the trusted device",
+      "rules_decision": "review",
+      "rules_risk_score": 30,
+      "rules_triggered": [
+        "UNTRUSTED_DEVICE"
+      ],
+      "model_risk_probability": 0.29,
+      "model_top_reasons": [
+        "Device differs from the trusted device"
+      ]
+    }
+  },
+  {
+    "id": "B01",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "5,000 and above",
+      "payment_method": "card",
+      "time_of_day_utc": "night (00:00 to 06:00)",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "more than 10 times the average",
+      "transactions_by_user_last_hour": 0,
+      "device": "different from the trusted device",
+      "rules_decision": "block",
+      "rules_risk_score": 70,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_HIGH",
+        "UNTRUSTED_DEVICE"
+      ],
+      "model_risk_probability": 0.97,
+      "model_top_reasons": [
+        "Amount far above the user's average",
+        "Device differs from the trusted device",
+        "Night-time transaction (00:00 to 06:00 UTC)"
+      ]
+    }
+  },
+  {
+    "id": "B02",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "1,000 to 5,000",
+      "payment_method": "wallet",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "more than 10 times the average",
+      "transactions_by_user_last_hour": 4,
+      "device": "different from the trusted device",
+      "rules_decision": "block",
+      "rules_risk_score": 70,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_HIGH",
+        "UNTRUSTED_DEVICE"
+      ],
+      "model_risk_probability": 0.94,
+      "model_top_reasons": [
+        "Amount far above the user's average",
+        "Several transactions in the last minute",
+        "Device differs from the trusted device"
+      ]
+    }
+  },
+  {
+    "id": "B03",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "5,000 and above",
+      "payment_method": "bank_transfer",
+      "time_of_day_utc": "night (00:00 to 06:00)",
+      "first_transaction_of_user": true,
+      "amount_vs_user_average": "no history",
+      "transactions_by_user_last_hour": 0,
+      "device": "missing",
+      "rules_decision": "block",
+      "rules_risk_score": 80,
+      "rules_triggered": [
+        "MISSING_DEVICE_ID",
+        "FIRST_TRANSACTION_HIGH_AMOUNT"
+      ],
+      "model_risk_probability": 0.96,
+      "model_top_reasons": [
+        "Large amount",
+        "First transaction of the user",
+        "Night-time transaction (00:00 to 06:00 UTC)"
+      ]
+    }
+  },
+  {
+    "id": "B04",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "1,000 to 5,000",
+      "payment_method": "card",
+      "time_of_day_utc": "night (00:00 to 06:00)",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "more than 10 times the average",
+      "transactions_by_user_last_hour": 6,
+      "device": "different from the trusted device",
+      "rules_decision": "block",
+      "rules_risk_score": 100,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_HIGH",
+        "UNTRUSTED_DEVICE",
+        "RAPID_MEDIUM_AMOUNT"
+      ],
+      "model_risk_probability": 0.99,
+      "model_top_reasons": [
+        "Amount far above the user's average",
+        "Several transactions in the last hour",
+        "Device differs from the trusted device"
+      ]
+    }
+  },
+  {
+    "id": "B05",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "5,000 and above",
+      "payment_method": "upi",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "more than 10 times the average",
+      "transactions_by_user_last_hour": 5,
+      "device": "different from the trusted device",
+      "rules_decision": "review",
+      "rules_risk_score": 60,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_HIGH",
+        "UNTRUSTED_DEVICE"
+      ],
+      "model_risk_probability": 0.88,
+      "model_top_reasons": [
+        "Amount far above the user's average",
+        "Device differs from the trusted device",
+        "Several transactions in the last hour"
+      ]
+    }
+  },
+  {
+    "id": "B06",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "1,000 to 5,000",
+      "payment_method": "wallet",
+      "time_of_day_utc": "night (00:00 to 06:00)",
+      "first_transaction_of_user": true,
+      "amount_vs_user_average": "no history",
+      "transactions_by_user_last_hour": 0,
+      "device": "missing",
+      "rules_decision": "review",
+      "rules_risk_score": 50,
+      "rules_triggered": [
+        "MISSING_DEVICE_ID"
+      ],
+      "model_risk_probability": 0.91,
+      "model_top_reasons": [
+        "First transaction of the user",
+        "Night-time transaction (00:00 to 06:00 UTC)",
+        "Large amount"
+      ]
+    }
+  },
+  {
+    "id": "B07",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "5,000 and above",
+      "payment_method": "card",
+      "time_of_day_utc": "night (00:00 to 06:00)",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "3 to 10 times the average",
+      "transactions_by_user_last_hour": 7,
+      "device": "different from the trusted device",
+      "rules_decision": "review",
+      "rules_risk_score": 60,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_MEDIUM",
+        "UNTRUSTED_DEVICE"
+      ],
+      "model_risk_probability": 0.93,
+      "model_top_reasons": [
+        "Several transactions in the last minute",
+        "Device differs from the trusted device",
+        "Large amount"
+      ]
+    }
+  },
+  {
+    "id": "B08",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "1,000 to 5,000",
+      "payment_method": "bank_transfer",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "more than 10 times the average",
+      "transactions_by_user_last_hour": 3,
+      "device": "different from the trusted device",
+      "rules_decision": "block",
+      "rules_risk_score": 70,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_HIGH",
+        "UNTRUSTED_DEVICE"
+      ],
+      "model_risk_probability": 0.9,
+      "model_top_reasons": [
+        "Amount far above the user's average",
+        "Device differs from the trusted device"
+      ]
+    }
+  },
+  {
+    "id": "B09",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "5,000 and above",
+      "payment_method": "wallet",
+      "time_of_day_utc": "night (00:00 to 06:00)",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "more than 10 times the average",
+      "transactions_by_user_last_hour": 2,
+      "device": "missing",
+      "rules_decision": "block",
+      "rules_risk_score": 90,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_HIGH",
+        "MISSING_DEVICE_ID"
+      ],
+      "model_risk_probability": 0.98,
+      "model_top_reasons": [
+        "Large amount",
+        "Amount far above the user's average",
+        "Night-time transaction (00:00 to 06:00 UTC)"
+      ]
+    }
+  },
+  {
+    "id": "B10",
+    "label": "block",
+    "facts": {
+      "amount_band_usd": "1,000 to 5,000",
+      "payment_method": "card",
+      "time_of_day_utc": "day",
+      "first_transaction_of_user": false,
+      "amount_vs_user_average": "3 to 10 times the average",
+      "transactions_by_user_last_hour": 8,
+      "device": "different from the trusted device",
+      "rules_decision": "review",
+      "rules_risk_score": 60,
+      "rules_triggered": [
+        "AMOUNT_DEVIATION_MEDIUM",
+        "UNTRUSTED_DEVICE"
+      ],
+      "model_risk_probability": 0.86,
+      "model_top_reasons": [
+        "Several transactions in the last minute",
+        "Several transactions in the last hour",
+        "Device differs from the trusted device"
+      ]
+    }
+  }
+]

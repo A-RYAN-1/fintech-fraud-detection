@@ -135,6 +135,7 @@ module Api
           rules_triggered: transaction.fraud_evaluation&.rules_triggered || "",
           ml_score: transaction.fraud_evaluation&.ml_score&.round(4),
           ml_explanation: transaction.fraud_evaluation&.ml_explanation || [],
+          ai_verdict: transaction.fraud_evaluation&.ai_verdict,
           feedback_submitted: transaction.fraud_evaluation&.is_accurate != nil
         }
       end
