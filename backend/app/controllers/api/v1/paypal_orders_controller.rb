@@ -32,7 +32,8 @@ module Api
           risk_score: transaction.risk_score,
           paypal_status: transaction.paypal_status,
           rules_triggered: transaction.fraud_evaluation&.rules_triggered || "",
-          ml_explanation: transaction.fraud_evaluation&.ml_explanation || []
+          ml_explanation: transaction.fraud_evaluation&.ml_explanation || [],
+          ai_verdict: transaction.fraud_evaluation&.ai_verdict
         }, "Payment #{result.decision}")
       rescue ActiveRecord::RecordNotFound
         render_error("Order not found", :not_found)

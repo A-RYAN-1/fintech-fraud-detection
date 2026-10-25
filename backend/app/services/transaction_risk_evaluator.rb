@@ -5,15 +5,17 @@ class TransactionRiskEvaluator
   end
 
   def evaluate
-    # Ensure atomicity: if any step fails (e.g. AuditLog creation), 
+    stats = @user.user_transaction_stat || @user.create_user_transaction_stat
+
+    # 1. Processing Risk Rules, then the model and the AI analyst. The analyst is a network call, so it runs
+    # before the database transaction opens instead of holding a connection while it waits.
+    rule_results = RiskRulesProcessor.new(@transaction, @user, stats).process
+    rule_results = add_ml_score(rule_results, stats)
+    rule_results = add_ai_verdict(rule_results, stats)
+
+    # Ensure atomicity: if any step fails (e.g. AuditLog creation),
     # all changes (Transaction status, FraudEvaluation) are rolled back.
     ActiveRecord::Base.transaction do
-      stats = @user.user_transaction_stat || @user.create_user_transaction_stat
-
-      # 1. Processing Risk Rules
-      rule_results = RiskRulesProcessor.new(@transaction, @user, stats).process
-      rule_results = add_ml_score(rule_results, stats)
-
       # 2. Post-Evaluation Actions (DB updates, Notifications, Logging)
       TransactionPostProcessor.new(@transaction, @user, stats, rule_results).process
 
@@ -28,6 +30,12 @@ class TransactionRiskEvaluator
   end
 
   private
+
+  # The verdict is stored and shown next to the rules decision; it does not change the status in this layer.
+  def add_ai_verdict(rule_results, stats)
+    verdict = AiAnalyst.new.verdict(AiFactsBuilder.new(@transaction, @user, stats, rule_results).facts)
+    verdict ? rule_results.merge(ai: verdict) : rule_results
+  end
 
   # The model may lift a SUCCESS to FLAGGED and explain itself; it never blocks and never lowers a rule result.
   def add_ml_score(rule_results, stats)

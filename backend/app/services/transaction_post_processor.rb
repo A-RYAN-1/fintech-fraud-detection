@@ -24,7 +24,8 @@ class TransactionPostProcessor
       financial_transaction: @transaction,
       risk_score: @risk_score,
       rules_triggered: @triggered_rules.join(','),
-      **ml_attributes
+      **ml_attributes,
+      **ai_attributes
     )
   end
 
@@ -33,6 +34,10 @@ class TransactionPostProcessor
     return {} unless ml
 
     { ml_score: ml[:probability], ml_version: ml[:version], ml_explanation: ml[:reasons] }
+  end
+
+  def ai_attributes
+    @result[:ai] ? { ai_verdict: @result[:ai] } : {}
   end
 
   def update_transaction_status!
