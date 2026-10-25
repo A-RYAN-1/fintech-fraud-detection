@@ -2,6 +2,7 @@
 # transaction, and only then is the money captured, held for review, or released (voided).
 class PaypalCheckout
   CURRENCY = "USD".freeze
+  ACTOR = "Agent".freeze
 
   Result = Struct.new(:transaction, :decision, keyword_init: true)
 
@@ -35,27 +36,27 @@ class PaypalCheckout
 
   private
 
+  # Rules and model set the transaction status; AgentActionPolicy turns it, the AI verdict and the limits into one action.
   def apply_decision(transaction)
-    case transaction.status
-    when "success"
-      capture = @client.capture(transaction.paypal_authorization_id)
-      transaction.update!(paypal_capture_id: capture.fetch("id"), paypal_status: "CAPTURED")
-      audit(transaction, "PAYPAL_CAPTURED", "Approved by the risk score; payment captured")
-    when "flagged"
-      transaction.update!(paypal_status: "HELD")
-      audit(transaction, "PAYPAL_HELD", "Flagged by the risk score; authorization kept, capture waits for review")
-    when "blocked"
-      @client.void(transaction.paypal_authorization_id)
-      transaction.update!(paypal_status: "VOIDED")
-      audit(transaction, "PAYPAL_VOIDED", "Blocked by the risk score; authorization voided, nothing was charged")
+    ai = transaction.fraud_evaluation&.ai_verdict
+    limit_breach = transaction.success? ? AutoCaptureLimits.breach(transaction.amount) : nil
+    decision = AgentActionPolicy.decide(rules_status: transaction.status, ai: ai, limit_breach: limit_breach)
+
+    case decision.action
+    when :capture then actions.capture(transaction, actor: ACTOR, reason: decision.reason, auto: true)
+    when :void then actions.void(transaction, actor: ACTOR, reason: decision.reason)
+    else actions.hold(transaction, actor: ACTOR, reason: decision.reason)
     end
+  rescue PaypalActions::LimitExceeded => e
+    # Another payment took the last of the daily cap between the check and the lock.
+    actions.hold(transaction, actor: ACTOR, reason: e.message)
+  end
+
+  def actions
+    @actions ||= PaypalActions.new(client: @client)
   end
 
   def decision_for(transaction)
-    { "CAPTURED" => "captured", "HELD" => "held", "VOIDED" => "voided" }.fetch(transaction.paypal_status, "pending")
-  end
-
-  def audit(transaction, event_type, description)
-    AuditLog.create!(event_type: event_type, entity_type: "Transaction", entity_id: transaction.id, description: description)
+    { "CAPTURED" => "captured", "HELD" => "held", "VOIDED" => "voided", "REFUNDED" => "refunded" }.fetch(transaction.paypal_status, "pending")
   end
 end

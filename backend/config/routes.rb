@@ -25,6 +25,13 @@ Rails.application.routes.draw do
         resources :risk_rules, only: [ :index ], param: :key do
           collection { post :reset }
         end
+        resources :review_queue, only: [ :index ], controller: "review_queue" do
+          member do
+            post :approve
+            post :void
+            post :refund
+          end
+        end
         patch "risk_rules/:key", to: "risk_rules#update", as: :risk_rule
       end
 

@@ -23,7 +23,9 @@ class RiskRuleConfig
     "large_amount_min" => Definition.new(default: 10_000, min: 1, max: 100_000_000, integer: false, description: "Lower bound of a large amount"),
     "very_large_amount_min" => Definition.new(default: 50_000, min: 1, max: 100_000_000, integer: false, description: "Lower bound of a very large amount"),
     "untrusted_device_risk" => Definition.new(default: 30, min: 0, max: 100, integer: true, description: "Score when the device is not the user's trusted device"),
-    "missing_device_risk" => Definition.new(default: 50, min: 0, max: 100, integer: true, description: "Score when the transaction has no device id")
+    "missing_device_risk" => Definition.new(default: 50, min: 0, max: 100, integer: true, description: "Score when the transaction has no device id"),
+    "max_auto_capture_amount" => Definition.new(default: 1_000, min: 1, max: 100_000, integer: false, description: "Largest PayPal payment the agent may capture without a human"),
+    "daily_auto_capture_cap" => Definition.new(default: 5_000, min: 1, max: 10_000_000, integer: false, description: "Most money the agent may capture on its own in one UTC day")
   }.freeze
 
   # Each group must stay strictly increasing, in this order.
