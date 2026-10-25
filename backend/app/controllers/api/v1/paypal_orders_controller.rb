@@ -31,6 +31,7 @@ module Api
           status: transaction.status,
           risk_score: transaction.risk_score,
           paypal_status: transaction.paypal_status,
+          action_reason: transaction.paypal_action_reason,
           rules_triggered: transaction.fraud_evaluation&.rules_triggered || "",
           ml_explanation: transaction.fraud_evaluation&.ml_explanation || [],
           ai_verdict: transaction.fraud_evaluation&.ai_verdict
