@@ -12,6 +12,8 @@ import {
   NotFoundPage,
   UsersPage,
   AuditLogsPage,
+  CheckoutPage,
+  ReviewQueuePage,
 } from "@/pages";
 
 export const router = createBrowserRouter([
@@ -57,6 +59,18 @@ export const router = createBrowserRouter([
       {
         path: "transactions/new",
         element: <TransactionsPage />,
+      },
+      {
+        path: "checkout",
+        element: <CheckoutPage />,
+      },
+      {
+        path: "admin/review",
+        element: (
+          <RoleGuard allowedRoles={["admin", "manager"]}>
+            <ReviewQueuePage />
+          </RoleGuard>
+        ),
       },
       {
         path: "risk-analysis",
