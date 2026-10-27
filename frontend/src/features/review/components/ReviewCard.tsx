@@ -8,6 +8,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import type { HeldPayment, ReviewAction } from "../api";
+import { CaseTimeline } from "./CaseTimeline";
 
 interface ReviewCardProps {
   payment: HeldPayment;
@@ -65,6 +66,9 @@ export function ReviewCard({ payment, busy, canAct, onAct }: ReviewCardProps) {
             <p className="text-neutral-600 dark:text-neutral-400">
               {payment.ai_verdict.explanation}
             </p>
+            <div className="mt-3">
+              <CaseTimeline entries={payment.ai_verdict.timeline} />
+            </div>
           </div>
         )}
 
