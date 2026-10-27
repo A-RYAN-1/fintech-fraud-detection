@@ -8,8 +8,8 @@
 # separately; the limit would then be per instance (move the store to Redis or solid_cache).
 class Rack::Attack
   LIMITS = {
-    general: { limit: 300, period: 5.minutes },
-    login_ip: { limit: 5, period: 1.minute },
+    general: { limit: 600, period: 5.minutes },
+    login_ip: { limit: 20, period: 1.minute },
     login_email: { limit: 5, period: 1.minute },
     register_ip: { limit: 10, period: 1.hour },
     payment: { limit: 10, period: 1.minute },
@@ -22,10 +22,17 @@ class Rack::Attack
 
   self.cache.store = ActiveSupport::Cache::MemoryStore.new(size: 4.megabytes)
 
+  # The client address as Rails resolves it (see trusted_proxies.rb). Browser traffic through the
+  # Vercel proxy can share Vercel's egress address, so the per-address rules are the coarse ones
+  # and the per-email and per-user rules are the precise ones.
+  def self.client_ip(req)
+    req.env["action_dispatch.remote_ip"]&.to_s || req.ip
+  end
+
   # The signed-in user when the session is readable here, otherwise the client address.
   def self.actor(req)
     user_id = req.env["rack.session"]&.[]("user_id")
-    user_id ? "user:#{user_id}" : "ip:#{req.ip}"
+    user_id ? "user:#{user_id}" : "ip:#{client_ip(req)}"
   end
 
   def self.throttle_rule(name)
@@ -33,15 +40,15 @@ class Rack::Attack
     throttle(name.to_s, limit: rule[:limit], period: rule[:period]) { |req| yield(req) }
   end
 
-  throttle_rule(:general) { |req| req.ip unless req.path == "/up" }
+  throttle_rule(:general) { |req| client_ip(req) unless req.path == "/up" }
 
-  throttle_rule(:login_ip) { |req| req.ip if req.post? && req.path == "/api/v1/auth/login" }
+  throttle_rule(:login_ip) { |req| client_ip(req) if req.post? && req.path == "/api/v1/auth/login" }
   throttle_rule(:login_email) do |req|
     next unless req.post? && req.path == "/api/v1/auth/login"
     email = req.params["email"].to_s.strip.downcase
     email.presence
   end
-  throttle_rule(:register_ip) { |req| req.ip if req.post? && req.path == "/api/v1/auth/register" }
+  throttle_rule(:register_ip) { |req| client_ip(req) if req.post? && req.path == "/api/v1/auth/register" }
 
   throttle_rule(:payment) { |req| actor(req) if req.post? && req.path.match?(PAYMENT_PATH) }
   throttle_rule(:scoring) { |req| actor(req) if req.post? && req.path == "/api/v1/transactions" }
