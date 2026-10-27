@@ -15,8 +15,8 @@ class RateLimitsTest < ActionDispatch::IntegrationTest
     post api_v1_auth_login_url, params: { email: email, password: password }, headers: { "REMOTE_ADDR" => ip }
   end
 
-  test "login is limited per address after five attempts, with a JSON 429 and Retry-After" do
-    5.times { |i| login("person#{i}@example.com"); assert_response :unauthorized }
+  test "login is limited per address after twenty attempts, with a JSON 429 and Retry-After" do
+    20.times { |i| login("person#{i}@example.com"); assert_response :unauthorized }
 
     login("person9@example.com")
     assert_response :too_many_requests
@@ -42,7 +42,7 @@ class RateLimitsTest < ActionDispatch::IntegrationTest
   end
 
   test "a different address is not affected by another's limit" do
-    5.times { login("a@example.com") }
+    20.times { |i| login("a#{i}@example.com") }
     login("a@example.com")
     assert_response :too_many_requests
 
@@ -77,8 +77,16 @@ class RateLimitsTest < ActionDispatch::IntegrationTest
     assert_not_equal 429, response.status
   end
 
+  test "the real client behind Cloudflare is the address that is counted" do
+    21.times do |i|
+      post api_v1_auth_login_url, params: { email: "p#{i}@example.com", password: "x" },
+        headers: { "REMOTE_ADDR" => "172.64.0.#{i + 1}", "X-Forwarded-For" => "203.0.113.7, 172.64.0.#{i + 1}" }
+    end
+    assert_response :too_many_requests
+  end
+
   test "the health check is never throttled" do
-    320.times { get "/up" }
+    650.times { get "/up" }
     assert_response :success
   end
 
