@@ -30,7 +30,7 @@ export default function NotificationCenter() {
 
   const handleNotificationClick = (notification: Notification) => {
     if (notification.data?.transaction_id) {
-      navigate("/transactions");
+      navigate("/payments/history");
     }
   };
 
@@ -152,7 +152,7 @@ export default function NotificationCenter() {
               <Button
                 variant="ghost"
                 className="w-full text-sm"
-                onClick={() => navigate("/transactions")}
+                onClick={() => navigate("/payments/history")}
               >
                 View all transactions
               </Button>

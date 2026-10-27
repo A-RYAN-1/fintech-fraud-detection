@@ -2,15 +2,15 @@ module Api
   module V1
     class PaypalOrdersController < ApplicationController
       before_action :authenticate_user!
-      before_action :require_paypal
+      before_action :require_paypal, except: :simulate
 
       MAX_AMOUNT = 10_000
 
       # POST /api/v1/paypal/orders
       # The amount is validated here, never taken from PayPal's side, so the buyer cannot change it in the popup.
       def create
-        amount = BigDecimal(params.require(:amount).to_s, exception: false)
-        return render_error("Amount must be between 0.01 and #{MAX_AMOUNT}", :unprocessable_entity) unless amount && amount.positive? && amount <= MAX_AMOUNT
+        amount = valid_amount
+        return unless amount
 
         transaction = checkout.create_order(amount: amount, device_id: params.require(:device_id).to_s.first(255), ip_address: request.remote_ip)
         render_success({ order_id: transaction.paypal_order_id, transaction_id: transaction.id }, "PayPal order created", :created)
@@ -20,12 +20,46 @@ module Api
         paypal_failed(e)
       end
 
+      # POST /api/v1/payments/simulate
+      # A labelled test payment: the same pipeline as a PayPal payment (rules, model, AI analyst, admin limits, the
+      # agent's capture, hold or void) with the PayPal calls replaced by SimulatedPaypalClient. No money moves.
+      def simulate
+        amount = valid_amount
+        return unless amount
+
+        simulated = PaypalCheckout.new(user: current_user, client: SimulatedPaypalClient.new)
+        transaction = simulated.create_order(amount: amount, device_id: params.require(:device_id).to_s.first(255), ip_address: request.remote_ip)
+        result = simulated.settle(transaction.paypal_order_id)
+        render_success(settled_payload(result), "Simulated payment #{result.decision}", :created)
+      rescue ActiveRecord::RecordInvalid => e
+        render_error("Payment could not be simulated", :unprocessable_entity, e.record.errors.full_messages)
+      end
+
       # POST /api/v1/paypal/orders/:order_id/authorize
       # Called after the buyer approved the order in the PayPal popup: authorize, score, then capture, hold or void.
       def authorize
         result = checkout.settle(params[:order_id])
+        render_success(settled_payload(result), "Payment #{result.decision}")
+      rescue ActiveRecord::RecordNotFound
+        render_error("Order not found", :not_found)
+      rescue PaypalClient::Error => e
+        paypal_failed(e)
+      end
+
+      private
+
+      # Renders the 422 itself and returns nil when the amount is out of range.
+      def valid_amount
+        amount = BigDecimal(params.require(:amount).to_s, exception: false)
+        return amount if amount && amount.positive? && amount <= MAX_AMOUNT
+
+        render_error("Amount must be between 0.01 and #{MAX_AMOUNT}", :unprocessable_entity)
+        nil
+      end
+
+      def settled_payload(result)
         transaction = result.transaction
-        render_success({
+        {
           transaction_id: transaction.id,
           decision: result.decision,
           status: transaction.status,
@@ -34,15 +68,10 @@ module Api
           action_reason: transaction.paypal_action_reason,
           rules_triggered: transaction.fraud_evaluation&.rules_triggered || "",
           ml_explanation: transaction.fraud_evaluation&.ml_explanation || [],
-          ai_verdict: transaction.fraud_evaluation&.ai_verdict
-        }, "Payment #{result.decision}")
-      rescue ActiveRecord::RecordNotFound
-        render_error("Order not found", :not_found)
-      rescue PaypalClient::Error => e
-        paypal_failed(e)
+          ai_verdict: transaction.fraud_evaluation&.ai_verdict,
+          simulated: transaction.simulated?
+        }
       end
-
-      private
 
       def checkout
         @checkout ||= PaypalCheckout.new(user: current_user, client: paypal_client)

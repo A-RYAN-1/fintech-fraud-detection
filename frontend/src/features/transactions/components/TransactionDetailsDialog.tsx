@@ -9,7 +9,9 @@ import {
 } from "@/components/ui";
 import { cn, formatDateTime } from "@/utils";
 import { formatCurrency } from "@/features/dashboard";
+import { CaseTimeline } from "@/features/review";
 import type { Transaction, TransactionStatus } from "@/types";
+import { actionTaken } from "../utils/payment-labels";
 import MlScoreSection from "./MlScoreSection";
 
 interface TransactionDetailsDialogProps {
@@ -86,7 +88,7 @@ export default function TransactionDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {getStatusIcon(transaction.status)}
@@ -107,6 +109,21 @@ export default function TransactionDetailsDialog({
               {normalizeStatus(transaction.status)}
             </Badge>
           </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-neutral-500 dark:text-neutral-400">
+              Action taken
+            </span>
+            <span className="font-medium text-neutral-900 dark:text-neutral-100">
+              {actionTaken(transaction)}
+              {transaction.simulated ? " (simulated)" : ""}
+            </span>
+          </div>
+          {transaction.action_reason && (
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              {transaction.action_reason}
+            </p>
+          )}
 
           <Separator />
 
@@ -155,6 +172,19 @@ export default function TransactionDetailsDialog({
             score={transaction.ml_score}
             reasons={transaction.ml_explanation}
           />
+
+          {transaction.ai_verdict && (
+            <div className="space-y-2 rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
+              <div className="font-medium">
+                AI analyst: {transaction.ai_verdict.action} (
+                {Math.round(transaction.ai_verdict.confidence * 100)}%)
+              </div>
+              <p className="text-neutral-600 dark:text-neutral-400">
+                {transaction.ai_verdict.explanation}
+              </p>
+              <CaseTimeline entries={transaction.ai_verdict.timeline} />
+            </div>
+          )}
 
           <Separator />
 

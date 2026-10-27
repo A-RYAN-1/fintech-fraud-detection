@@ -10,4 +10,8 @@ class Transaction < ApplicationRecord
 
   enum :status, { pending: "PENDING", success: "SUCCESS", flagged: "FLAGGED", blocked: "BLOCKED" }, default: :pending
   enum :payment_method, { card: "card", upi: "upi", bank_transfer: "bank_transfer", wallet: "wallet" }, default: :card
+
+  def simulated?
+    SimulatedPaypalClient.simulated_id?(paypal_order_id)
+  end
 end

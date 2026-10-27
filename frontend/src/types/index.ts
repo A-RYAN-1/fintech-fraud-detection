@@ -1,3 +1,5 @@
+import type { AiVerdict } from "@/features/checkout/api";
+
 // API Response Types
 export interface ApiResponse<T> {
   status: "success" | "error";
@@ -51,6 +53,11 @@ export interface Transaction {
   rules_triggered: string | null;
   ml_score?: number | null;
   ml_explanation?: MlReason[];
+  ai_verdict?: AiVerdict | null;
+  paypal_status?: string | null;
+  capture_mode?: string | null;
+  action_reason?: string | null;
+  simulated?: boolean;
   feedback_submitted: boolean;
 }
 

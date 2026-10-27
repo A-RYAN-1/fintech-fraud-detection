@@ -64,4 +64,36 @@ class PaypalOrdersTest < ActionDispatch::IntegrationTest
     with_paypal { post "/api/v1/paypal/orders/NOPE/authorize" }
     assert_response :not_found
   end
+
+  test "simulate runs the pipeline without PayPal configured and labels the payment" do
+    replace_class_method(PaypalClient, :configured?, -> { false }) do
+      assert_difference("Transaction.count") { post "/api/v1/payments/simulate", params: { amount: "40", device_id: "browser-1" } }
+    end
+    assert_response :created
+    data = JSON.parse(response.body)["data"]
+    assert_equal true, data["simulated"]
+    assert_includes %w[captured held voided], data["decision"]
+    assert_equal data["decision"], { "CAPTURED" => "captured", "HELD" => "held", "VOIDED" => "voided" }[data["paypal_status"]]
+    transaction = Transaction.find(data["transaction_id"])
+    assert transaction.simulated?
+    assert transaction.paypal_authorization_id.start_with?("SIM-")
+    assert_not_nil transaction.fraud_evaluation
+  end
+
+  test "simulate honours the admin limit: an amount over the auto-capture limit is held" do
+    RiskRuleConfig.reset_cache!
+    post "/api/v1/payments/simulate", params: { amount: "2500", device_id: "browser-1" }
+    assert_response :created
+    assert_includes %w[held voided], JSON.parse(response.body).dig("data", "decision")
+  end
+
+  test "simulate validates the amount and needs a login" do
+    [ "0", "-1", "10001", "abc" ].each do |bad|
+      post "/api/v1/payments/simulate", params: { amount: bad, device_id: "d" }
+      assert_response :unprocessable_entity
+    end
+    delete api_v1_auth_logout_url
+    post "/api/v1/payments/simulate", params: { amount: 10, device_id: "d" }
+    assert_response :unauthorized
+  end
 end

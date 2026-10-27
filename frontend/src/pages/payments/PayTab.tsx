@@ -13,13 +13,14 @@ import { useDeviceId } from "@/features/auth";
 import {
   PayPalCheckout,
   PaymentOutcome,
+  SimulatePayment,
   type SettledPayment,
 } from "@/features/checkout";
 
 const MIN_AMOUNT = 0.01;
 const MAX_AMOUNT = 10000;
 
-export default function CheckoutPage() {
+export default function PayTab() {
   const { deviceId } = useDeviceId();
   const [amountText, setAmountText] = useState("49.00");
   const [payment, setPayment] = useState<SettledPayment | null>(null);
@@ -30,23 +31,14 @@ export default function CheckoutPage() {
 
   return (
     <PageTransition>
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            Checkout
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            Pay with the PayPal sandbox. Every payment is authorized, scored,
-            then captured, held or voided by the agent.
-          </p>
-        </div>
-
+      <div className="space-y-6">
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>Pay</CardTitle>
               <CardDescription>
-                Sandbox money only. Use the sandbox buyer account.
+                Every payment is judged by the rules, the risk model and the AI
+                analyst into one verdict, inside the limits the admin set.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -76,14 +68,32 @@ export default function CheckoutPage() {
                 </p>
               </div>
               {valid && deviceId ? (
-                <PayPalCheckout
-                  amount={amount}
-                  deviceId={deviceId}
-                  onSettled={setPayment}
-                />
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Pay with PayPal</p>
+                    <p className="text-xs text-neutral-500">
+                      Sandbox money only. Use the sandbox buyer account.
+                    </p>
+                    <PayPalCheckout
+                      amount={amount}
+                      deviceId={deviceId}
+                      onSettled={setPayment}
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-neutral-500">
+                    <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
+                    or
+                    <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
+                  </div>
+                  <SimulatePayment
+                    amount={amount}
+                    deviceId={deviceId}
+                    onSettled={setPayment}
+                  />
+                </div>
               ) : (
                 <p className="text-sm text-neutral-500">
-                  Enter a valid amount to see the PayPal buttons.
+                  Enter a valid amount to pay.
                 </p>
               )}
             </CardContent>

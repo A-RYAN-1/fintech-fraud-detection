@@ -5,14 +5,15 @@ import {
   LoginPage,
   RegisterPage,
   DashboardPage,
-  TransactionsPage,
+  PaymentsLayout,
+  PayTab,
+  HistoryTab,
   RiskAnalysisPage,
   SettingsPage,
   HelpSupportPage,
   NotFoundPage,
   UsersPage,
   AuditLogsPage,
-  CheckoutPage,
   ReviewQueuePage,
 } from "@/pages";
 
@@ -53,16 +54,26 @@ export const router = createBrowserRouter([
         element: <DashboardPage />,
       },
       {
+        path: "payments",
+        element: <PaymentsLayout />,
+        children: [
+          { index: true, element: <Navigate to="pay" replace /> },
+          { path: "pay", element: <PayTab /> },
+          { path: "history", element: <HistoryTab /> },
+        ],
+      },
+      // Old addresses keep working.
+      {
         path: "transactions",
-        element: <TransactionsPage />,
+        element: <Navigate to="/payments/history" replace />,
       },
       {
         path: "transactions/new",
-        element: <TransactionsPage />,
+        element: <Navigate to="/payments/pay" replace />,
       },
       {
         path: "checkout",
-        element: <CheckoutPage />,
+        element: <Navigate to="/payments/pay" replace />,
       },
       {
         path: "admin/review",

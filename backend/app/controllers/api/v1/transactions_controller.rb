@@ -136,6 +136,10 @@ module Api
           ml_score: transaction.fraud_evaluation&.ml_score&.round(4),
           ml_explanation: transaction.fraud_evaluation&.ml_explanation || [],
           ai_verdict: transaction.fraud_evaluation&.ai_verdict,
+          paypal_status: transaction.paypal_status,
+          capture_mode: transaction.paypal_capture_mode,
+          action_reason: transaction.paypal_action_reason,
+          simulated: transaction.simulated?,
           feedback_submitted: transaction.fraud_evaluation&.is_accurate != nil
         }
       end
