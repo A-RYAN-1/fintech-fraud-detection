@@ -33,6 +33,7 @@ export interface SettledPayment {
   rules_triggered: string;
   ml_explanation: unknown[];
   ai_verdict: AiVerdict | null;
+  simulated?: boolean;
 }
 
 export const checkoutApi = {
@@ -42,6 +43,18 @@ export const checkoutApi = {
   ): Promise<CreatedOrder> => {
     const response = await apiClient.post<ApiResponse<CreatedOrder>>(
       "/paypal/orders",
+      { amount, device_id: deviceId },
+    );
+    return response.data.data;
+  },
+
+  // A labelled test payment: same rules, model, AI analyst and admin limits, no PayPal call and no money.
+  simulate: async (
+    amount: number,
+    deviceId: string,
+  ): Promise<SettledPayment> => {
+    const response = await apiClient.post<ApiResponse<SettledPayment>>(
+      "/payments/simulate",
       { amount, device_id: deviceId },
     );
     return response.data.data;

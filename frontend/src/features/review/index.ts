@@ -9,4 +9,4 @@ export {
   useReviewAction,
   REVIEW_QUEUE_QUERY_KEY,
 } from "./hooks";
-export { ReviewCard } from "./components";
+export { ReviewCard, CaseTimeline } from "./components";

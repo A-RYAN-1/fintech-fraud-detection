@@ -6,8 +6,7 @@ module Api
       class ReviewQueueController < BaseController
         before_action :require_staff!, only: :index
         before_action :require_admin!, only: [ :approve, :void, :refund ]
-        before_action :require_paypal, only: [ :approve, :void, :refund ]
-
+        
         MAX_NOTE = 200
 
         # GET /api/v1/admin/review_queue
@@ -36,7 +35,10 @@ module Api
 
         def act
           transaction = Transaction.find(params[:id])
-          yield PaypalActions.new(client: paypal_client), transaction
+          return render_error("PayPal is not configured", :service_unavailable) unless transaction.simulated? || PaypalClient.configured?
+
+          client = transaction.simulated? ? SimulatedPaypalClient.new : paypal_client
+          yield PaypalActions.new(client: client), transaction
           render_success(serialize(transaction.reload), "Payment #{transaction.paypal_status.downcase}")
         rescue ActiveRecord::RecordNotFound
           render_error("Transaction not found", :not_found)
@@ -61,10 +63,6 @@ module Api
           PaypalClient.new
         end
 
-        def require_paypal
-          render_error("PayPal is not configured", :service_unavailable) unless PaypalClient.configured?
-        end
-
         def serialize(transaction)
           evaluation = transaction.fraud_evaluation
           {
@@ -75,6 +73,7 @@ module Api
             status: transaction.status,
             risk_score: transaction.risk_score,
             paypal_status: transaction.paypal_status,
+            simulated: transaction.simulated?,
             capture_mode: transaction.paypal_capture_mode,
             action_reason: transaction.paypal_action_reason,
             rules_triggered: evaluation&.rules_triggered.to_s.split(","),

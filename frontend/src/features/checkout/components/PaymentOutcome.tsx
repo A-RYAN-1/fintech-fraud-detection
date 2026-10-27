@@ -1,5 +1,6 @@
 import { CheckCircle2, PauseCircle, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui";
+import { CaseTimeline } from "@/features/review";
 import type { SettledPayment } from "../api";
 
 const OUTCOME = {
@@ -39,6 +40,9 @@ export function PaymentOutcome({ payment }: { payment: SettledPayment }) {
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
         {outcome.text}
       </p>
+      {payment.simulated && (
+        <Badge variant="info">Simulated payment, no money moved</Badge>
+      )}
 
       <dl className="grid grid-cols-2 gap-3 text-sm">
         <div>
@@ -79,6 +83,9 @@ export function PaymentOutcome({ payment }: { payment: SettledPayment }) {
           <p className="text-neutral-600 dark:text-neutral-400">
             {payment.ai_verdict.explanation}
           </p>
+          <div className="mt-3">
+            <CaseTimeline entries={payment.ai_verdict.timeline} />
+          </div>
         </div>
       )}
     </div>

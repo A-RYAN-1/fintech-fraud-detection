@@ -11,6 +11,7 @@ import {
 } from "@/components/ui";
 import { cn, formatDateTime } from "@/utils";
 import { formatCurrency } from "@/features/dashboard";
+import { actionTaken, formatMlScore } from "../utils/payment-labels";
 import type { Transaction, TransactionStatus } from "@/types";
 
 interface TransactionTableProps {
@@ -42,16 +43,6 @@ function getStatusBadgeVariant(status: TransactionStatus) {
     default:
       return "default";
   }
-}
-
-function getPaymentMethodLabel(method: Transaction["payment_method"]) {
-  const labels: Record<Transaction["payment_method"], string> = {
-    card: "Card",
-    upi: "UPI",
-    bank_transfer: "Bank Transfer",
-    wallet: "Wallet",
-  };
-  return labels[method] || method;
 }
 
 // Parse amount (backend may return string)
@@ -139,20 +130,23 @@ export default function TransactionTable({
                 <ArrowUpDown className="h-3 w-3" />
               </button>
             </th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-neutral-500 dark:text-neutral-400">
-              Method
-            </th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-neutral-500 dark:text-neutral-400">
-              Status
-            </th>
             <th className="text-left py-3 px-4">
               <button
                 onClick={() => handleSort("risk_score")}
                 className="flex items-center gap-1 text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
               >
-                Risk Score
+                Rules score
                 <ArrowUpDown className="h-3 w-3" />
               </button>
+            </th>
+            <th className="text-left py-3 px-4 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+              ML score
+            </th>
+            <th className="text-left py-3 px-4 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+              AI verdict
+            </th>
+            <th className="text-left py-3 px-4 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+              Action taken
             </th>
             <th className="text-left py-3 px-4">
               <button
@@ -185,16 +179,6 @@ export default function TransactionTable({
                 </span>
               </td>
               <td className="py-3 px-4">
-                <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {getPaymentMethodLabel(transaction.payment_method)}
-                </span>
-              </td>
-              <td className="py-3 px-4">
-                <Badge variant={getStatusBadgeVariant(transaction.status)}>
-                  {normalizeStatus(transaction.status)}
-                </Badge>
-              </td>
-              <td className="py-3 px-4">
                 <span
                   className={cn(
                     "text-sm font-medium",
@@ -207,6 +191,31 @@ export default function TransactionTable({
                 >
                   {transaction.risk_score ?? 0}
                 </span>
+              </td>
+              <td className="py-3 px-4 text-sm text-neutral-600 dark:text-neutral-400">
+                {formatMlScore(transaction.ml_score)}
+              </td>
+              <td className="py-3 px-4 text-sm">
+                {transaction.ai_verdict ? (
+                  <span>
+                    {transaction.ai_verdict.action}{" "}
+                    <span className="text-neutral-500">
+                      {Math.round(transaction.ai_verdict.confidence * 100)}%
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-neutral-500">-</span>
+                )}
+              </td>
+              <td className="py-3 px-4">
+                <Badge variant={getStatusBadgeVariant(transaction.status)}>
+                  {actionTaken(transaction)}
+                </Badge>
+                {transaction.simulated && (
+                  <span className="ml-2 text-xs text-neutral-500">
+                    simulated
+                  </span>
+                )}
               </td>
               <td className="py-3 px-4">
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">

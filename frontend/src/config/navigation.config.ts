@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  ArrowLeftRight,
   Shield,
   CreditCard,
   ClipboardCheck,
@@ -33,13 +32,8 @@ export const navigationConfig: NavSection[] = [
         icon: LayoutDashboard,
       },
       {
-        title: "Transactions",
-        href: "/transactions",
-        icon: ArrowLeftRight,
-      },
-      {
-        title: "Checkout",
-        href: "/checkout",
+        title: "Payments",
+        href: "/payments",
         icon: CreditCard,
       },
       {
@@ -91,9 +85,9 @@ export const navigationConfig: NavSection[] = [
 
 export const breadcrumbNameMap: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/transactions": "Transactions",
-  "/transactions/new": "New Transaction",
-  "/checkout": "Checkout",
+  "/payments": "Payments",
+  "/payments/pay": "Pay",
+  "/payments/history": "History",
   "/admin/review": "Review Queue",
   "/risk-analysis": "Risk Analysis",
   "/admin": "Administration",

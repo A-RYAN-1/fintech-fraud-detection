@@ -56,4 +56,31 @@ describe("PaymentOutcome", () => {
       screen.getByText("Large amount from a new device"),
     ).toBeInTheDocument();
   });
+
+  it("labels a simulated payment and shows the evidence timeline", () => {
+    render(
+      <PaymentOutcome
+        payment={{
+          ...base,
+          simulated: true,
+          ai_verdict: {
+            action: "review",
+            confidence: 0.8,
+            explanation: "New device",
+            timeline: [
+              {
+                signal: "device",
+                impact: "raises_risk",
+                detail: "Untrusted device",
+              },
+            ],
+          },
+        }}
+      />,
+    );
+    expect(
+      screen.getByText(/Simulated payment, no money moved/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Untrusted device")).toBeInTheDocument();
+  });
 });

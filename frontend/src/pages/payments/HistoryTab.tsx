@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Download, FileText } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import {
   Button,
   Card,
@@ -12,7 +12,6 @@ import {
   TransactionFiltersComponent,
   TransactionTable,
   Pagination,
-  CreateTransactionDialog,
   TransactionDetailsDialog,
   FeedbackDialog,
   exportToCSV,
@@ -24,7 +23,7 @@ import type { Transaction } from "@/types";
 
 const PER_PAGE = 10;
 
-export default function TransactionsPage() {
+export default function HistoryTab() {
   // Filter state
   const [filters, setFilters] = useState<TransactionFilters>({
     page: 1,
@@ -32,7 +31,6 @@ export default function TransactionsPage() {
   });
 
   // Dialog state
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -79,14 +77,10 @@ export default function TransactionsPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-              Transactions
-            </h1>
-            <p className="text-neutral-600 dark:text-neutral-400">
-              View and manage all transactions
-            </p>
-          </div>
+          <p className="text-neutral-600 dark:text-neutral-400">
+            Every payment with the rules score, the risk model score, the AI
+            verdict and the action taken.
+          </p>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -103,10 +97,6 @@ export default function TransactionsPage() {
             >
               <FileText className="h-4 w-4 mr-2" />
               PDF
-            </Button>
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Transaction
             </Button>
           </div>
         </div>
@@ -170,10 +160,6 @@ export default function TransactionsPage() {
         </Card>
 
         {/* Dialogs */}
-        <CreateTransactionDialog
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-        />
         <TransactionDetailsDialog
           transaction={selectedTransaction}
           open={detailsDialogOpen}

@@ -135,4 +135,23 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
     replace_class_method(PaypalClient, :configured?, -> { false }) { post "/api/v1/admin/review_queue/#{@held.id}/approve" }
     assert_response :service_unavailable
   end
+
+  test "an admin settles a held simulated payment without PayPal configured" do
+    login_as users(:admin)
+    sim = users(:one).transactions.create!(amount: 300, payment_method: "wallet", device_id: "d", status: "FLAGGED", risk_score: 30,
+                                           paypal_status: "HELD", paypal_order_id: "SIM-ORDER-1", paypal_authorization_id: "SIM-AUTH-1")
+    replace_class_method(PaypalClient, :configured?, -> { false }) do
+      post "/api/v1/admin/review_queue/#{sim.id}/approve"
+    end
+    assert_response :success
+    assert_equal "CAPTURED", sim.reload.paypal_status
+    assert sim.paypal_capture_id.start_with?("SIM-CAPTURE-")
+    assert_equal true, body.dig("data", "simulated")
+  end
+
+  test "a real payment still needs PayPal configured" do
+    login_as users(:admin)
+    replace_class_method(PaypalClient, :configured?, -> { false }) { post "/api/v1/admin/review_queue/#{@held.id}/approve" }
+    assert_response :service_unavailable
+  end
 end

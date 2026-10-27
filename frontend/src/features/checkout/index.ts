@@ -7,4 +7,8 @@ export {
   type SettledPayment,
 } from "./api";
 export { usePayPalSdk } from "./hooks";
-export { PayPalCheckout, PaymentOutcome } from "./components";
+export {
+  PayPalCheckout,
+  PaymentOutcome,
+  SimulatePayment,
+} from "./components";
