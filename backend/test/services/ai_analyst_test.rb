@@ -28,7 +28,11 @@ class AiAnalystTest < ActiveSupport::TestCase
     client = FakeClient.new({ "action" => "review", "confidence" => 0.82, "explanation" => "Large amount on a new device." })
     verdict = AiAnalyst.new(client: client).verdict(FACTS)
 
-    assert_equal({ action: "review", confidence: 0.82, explanation: "Large amount on a new device.", model: "fake-model" }, verdict)
+    assert_equal "review", verdict[:action]
+    assert_equal 0.82, verdict[:confidence]
+    assert_equal "Large amount on a new device.", verdict[:explanation]
+    assert_equal "fake-model", verdict[:model]
+    assert_equal [], verdict[:timeline]
   end
 
   test "sends only the facts it was given" do
@@ -75,5 +79,40 @@ class AiAnalystTest < ActiveSupport::TestCase
     assert_equal "under 50", AiAnalyst.amount_band(10)
     assert_equal "250 to 1,000", AiAnalyst.amount_band(250)
     assert_equal "5,000 and above", AiAnalyst.amount_band(9_999)
+  end
+
+  test "keeps an ordered timeline and drops entries outside the closed sets" do
+    client = FakeClient.new({ "action" => "review", "confidence" => 0.8, "explanation" => "x", "timeline" => [
+      { "signal" => "device", "impact" => "raises_risk", "detail" => "Different from the trusted device" },
+      { "signal" => "ip_address", "impact" => "raises_risk", "detail" => "not an allowed signal" },
+      { "signal" => "amount", "impact" => "scary", "detail" => "bad impact" },
+      { "signal" => "velocity", "impact" => "neutral", "detail" => " " },
+      "junk",
+      { "signal" => "amount", "impact" => "raises_risk", "detail" => "3 to 10 times the average" }
+    ] })
+    verdict = AiAnalyst.new(client: client).verdict(FACTS)
+
+    assert_equal %w[device amount], verdict[:timeline].map { |e| e[:signal] }
+  end
+
+  test "caps the timeline and truncates a long detail" do
+    entries = Array.new(10) { { "signal" => "rule_hit", "impact" => "raises_risk", "detail" => "word " * 100 } }
+    verdict = AiAnalyst.new(client: FakeClient.new({ "action" => "block", "confidence" => 0.9, "explanation" => "x", "timeline" => entries })).verdict(FACTS)
+
+    assert_equal AiAnalyst::MAX_TIMELINE, verdict[:timeline].size
+    assert_operator verdict[:timeline].first[:detail].length, :<=, AiAnalyst::MAX_DETAIL
+  end
+
+  test "a non-array timeline leaves an empty one and the verdict stands" do
+    verdict = AiAnalyst.new(client: FakeClient.new({ "action" => "approve", "confidence" => 0.9, "explanation" => "ok", "timeline" => "none" })).verdict(FACTS)
+
+    assert_equal "approve", verdict[:action]
+    assert_equal [], verdict[:timeline]
+  end
+
+  test "records the size of the facts payload sent to the model" do
+    verdict = AiAnalyst.new(client: FakeClient.new({ "action" => "approve", "confidence" => 0.9, "explanation" => "ok" })).verdict(FACTS)
+
+    assert_equal FACTS.to_json.bytesize, verdict[:payload_bytes]
   end
 end

@@ -59,4 +59,32 @@ describe("ReviewCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Unusual size")).toBeInTheDocument();
   });
+
+  it("renders the evidence timeline in order", () => {
+    const withTimeline: HeldPayment = {
+      ...payment,
+      ai_verdict: {
+        action: "review",
+        confidence: 0.7,
+        explanation: "Unusual size",
+        timeline: [
+          { signal: "device", impact: "raises_risk", detail: "New device" },
+          { signal: "amount", impact: "neutral", detail: "About the average" },
+        ],
+      },
+    };
+    render(
+      <ReviewCard payment={withTimeline} busy={false} canAct onAct={vi.fn()} />,
+    );
+
+    const items = screen.getAllByRole("listitem");
+    expect(items[0]).toHaveTextContent("Device");
+    expect(items[0]).toHaveTextContent("New device");
+    expect(items[1]).toHaveTextContent("Amount");
+  });
+
+  it("shows no timeline for an older verdict without one", () => {
+    render(<ReviewCard payment={payment} busy={false} canAct onAct={vi.fn()} />);
+    expect(screen.queryByLabelText("Evidence timeline")).toBeNull();
+  });
 });

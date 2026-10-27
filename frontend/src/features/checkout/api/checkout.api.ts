@@ -1,11 +1,21 @@
 import { apiClient } from "@/lib";
 import type { ApiResponse } from "@/types";
 
+export type TimelineImpact = "raises_risk" | "lowers_risk" | "neutral";
+
+export interface TimelineEntry {
+  signal: string;
+  impact: TimelineImpact;
+  detail: string;
+}
+
 export interface AiVerdict {
   action: "approve" | "review" | "block";
   confidence: number;
   explanation: string;
   model?: string;
+  timeline?: TimelineEntry[];
+  payload_bytes?: number;
 }
 
 export interface CreatedOrder {
