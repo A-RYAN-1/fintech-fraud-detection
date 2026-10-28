@@ -115,4 +115,96 @@ class AiAnalystTest < ActiveSupport::TestCase
 
     assert_equal FACTS.to_json.bytesize, verdict[:payload_bytes]
   end
+
+  GOOD = { "action" => "approve", "confidence" => 0.9, "explanation" => "ok" }.freeze
+
+  # Fails with the given errors in order, then answers GOOD.
+  class FlakyClient
+    attr_reader :calls
+
+    def initialize(*errors)
+      @errors = errors
+      @calls = 0
+    end
+
+    def model = "flaky"
+
+    def generate_json(**)
+      @calls += 1
+      error = @errors.shift
+      raise error if error
+
+      GOOD
+    end
+  end
+
+  def analyst(client, guard: AnalystGuard.new, slept: [])
+    AiAnalyst.new(client: client, guard: guard, sleeper: ->(seconds) { slept << seconds })
+  end
+
+  test "retries once after a quick 503 and returns the verdict" do
+    client = FlakyClient.new(GeminiClient::Error.new("Gemini returned 503", status: 503))
+    slept = []
+    guard = AnalystGuard.new
+    verdict = analyst(client, guard: guard, slept: slept).verdict(FACTS)
+
+    assert_equal "approve", verdict[:action]
+    assert_equal 2, client.calls
+    assert_equal 1, slept.size
+    assert_operator slept.first, :<=, AiAnalyst::MAX_BACKOFF
+    assert_equal({ retries: 1, successes: 1, failures: 0 }, guard.snapshot.slice(:retries, :successes, :failures))
+  end
+
+  test "honours Retry-After but never waits longer than the cap" do
+    client = FlakyClient.new(GeminiClient::Error.new("Gemini returned 429", status: 429, retry_after: 30))
+    slept = []
+    analyst(client, slept: slept).verdict(FACTS)
+
+    assert_equal AiAnalyst::MAX_BACKOFF, slept.first
+  end
+
+  test "retries at most once" do
+    errors = Array.new(3) { GeminiClient::Error.new("Gemini returned 503", status: 503) }
+    client = FlakyClient.new(*errors)
+    guard = AnalystGuard.new
+
+    assert_nil analyst(client, guard: guard).verdict(FACTS)
+    assert_equal 1 + AiAnalyst::MAX_RETRIES, client.calls
+    assert_equal 1, guard.snapshot[:failures]
+  end
+
+  test "does not retry a timeout or a non-retryable status" do
+    [ GeminiClient::Error.new("Gemini request failed: Net::ReadTimeout"), GeminiClient::Error.new("Gemini returned 404", status: 404) ].each do |error|
+      client = FlakyClient.new(error)
+      assert_nil analyst(client).verdict(FACTS)
+      assert_equal 1, client.calls
+    end
+  end
+
+  test "does not retry when the bucket has no token left" do
+    guard = AnalystGuard.new(capacity: 1, refill_per_minute: 0)
+    client = FlakyClient.new(GeminiClient::Error.new("Gemini returned 503", status: 503))
+
+    assert_nil analyst(client, guard: guard).verdict(FACTS)
+    assert_equal 1, client.calls
+  end
+
+  test "an open circuit skips the call entirely" do
+    guard = AnalystGuard.new(failure_threshold: 2)
+    client = FlakyClient.new(*Array.new(2) { GeminiClient::Error.new("Gemini returned 404", status: 404) })
+    2.times { analyst(client, guard: guard).verdict(FACTS) }
+    assert_equal "open", guard.snapshot[:state]
+
+    assert_nil analyst(client, guard: guard).verdict(FACTS)
+    assert_equal 2, client.calls, "no third call reached the client"
+    assert_equal 1, guard.snapshot[:skipped_open]
+  end
+
+  test "an empty bucket skips the call" do
+    guard = AnalystGuard.new(capacity: 1, refill_per_minute: 0)
+    client = FlakyClient.new
+    assert analyst(client, guard: guard).verdict(FACTS)
+    assert_nil analyst(client, guard: guard).verdict(FACTS)
+    assert_equal 1, client.calls
+  end
 end

@@ -10,6 +10,9 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
+    # The analyst guard is process-wide state; every test starts with a closed circuit and a full bucket.
+    setup { AnalystGuard.reset! }
+
     # Add more helper methods to be used by all tests here...
 
     # minitest 6 no longer ships minitest/mock: swap a class method for the block, then put it back.
