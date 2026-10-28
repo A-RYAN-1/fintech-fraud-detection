@@ -10,29 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
-
-  create_table "approval_requests", force: :cascade do |t|
-    t.uuid "payment_id", null: false
-    t.string "action", null: false
-    t.decimal "amount", precision: 12, scale: 2
-    t.string "reason"
-    t.string "status", default: "pending", null: false
-    t.bigint "requested_by_id", null: false
-    t.bigint "decided_by_id"
-    t.datetime "decided_at"
-    t.string "decision_note"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["decided_by_id"], name: "index_approval_requests_on_decided_by_id"
-    t.index ["payment_id", "action"], name: "index_approval_requests_one_pending", unique: true, where: "((status)::text = 'pending'::text)"
-    t.index ["payment_id"], name: "index_approval_requests_on_payment_id"
-    t.index ["requested_by_id"], name: "index_approval_requests_on_requested_by_id"
-    t.index ["status"], name: "index_approval_requests_on_status"
-  end
 
   create_table "audit_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -41,12 +22,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200000) do
     t.string "entity_type", null: false
     t.string "event_type", null: false
     t.datetime "updated_at", null: false
-    t.bigint "actor_id"
-    t.string "actor_role"
-    t.jsonb "before_state"
-    t.jsonb "after_state"
-    t.string "reason"
-    t.index ["actor_id"], name: "index_audit_logs_on_actor_id"
     t.index ["entity_type", "entity_id"], name: "index_audit_logs_on_entity_type_and_entity_id"
     t.index ["event_type"], name: "index_audit_logs_on_event_type"
   end
@@ -72,24 +47,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200000) do
     t.float "ml_score"
     t.string "ml_version"
     t.jsonb "ml_explanation"
-    t.jsonb "ai_verdict"
     t.index ["is_accurate"], name: "index_fraud_evaluations_on_is_accurate"
     t.index ["transaction_id"], name: "index_fraud_evaluations_on_transaction_id"
-  end
-
-  create_table "idempotency_keys", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.string "key", null: false
-    t.string "request_method", null: false
-    t.string "request_path", null: false
-    t.string "request_fingerprint", null: false
-    t.integer "response_status"
-    t.text "response_body"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["created_at"], name: "index_idempotency_keys_on_created_at"
-    t.index ["user_id", "key"], name: "index_idempotency_keys_on_user_id_and_key", unique: true
-    t.index ["user_id"], name: "index_idempotency_keys_on_user_id"
   end
 
   create_table "notifications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -250,23 +209,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200000) do
     t.string "status", default: "PENDING", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
-    t.string "paypal_order_id"
-    t.string "paypal_authorization_id"
-    t.string "paypal_capture_id"
-    t.string "paypal_status"
-    t.string "paypal_refund_id"
-    t.datetime "paypal_captured_at"
-    t.string "paypal_capture_mode"
-    t.string "paypal_action_reason"
-    t.datetime "paypal_authorized_at"
-    t.datetime "paypal_authorization_expires_at"
-    t.decimal "refunded_amount", precision: 12, scale: 2, default: "0.0", null: false
     t.index ["created_at"], name: "index_transactions_on_created_at"
     t.index ["payment_method"], name: "index_transactions_on_payment_method"
-    t.index ["paypal_capture_mode", "paypal_captured_at"], name: "idx_on_paypal_capture_mode_paypal_captured_at_f007a0c7db"
-    t.index ["paypal_order_id"], name: "index_transactions_on_paypal_order_id", unique: true
-    t.index ["paypal_status", "paypal_authorization_expires_at"], name: "index_transactions_on_status_and_authorization_expiry"
-    t.index ["paypal_status"], name: "index_transactions_on_paypal_status"
     t.index ["risk_score"], name: "index_transactions_on_risk_score"
     t.index ["status"], name: "index_transactions_on_status"
     t.index ["user_id"], name: "index_transactions_on_user_id"
@@ -292,17 +236,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200000) do
     t.integer "role", default: 0, null: false
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.decimal "decision_limit", precision: 12, scale: 2
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
-  add_foreign_key "approval_requests", "transactions", column: "payment_id"
-  add_foreign_key "approval_requests", "users", column: "decided_by_id"
-  add_foreign_key "approval_requests", "users", column: "requested_by_id"
-  add_foreign_key "audit_logs", "users", column: "actor_id", on_delete: :nullify
   add_foreign_key "devices", "users"
   add_foreign_key "fraud_evaluations", "transactions"
-  add_foreign_key "idempotency_keys", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "risk_rule_settings", "users", column: "updated_by_id", on_delete: :nullify
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
