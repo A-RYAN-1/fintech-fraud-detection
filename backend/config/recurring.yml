@@ -6,3 +6,7 @@ default:
     class: WeeklyReportJob
     # Every Monday at 8 AM
     schedule: "0 8 * * 1"
+  expiring_holds:
+    class: ExpiringHoldsJob
+    # Every 15 minutes: alert on holds close to lapsing, void the ones about to
+    schedule: "*/15 * * * *"

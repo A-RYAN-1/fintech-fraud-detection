@@ -140,6 +140,8 @@ module Api
           capture_mode: transaction.paypal_capture_mode,
           action_reason: transaction.paypal_action_reason,
           simulated: transaction.simulated?,
+          authorization_expires_at: transaction.paypal_authorization_expires_at,
+          refunded_amount: transaction.refunded_amount.to_f,
           feedback_submitted: transaction.fraud_evaluation&.is_accurate != nil
         }
       end

@@ -29,9 +29,10 @@ module Api
           act { |actions, transaction| actions.void(transaction, actor: actor, reason: reason("Voided by a human")) }
         end
 
-        # POST /api/v1/admin/review_queue/:id/refund  { note: "..." }  returns a captured payment
+        # POST /api/v1/admin/review_queue/:id/refund  { note: "...", amount: 12.50 }  returns a captured payment, in
+        # full or in part (amount); refunds add up and never pass the captured amount
         def refund
-          act { |actions, transaction| actions.refund(transaction, actor: actor, reason: reason("Refunded by a human")) }
+          act { |actions, transaction| actions.refund(transaction, actor: actor, reason: reason("Refunded by a human"), amount: params[:amount].presence) }
         end
 
         private
@@ -45,8 +46,10 @@ module Api
           render_success(serialize(transaction.reload), "Payment #{transaction.paypal_status.downcase}")
         rescue ActiveRecord::RecordNotFound
           render_error("Transaction not found", :not_found)
-        rescue PaypalActions::InvalidState => e
+        rescue PaypalActions::InvalidState, PaypalActions::InsufficientFunds => e
           render_error(e.message, :conflict)
+        rescue PaypalActions::InvalidAmount, ArgumentError => e
+          render_error(e.is_a?(ArgumentError) ? "Refund amount is not a number" : e.message, :unprocessable_entity)
         rescue PaypalClient::Error => e
           Rails.logger.error("PayPal error status=#{e.status} debug_id=#{e.debug_id} #{e.message}")
           render_error("PayPal request failed", :bad_gateway, e.debug_id)
@@ -77,6 +80,8 @@ module Api
             risk_score: transaction.risk_score,
             paypal_status: transaction.paypal_status,
             simulated: transaction.simulated?,
+            authorization_expires_at: transaction.paypal_authorization_expires_at,
+            refunded_amount: transaction.refunded_amount.to_f,
             capture_mode: transaction.paypal_capture_mode,
             action_reason: transaction.paypal_action_reason,
             rules_triggered: evaluation&.rules_triggered.to_s.split(","),

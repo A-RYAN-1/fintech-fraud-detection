@@ -58,6 +58,8 @@ export interface Transaction {
   capture_mode?: string | null;
   action_reason?: string | null;
   simulated?: boolean;
+  authorization_expires_at?: string | null;
+  refunded_amount?: number;
   feedback_submitted: boolean;
 }
 

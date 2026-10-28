@@ -12,6 +12,8 @@ export interface HeldPayment {
   risk_score: number;
   paypal_status: string;
   capture_mode: string | null;
+  authorization_expires_at: string | null;
+  refunded_amount: number;
   action_reason: string | null;
   rules_triggered: string[];
   ml_score: number | null;

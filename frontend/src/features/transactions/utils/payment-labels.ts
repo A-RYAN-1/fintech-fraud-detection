@@ -16,6 +16,8 @@ export function actionTaken(
       return "Voided";
     case "REFUNDED":
       return "Refunded";
+    case "PARTIALLY_REFUNDED":
+      return "Partly refunded";
     case "AUTHORIZED":
       return "Authorized";
     case "CREATED":
