@@ -2,13 +2,20 @@ import { ClipboardCheck } from "lucide-react";
 import { PageTransition, EmptyState } from "@/components/common";
 import { Skeleton } from "@/components/ui";
 import { useAppSelector } from "@/store";
-import { ReviewCard, useReviewAction, useReviewQueue } from "@/features/review";
+import {
+  ReviewCard,
+  useReviewAction,
+  useReviewNote,
+  useReviewQueue,
+} from "@/features/review";
 
 export default function ReviewQueuePage() {
   const { data, isLoading, isError } = useReviewQueue();
   const act = useReviewAction();
+  const noteMutation = useReviewNote();
   const user = useAppSelector((state) => state.auth.user);
   const held = data?.held ?? [];
+  const limit = data?.limit ?? null;
 
   return (
     <PageTransition>
@@ -18,8 +25,11 @@ export default function ReviewQueuePage() {
             Review queue
           </h1>
           <p className="text-neutral-600 dark:text-neutral-400">
-            Payments the agent held. You can override the agent; every action is
-            recorded in the audit log.
+            Payments the agent held. Every action is recorded in the audit log
+            with who did it and what changed.
+            {user?.role === "reviewer" && limit !== null
+              ? ` You can decide payments up to $${limit.toLocaleString()}.`
+              : ""}
           </p>
         </div>
 
@@ -45,8 +55,12 @@ export default function ReviewQueuePage() {
                 key={payment.id}
                 payment={payment}
                 busy={act.isPending}
-                canAct={user?.role === "admin"}
+                canAct={user?.role === "admin" || user?.role === "reviewer"}
+                limit={user?.role === "admin" ? null : limit}
                 onAct={(id, action, note) => act.mutate({ id, action, note })}
+                onNote={(id, note, proposal) =>
+                  noteMutation.mutate({ id, note, proposal })
+                }
               />
             ))}
           </div>

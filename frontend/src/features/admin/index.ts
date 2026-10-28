@@ -13,6 +13,7 @@ export {
   useUsers,
   useUpdateUserStatus,
   useUpdateUserRole,
+  useUpdateUserLimit,
   USERS_QUERY_KEY,
   useAuditLogs,
   AUDIT_LOGS_QUERY_KEY,
@@ -20,6 +21,3 @@ export {
 
 // Components
 export { UserTable, AuditLogTable } from "./components";
-
-// Utils
-export { mockUsers, mockAuditLogs } from "./utils";

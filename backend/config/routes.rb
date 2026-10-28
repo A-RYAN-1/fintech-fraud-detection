@@ -19,6 +19,7 @@ Rails.application.routes.draw do
           member do
             patch :status, action: :update_status
             patch :role, action: :update_role
+            patch :limit, action: :update_limit
           end
         end
         resources :audit_logs, only: [ :index ]
@@ -31,6 +32,8 @@ Rails.application.routes.draw do
             post :approve
             post :void
             post :refund
+            post :note
+            post :propose
           end
         end
         patch "risk_rules/:key", to: "risk_rules#update", as: :risk_rule

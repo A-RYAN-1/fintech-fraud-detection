@@ -78,7 +78,7 @@ class IdempotencyTest < ActionDispatch::IntegrationTest
   test "a key is private to its user" do
     with_paypal { create_order }
     delete api_v1_auth_logout_url
-    post api_v1_auth_login_url, params: { email: users(:manager).email, password: "password123" }
+    post api_v1_auth_login_url, params: { email: users(:reviewer).email, password: "password123" }
     with_paypal { assert_difference("Transaction.count", 1) { create_order } }
     assert_response :created
     assert_nil response.headers["Idempotency-Replayed"]

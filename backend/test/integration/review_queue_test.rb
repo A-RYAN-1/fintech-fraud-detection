@@ -51,13 +51,77 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
     assert_equal "HELD", @held.reload.paypal_status
   end
 
-  test "a manager can read the queue but not act" do
-    login_as users(:manager)
+  test "an analyst can read the queue but not decide" do
+    login_as users(:analyst)
     get "/api/v1/admin/review_queue"
     assert_response :success
     with_paypal { post "/api/v1/admin/review_queue/#{@held.id}/void" }
     assert_response :forbidden
     assert_equal "HELD", @held.reload.paypal_status
+  end
+
+  test "a reviewer decides within the limit and the audit row names who, their role, before and after" do
+    login_as users(:reviewer)
+    with_paypal { post "/api/v1/admin/review_queue/#{@held.id}/approve", params: { note: "looks fine" } }
+    assert_response :success
+    assert_equal "CAPTURED", @held.reload.paypal_status
+    log = AuditLog.where(entity_id: @held.id.to_s, event_type: "PAYPAL_CAPTURED").last
+    assert_equal users(:reviewer), log.actor
+    assert_equal "reviewer", log.actor_role
+    assert_equal "HELD", log.before_state["paypal_status"]
+    assert_equal "CAPTURED", log.after_state["paypal_status"]
+    assert_includes log.reason, "looks fine"
+  end
+
+  test "a reviewer cannot decide above their limit but an admin can" do
+    big = held_payment("HELD", amount: 2500)
+    login_as users(:reviewer)
+    with_paypal { post "/api/v1/admin/review_queue/#{big.id}/approve" }
+    assert_response :forbidden
+    assert_includes response.body, "over_decision_limit"
+    assert_equal "HELD", big.reload.paypal_status
+    delete api_v1_auth_logout_url
+    login_as users(:admin)
+    with_paypal { post "/api/v1/admin/review_queue/#{big.id}/approve" }
+    assert_response :success
+    assert_equal "CAPTURED", big.reload.paypal_status
+    assert_equal "admin", AuditLog.where(entity_id: big.id.to_s, event_type: "PAYPAL_CAPTURED").last.actor_role
+  end
+
+  test "an admin raises a reviewer's limit and the change is audited" do
+    big = held_payment("HELD", amount: 2500)
+    login_as users(:admin)
+    patch "/api/v1/admin/users/#{users(:reviewer).id}/limit", params: { decision_limit: 3000 }
+    assert_response :success
+    assert_equal 3000.0, users(:reviewer).reload.effective_decision_limit.to_f
+    log = AuditLog.where(event_type: "USER_DECISION_LIMIT_CHANGED").last
+    assert_equal({ "decision_limit" => "1000.0" }, log.before_state)
+    patch "/api/v1/admin/users/#{users(:analyst).id}/limit", params: { decision_limit: 5 }
+    assert_response :unprocessable_entity
+    patch "/api/v1/admin/users/#{users(:reviewer).id}/limit", params: { decision_limit: -1 }
+    assert_response :unprocessable_entity
+  end
+
+  test "an analyst notes and proposes, which is recorded but moves no money" do
+    login_as users(:analyst)
+    post "/api/v1/admin/review_queue/#{@held.id}/note", params: { note: "Same device as two refunds" }
+    assert_response :success
+    post "/api/v1/admin/review_queue/#{@held.id}/propose", params: { proposal: "void", note: "Looks like a ring" }
+    assert_response :success
+    post "/api/v1/admin/review_queue/#{@held.id}/propose", params: { proposal: "delete" }
+    assert_response :unprocessable_entity
+    assert_equal "HELD", @held.reload.paypal_status
+    get "/api/v1/admin/review_queue"
+    notes = body.dig("data", "held").first["notes"]
+    assert_equal %w[DECISION_PROPOSED REVIEW_NOTE], notes.map { |n| n["event_type"] }
+    assert_equal "void", notes.first["proposal"]
+    assert_equal "analyst", notes.first["role"]
+  end
+
+  test "a customer cannot note or propose" do
+    login_as users(:one)
+    post "/api/v1/admin/review_queue/#{@held.id}/note", params: { note: "x" }
+    assert_response :forbidden
   end
 
   test "the queue lists held payments with rules, model reasons and the AI explanation, and nothing else" do

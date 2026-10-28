@@ -71,7 +71,7 @@ class RateLimitsTest < ActionDispatch::IntegrationTest
 
     delete api_v1_auth_logout_url
     Rack::Attack.cache.store.delete("rack::attack:#{Time.now.to_i / 60}:login_ip:10.0.0.1")
-    login(users(:manager).email, "password123")
+    login(users(:reviewer).email, "password123")
     assert_response :success
     post api_v1_paypal_orders_url, params: { amount: "5", device_id: "d2" }
     assert_not_equal 429, response.status

@@ -16,7 +16,7 @@ export interface PaginationMeta {
 }
 
 // User Types
-export type UserRole = "customer" | "admin" | "manager";
+export type UserRole = "customer" | "admin" | "reviewer" | "analyst";
 export type UserStatus = "active" | "suspended" | "pending";
 
 export interface User {
@@ -26,6 +26,7 @@ export interface User {
   last_name: string;
   role: UserRole;
   status: UserStatus;
+  decision_limit?: number | null;
   created_at?: string;
 }
 

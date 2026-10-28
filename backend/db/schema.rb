@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_28_180000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -22,6 +22,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_150000) do
     t.string "entity_type", null: false
     t.string "event_type", null: false
     t.datetime "updated_at", null: false
+    t.bigint "actor_id"
+    t.string "actor_role"
+    t.jsonb "before_state"
+    t.jsonb "after_state"
+    t.string "reason"
+    t.index ["actor_id"], name: "index_audit_logs_on_actor_id"
     t.index ["entity_type", "entity_id"], name: "index_audit_logs_on_entity_type_and_entity_id"
     t.index ["event_type"], name: "index_audit_logs_on_event_type"
   end
@@ -267,9 +273,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_150000) do
     t.integer "role", default: 0, null: false
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.decimal "decision_limit", precision: 12, scale: 2
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "audit_logs", "users", column: "actor_id", on_delete: :nullify
   add_foreign_key "devices", "users"
   add_foreign_key "fraud_evaluations", "transactions"
   add_foreign_key "idempotency_keys", "users"

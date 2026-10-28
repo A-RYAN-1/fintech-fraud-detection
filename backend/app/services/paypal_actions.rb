@@ -3,6 +3,7 @@
 #   - refuses a payment in a state it cannot move from (InvalidState) instead of guessing;
 #   - sends a PayPal-Request-Id derived from the transaction, so a retried call cannot move money twice;
 #   - writes an AuditLog entry with the actor, the reason and the AI explanation.
+# `actor` is the User who acted, or a name such as "System" for the agent and jobs.
 # `auto: true` is the agent acting alone: the limits are checked again under a lock, so two parallel payments cannot
 # both squeeze under the daily cap. A human (auto: false) is not bound by the limits and is named in the log.
 class PaypalActions
@@ -22,6 +23,7 @@ class PaypalActions
 
   def capture(transaction, actor:, reason:, auto: false)
     transaction.with_lock do
+      before = snapshot(transaction)
       next transaction if transaction.paypal_status == "CAPTURED"
 
       require_state!(transaction, "capture", %w[AUTHORIZED HELD])
@@ -34,30 +36,32 @@ class PaypalActions
       response = @client.capture(transaction.paypal_authorization_id, request_id: "capture-#{transaction.id}")
       transaction.update!(paypal_capture_id: response.fetch("id"), paypal_status: "CAPTURED", paypal_captured_at: Time.current,
                           paypal_capture_mode: auto ? "auto" : "human", paypal_action_reason: reason.to_s.truncate(255))
-      audit(transaction, "PAYPAL_CAPTURED", actor, reason)
+      audit(transaction, "PAYPAL_CAPTURED", actor, reason, before)
       transaction
     end
   end
 
   def hold(transaction, actor:, reason:)
     transaction.with_lock do
+      before = snapshot(transaction)
       next transaction if transaction.paypal_status == "HELD"
 
       require_state!(transaction, "hold", %w[AUTHORIZED])
       transaction.update!(paypal_status: "HELD", paypal_action_reason: reason.to_s.truncate(255))
-      audit(transaction, "PAYPAL_HELD", actor, reason)
+      audit(transaction, "PAYPAL_HELD", actor, reason, before)
       transaction
     end
   end
 
   def void(transaction, actor:, reason:)
     transaction.with_lock do
+      before = snapshot(transaction)
       next transaction if transaction.paypal_status == "VOIDED"
 
       require_state!(transaction, "void", %w[AUTHORIZED HELD])
       @client.void(transaction.paypal_authorization_id, request_id: "void-#{transaction.id}")
       transaction.update!(paypal_status: "VOIDED", paypal_action_reason: reason.to_s.truncate(255))
-      audit(transaction, "PAYPAL_VOIDED", actor, reason)
+      audit(transaction, "PAYPAL_VOIDED", actor, reason, before)
       transaction
     end
   end
@@ -66,6 +70,7 @@ class PaypalActions
   # captured amount. Asking again for a payment that is already fully refunded changes nothing.
   def refund(transaction, actor:, reason:, amount: nil)
     transaction.with_lock do
+      before = snapshot(transaction)
       next transaction if transaction.paypal_status == "REFUNDED" && amount.nil?
 
       require_state!(transaction, "refund", %w[CAPTURED PARTIALLY_REFUNDED])
@@ -81,7 +86,7 @@ class PaypalActions
       transaction.update!(paypal_refund_id: response.fetch("id"), refunded_amount: total, paypal_action_reason: reason.to_s.truncate(255),
                           paypal_status: total >= transaction.amount ? "REFUNDED" : "PARTIALLY_REFUNDED")
       audit(transaction, total >= transaction.amount ? "PAYPAL_REFUNDED" : "PAYPAL_PARTIALLY_REFUNDED", actor,
-            "#{reason} (refunded #{refund_amount.to_s('F')} of #{transaction.amount.to_s('F')}, #{total.to_s('F')} in total)")
+            "#{reason} (refunded #{refund_amount.to_s('F')} of #{transaction.amount.to_s('F')}, #{total.to_s('F')} in total)", before)
       transaction
     end
   end
@@ -107,10 +112,16 @@ class PaypalActions
     raise InvalidState, "Cannot #{action} a payment that is #{transaction.paypal_status.to_s.downcase.presence || 'not authorized'}"
   end
 
-  def audit(transaction, event_type, actor, reason)
+  def snapshot(transaction)
+    { paypal_status: transaction.paypal_status, refunded_amount: transaction.refunded_amount.to_s("F") }
+  end
+
+  def audit(transaction, event_type, actor, reason, before)
     ai = transaction.fraud_evaluation&.ai_verdict
-    text = "#{actor}: #{reason}"
+    name = actor.is_a?(User) ? actor.email : actor
+    text = "#{name}: #{reason}"
     text += " | AI analyst (#{ai['action']}, confidence #{ai['confidence']}): #{ai['explanation']}" if ai
-    AuditLog.create!(event_type: event_type, entity_type: "Transaction", entity_id: transaction.id, description: text)
+    AuditLog.record!(event_type: event_type, entity_type: "Transaction", entity_id: transaction.id, description: text,
+                     actor: actor, before: before, after: snapshot(transaction), reason: reason)
   end
 end

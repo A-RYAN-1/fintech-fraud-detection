@@ -3,7 +3,7 @@ require "test_helper"
 class AdminApiTest < ActionDispatch::IntegrationTest
   setup do
     @admin = users(:admin)
-    @manager = users(:manager)
+    @reviewer = users(:reviewer)
     @customer = users(:one)
   end
 
@@ -31,13 +31,13 @@ class AdminApiTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
     get api_v1_admin_audit_logs_url
     assert_response :forbidden
-    patch status_api_v1_admin_user_url(@manager), params: { status: "suspended" }
+    patch status_api_v1_admin_user_url(@reviewer), params: { status: "suspended" }
     assert_response :forbidden
-    assert @manager.reload.active?
+    assert @reviewer.reload.active?
   end
 
-  test "a manager can list users but not change them or read audit logs" do
-    login_as @manager
+  test "a reviewer can list users but not change them or read audit logs" do
+    login_as @reviewer
     get api_v1_admin_users_url
     assert_response :success
     get api_v1_admin_audit_logs_url
@@ -56,7 +56,7 @@ class AdminApiTest < ActionDispatch::IntegrationTest
     assert_equal User.count, data["pagination"]["total_count"]
     assert_equal 1, data["pagination"]["current_page"]
     user = data["users"].first
-    assert_equal %w[created_at email first_name id last_name role status], user.keys.sort
+    assert_equal %w[created_at decision_limit email first_name id last_name role status], user.keys.sort
     assert_not_includes user.keys, "password_digest"
   end
 
@@ -68,13 +68,13 @@ class AdminApiTest < ActionDispatch::IntegrationTest
     get api_v1_admin_users_url, params: { status: "suspended" }
     assert_equal [ "suspended@example.com" ], body["data"]["users"].map { |u| u["email"] }
 
-    get api_v1_admin_users_url, params: { search: "MAX" }
-    assert_equal [ "manager@example.com" ], body["data"]["users"].map { |u| u["email"] }
+    get api_v1_admin_users_url, params: { search: "Rev" }
+    assert_equal [ "reviewer@example.com" ], body["data"]["users"].map { |u| u["email"] }
 
     get api_v1_admin_users_url, params: { per_page: 2, page: 2 }
     assert_equal 2, body["data"]["pagination"]["current_page"]
     assert_equal (User.count / 2.0).ceil, body["data"]["pagination"]["total_pages"]
-    assert_equal User.count - 2, body["data"]["users"].size
+    assert_equal [ User.count - 2, 2 ].min, body["data"]["users"].size
   end
 
   test "search treats percent as a literal character" do
@@ -112,9 +112,9 @@ class AdminApiTest < ActionDispatch::IntegrationTest
 
   test "admin changes a role and the change is audit-logged" do
     login_as @admin
-    patch role_api_v1_admin_user_url(@customer), params: { role: "manager" }
+    patch role_api_v1_admin_user_url(@customer), params: { role: "reviewer" }
     assert_response :success
-    assert @customer.reload.manager?
+    assert @customer.reload.reviewer?
     assert_equal "USER_ROLE_CHANGED", AuditLog.order(:created_at).last.event_type
   end
 
@@ -176,7 +176,7 @@ class AdminApiTest < ActionDispatch::IntegrationTest
     data = body["data"]
     assert_equal 2, data["pagination"]["total_count"]
     assert_equal %w[newer older], data["audit_logs"].map { |l| l["description"] }
-    assert_equal %w[created_at description entity_id entity_type event_type id], data["audit_logs"].first.keys.sort
+    assert_equal %w[actor actor_role after before created_at description entity_id entity_type event_type id reason], data["audit_logs"].first.keys.sort
   end
 
   test "audit logs filter by event type and entity type" do

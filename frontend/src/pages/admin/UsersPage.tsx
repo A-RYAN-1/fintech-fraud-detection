@@ -14,7 +14,14 @@ import {
   SelectValue,
 } from "@/components/ui";
 import { PageTransition, EmptyState } from "@/components/common";
-import { UserTable, mockUsers } from "@/features/admin";
+import {
+  UserTable,
+  useUsers,
+  useUpdateUserLimit,
+  useUpdateUserRole,
+  useUpdateUserStatus,
+} from "@/features/admin";
+import { useAppSelector } from "@/store";
 import { Pagination } from "@/features/transactions";
 
 const PER_PAGE = 10;
@@ -25,39 +32,28 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
 
-  // In production, use: const { data, isLoading } = useUsers(filters);
-  const isLoading = false;
-
-  // Filter mock data
-  const filteredUsers = mockUsers.filter((user) => {
-    const matchesSearch =
-      !searchQuery ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      `${user.first_name} ${user.last_name}`
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus =
-      statusFilter === "all" || user.status === statusFilter;
-    return matchesSearch && matchesRole && matchesStatus;
+  const currentUser = useAppSelector((state) => state.auth.user);
+  const { data, isLoading } = useUsers({
+    page,
+    per_page: PER_PAGE,
+    role: roleFilter === "all" ? undefined : roleFilter,
+    status: statusFilter === "all" ? undefined : statusFilter,
+    search: searchQuery.trim() || undefined,
   });
+  const updateStatus = useUpdateUserStatus();
+  const updateRole = useUpdateUserRole();
+  const updateLimit = useUpdateUserLimit();
 
-  const totalCount = filteredUsers.length;
-  const totalPages = Math.ceil(totalCount / PER_PAGE);
-  const paginatedUsers = filteredUsers.slice(
-    (page - 1) * PER_PAGE,
-    page * PER_PAGE,
-  );
+  const users = data?.users ?? [];
+  const totalCount = data?.pagination.total_count ?? 0;
+  const totalPages = data?.pagination.total_pages ?? 0;
 
-  const handleUpdateStatus = (userId: string, status: string) => {
-    console.log("Update status:", userId, status);
-    // In production: updateStatus({ userId, status });
-  };
-
-  const handleUpdateRole = (userId: string, role: string) => {
-    console.log("Update role:", userId, role);
-    // In production: updateRole({ userId, role });
-  };
+  const handleUpdateStatus = (userId: string, status: string) =>
+    updateStatus.mutate({ userId, status });
+  const handleUpdateRole = (userId: string, role: string) =>
+    updateRole.mutate({ userId, role });
+  const handleUpdateLimit = (userId: string, limit: string) =>
+    updateLimit.mutate({ userId, limit });
 
   return (
     <PageTransition>
@@ -86,22 +82,38 @@ export default function UsersPage() {
                   <Input
                     placeholder="Search users..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setPage(1);
+                    }}
                     className="pl-9"
                   />
                 </div>
-                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <Select
+                  value={roleFilter}
+                  onValueChange={(v) => {
+                    setRoleFilter(v);
+                    setPage(1);
+                  }}
+                >
                   <SelectTrigger className="w-full sm:w-36">
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Roles</SelectItem>
                     <SelectItem value="customer">Customer</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="analyst">Analyst</SelectItem>
+                    <SelectItem value="reviewer">Reviewer</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(v) => {
+                    setStatusFilter(v);
+                    setPage(1);
+                  }}
+                >
                   <SelectTrigger className="w-full sm:w-36">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -130,7 +142,7 @@ export default function UsersPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {paginatedUsers.length === 0 && !isLoading ? (
+              {users.length === 0 && !isLoading ? (
                 <EmptyState
                   icon={Users}
                   title="No users found"
@@ -139,10 +151,12 @@ export default function UsersPage() {
               ) : (
                 <>
                   <UserTable
-                    users={paginatedUsers}
+                    users={users}
                     isLoading={isLoading}
+                    canManage={currentUser?.role === "admin"}
                     onUpdateStatus={handleUpdateStatus}
                     onUpdateRole={handleUpdateRole}
+                    onUpdateLimit={handleUpdateLimit}
                   />
                   {totalPages > 1 && (
                     <Pagination

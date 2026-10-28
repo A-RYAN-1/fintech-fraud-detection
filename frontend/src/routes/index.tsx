@@ -78,7 +78,7 @@ export const router = createBrowserRouter([
       {
         path: "admin/review",
         element: (
-          <RoleGuard allowedRoles={["admin", "manager"]}>
+          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
             <ReviewQueuePage />
           </RoleGuard>
         ),
@@ -99,7 +99,7 @@ export const router = createBrowserRouter([
       {
         path: "admin/users",
         element: (
-          <RoleGuard allowedRoles={["admin", "manager"]}>
+          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
             <UsersPage />
           </RoleGuard>
         ),

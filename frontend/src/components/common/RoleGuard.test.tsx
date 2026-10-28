@@ -46,7 +46,7 @@ describe("RoleGuard", () => {
     });
 
     renderWithProviders(
-      <RoleGuard allowedRoles={["admin", "manager"]}>
+      <RoleGuard allowedRoles={["admin", "reviewer"]}>
         <div>Protected Content</div>
       </RoleGuard>,
     );
