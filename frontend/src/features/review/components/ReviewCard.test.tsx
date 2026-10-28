@@ -13,6 +13,8 @@ const payment: HeldPayment = {
   risk_score: 45,
   paypal_status: "HELD",
   capture_mode: null,
+  authorization_expires_at: null,
+  refunded_amount: 0,
   action_reason: "Over max_auto_capture_amount",
   rules_triggered: ["HIGH_AMOUNT"],
   ml_score: 0.4,
@@ -84,7 +86,31 @@ describe("ReviewCard", () => {
   });
 
   it("shows no timeline for an older verdict without one", () => {
-    render(<ReviewCard payment={payment} busy={false} canAct onAct={vi.fn()} />);
+    render(
+      <ReviewCard payment={payment} busy={false} canAct onAct={vi.fn()} />,
+    );
     expect(screen.queryByLabelText("Evidence timeline")).toBeNull();
+  });
+
+  it("warns when the hold is about to lapse", () => {
+    const soon = new Date(Date.now() + 5 * 3_600_000).toISOString();
+    render(
+      <ReviewCard
+        payment={{ ...payment, authorization_expires_at: soon }}
+        busy={false}
+        canAct
+        onAct={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByText(/Hold expires in 4 hours|Hold expires in 5 hours/),
+    ).toHaveTextContent("voided automatically");
+  });
+
+  it("shows no countdown without an expiry", () => {
+    render(
+      <ReviewCard payment={payment} busy={false} canAct onAct={vi.fn()} />,
+    );
+    expect(screen.queryByText(/Hold expire/)).toBeNull();
   });
 });

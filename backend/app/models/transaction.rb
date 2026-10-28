@@ -1,4 +1,7 @@
 class Transaction < ApplicationRecord
+  # PayPal honours an authorization for 29 days; the real expiry comes back in the authorize response.
+  AUTHORIZATION_TTL = 29.days
+
   belongs_to :user
   has_one :fraud_evaluation, dependent: :destroy, foreign_key: "transaction_id"
 
@@ -13,5 +16,14 @@ class Transaction < ApplicationRecord
 
   def simulated?
     SimulatedPaypalClient.simulated_id?(paypal_order_id)
+  end
+
+  def authorization_expired?
+    paypal_authorization_expires_at.present? && paypal_authorization_expires_at <= Time.current
+  end
+
+  # What is still refundable: the captured amount (a capture is always the full amount) less refunds so far.
+  def refundable_amount
+    paypal_capture_id.present? ? amount - refunded_amount : 0
   end
 end

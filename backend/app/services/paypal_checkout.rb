@@ -26,7 +26,9 @@ class PaypalCheckout
     return Result.new(transaction: transaction, decision: decision_for(transaction)) if transaction.paypal_authorization_id.present?
 
     authorization = @client.authorize_order(order_id, request_id: "authorize-#{order_id}")
-    transaction.update!(paypal_authorization_id: authorization.fetch("id"), paypal_status: "AUTHORIZED")
+    authorized_at = Time.current
+    transaction.update!(paypal_authorization_id: authorization.fetch("id"), paypal_status: "AUTHORIZED", paypal_authorized_at: authorized_at,
+                        paypal_authorization_expires_at: parse_time(authorization["expiration_time"]) || authorized_at + Transaction::AUTHORIZATION_TTL)
 
     TransactionRiskEvaluator.new(transaction).evaluate
     transaction.reload
@@ -35,6 +37,12 @@ class PaypalCheckout
   end
 
   private
+
+  def parse_time(value)
+    Time.iso8601(value.to_s) if value.present?
+  rescue ArgumentError
+    nil
+  end
 
   # Rules and model set the transaction status; AgentActionPolicy turns it, the AI verdict and the limits into one action.
   def apply_decision(transaction)
@@ -57,6 +65,6 @@ class PaypalCheckout
   end
 
   def decision_for(transaction)
-    { "CAPTURED" => "captured", "HELD" => "held", "VOIDED" => "voided", "REFUNDED" => "refunded" }.fetch(transaction.paypal_status, "pending")
+    { "CAPTURED" => "captured", "HELD" => "held", "VOIDED" => "voided", "REFUNDED" => "refunded", "PARTIALLY_REFUNDED" => "partially_refunded" }.fetch(transaction.paypal_status, "pending")
   end
 end

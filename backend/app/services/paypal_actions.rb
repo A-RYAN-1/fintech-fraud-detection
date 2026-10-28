@@ -8,6 +8,10 @@
 class PaypalActions
   class InvalidState < StandardError; end
   class LimitExceeded < StandardError; end
+  # The refund amount is not positive or is more than is left to refund.
+  class InvalidAmount < StandardError; end
+  # PayPal could not pay the refund out of the merchant balance.
+  class InsufficientFunds < StandardError; end
 
   # Postgres advisory lock key that serializes automatic captures.
   CAPTURE_LOCK_KEY = 5_172_025
@@ -21,6 +25,7 @@ class PaypalActions
       next transaction if transaction.paypal_status == "CAPTURED"
 
       require_state!(transaction, "capture", %w[AUTHORIZED HELD])
+      raise InvalidState, "The authorization expired on #{transaction.paypal_authorization_expires_at.to_date}, so it can no longer be captured" if transaction.authorization_expired?
       Transaction.connection.execute("SELECT pg_advisory_xact_lock(#{CAPTURE_LOCK_KEY})") if auto
       if auto && (breach = AutoCaptureLimits.breach(transaction.amount))
         raise LimitExceeded, breach
@@ -57,19 +62,44 @@ class PaypalActions
     end
   end
 
-  def refund(transaction, actor:, reason:)
+  # Full refund of what is left by default; `amount:` refunds part of it. Refunds add up: the total never passes the
+  # captured amount. Asking again for a payment that is already fully refunded changes nothing.
+  def refund(transaction, actor:, reason:, amount: nil)
     transaction.with_lock do
-      next transaction if transaction.paypal_status == "REFUNDED"
+      next transaction if transaction.paypal_status == "REFUNDED" && amount.nil?
 
-      require_state!(transaction, "refund", %w[CAPTURED])
-      response = @client.refund(transaction.paypal_capture_id, request_id: "refund-#{transaction.id}")
-      transaction.update!(paypal_refund_id: response.fetch("id"), paypal_status: "REFUNDED", paypal_action_reason: reason.to_s.truncate(255))
-      audit(transaction, "PAYPAL_REFUNDED", actor, reason)
+      require_state!(transaction, "refund", %w[CAPTURED PARTIALLY_REFUNDED])
+      remaining = transaction.refundable_amount
+      raise InvalidAmount, "Nothing is left to refund" unless remaining.positive?
+
+      partial = amount.present? && BigDecimal(amount.to_s) < remaining
+      refund_amount = amount.present? ? BigDecimal(amount.to_s) : remaining
+      raise InvalidAmount, "Refund must be more than 0 and at most #{remaining.to_s('F')} (what is left)" unless refund_amount.positive? && refund_amount <= remaining
+
+      response = call_refund(transaction, refund_amount, partial)
+      total = transaction.refunded_amount + refund_amount
+      transaction.update!(paypal_refund_id: response.fetch("id"), refunded_amount: total, paypal_action_reason: reason.to_s.truncate(255),
+                          paypal_status: total >= transaction.amount ? "REFUNDED" : "PARTIALLY_REFUNDED")
+      audit(transaction, total >= transaction.amount ? "PAYPAL_REFUNDED" : "PAYPAL_PARTIALLY_REFUNDED", actor,
+            "#{reason} (refunded #{refund_amount.to_s('F')} of #{transaction.amount.to_s('F')}, #{total.to_s('F')} in total)")
       transaction
     end
   end
 
   private
+
+  # The first full refund keeps the plain `refund-<id>` request id; any other refund is keyed by what was refunded
+  # before and how much now, so a retry of the same refund is the same PayPal request and a different one is new.
+  def call_refund(transaction, refund_amount, partial)
+    first_full = !partial && transaction.refunded_amount.zero?
+    request_id = first_full ? "refund-#{transaction.id}" : "refund-#{transaction.id}-#{(transaction.refunded_amount * 100).to_i}-#{(refund_amount * 100).to_i}"
+    options = partial ? { amount: refund_amount } : {}
+    @client.refund(transaction.paypal_capture_id, request_id: request_id, **options)
+  rescue PaypalClient::Error => e
+    raise InsufficientFunds, "The merchant balance cannot cover this refund. Add funds to the PayPal account and try again." if e.insufficient_funds?
+
+    raise
+  end
 
   def require_state!(transaction, action, allowed)
     return if allowed.include?(transaction.paypal_status)

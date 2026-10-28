@@ -9,6 +9,7 @@ import {
 } from "@/components/ui";
 import type { HeldPayment, ReviewAction } from "../api";
 import { CaseTimeline } from "./CaseTimeline";
+import { holdExpiry } from "../utils/hold-expiry";
 
 interface ReviewCardProps {
   payment: HeldPayment;
@@ -20,6 +21,7 @@ interface ReviewCardProps {
 export function ReviewCard({ payment, busy, canAct, onAct }: ReviewCardProps) {
   const [note, setNote] = useState("");
   const noteId = `note-${payment.id}`;
+  const expiry = holdExpiry(payment.authorization_expires_at);
 
   return (
     <Card>
@@ -44,6 +46,20 @@ export function ReviewCard({ payment, busy, canAct, onAct }: ReviewCardProps) {
           <p className="text-sm">
             <span className="text-neutral-500">Held because: </span>
             {payment.action_reason}
+          </p>
+        )}
+
+        {expiry && (
+          <p
+            className={
+              expiry.urgent
+                ? "text-sm font-medium text-red-600 dark:text-red-400"
+                : "text-sm text-neutral-500"
+            }
+          >
+            {expiry.label}
+            {expiry.urgent &&
+              ": decide now, it is voided automatically before it lapses"}
           </p>
         )}
 

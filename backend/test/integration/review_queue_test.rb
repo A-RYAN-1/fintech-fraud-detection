@@ -154,4 +154,42 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
     replace_class_method(PaypalClient, :configured?, -> { false }) { post "/api/v1/admin/review_queue/#{@held.id}/approve" }
     assert_response :service_unavailable
   end
+
+  test "refund accepts an amount, tracks the total and rejects more than is left" do
+    login_as(users(:admin))
+    captured = held_payment("CAPTURED")
+    with_paypal do
+      post "/api/v1/admin/review_queue/#{captured.id}/refund", params: { amount: "100" }
+      assert_response :success
+      assert_equal "PARTIALLY_REFUNDED", body.dig("data", "paypal_status")
+      assert_equal 100.0, body.dig("data", "refunded_amount")
+
+      post "/api/v1/admin/review_queue/#{captured.id}/refund", params: { amount: "250" }
+      assert_response :unprocessable_entity
+      assert_includes body["message"], "at most 200"
+
+      post "/api/v1/admin/review_queue/#{captured.id}/refund", params: { amount: "abc" }
+      assert_response :unprocessable_entity
+    end
+  end
+
+  test "a refund PayPal cannot fund is a 409 with a clear message" do
+    login_as(users(:admin))
+    captured = held_payment("CAPTURED")
+    broke = FakeClient.new
+    def broke.refund(_id, **) = raise(PaypalClient::Error.new("no funds", status: 422, issue: "INSUFFICIENT_FUNDS"))
+    replace_class_method(PaypalClient, :configured?, -> { true }) do
+      replace_class_method(PaypalClient, :new, ->(*) { broke }) { post "/api/v1/admin/review_queue/#{captured.id}/refund" }
+    end
+    assert_response :conflict
+    assert_includes body["message"], "merchant balance"
+    assert_equal "CAPTURED", captured.reload.paypal_status
+  end
+
+  test "the queue shows when each hold lapses" do
+    login_as(users(:admin))
+    @held.update!(paypal_authorization_expires_at: 5.days.from_now)
+    get "/api/v1/admin/review_queue"
+    assert_not_nil body.dig("data", "held").first["authorization_expires_at"]
+  end
 end

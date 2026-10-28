@@ -9,13 +9,19 @@ class PaypalClient
   SANDBOX_URL = "https://api-m.sandbox.paypal.com".freeze
 
   class Error < StandardError
-    attr_reader :status, :debug_id
+    INSUFFICIENT_FUNDS_ISSUES = %w[INSUFFICIENT_FUNDS REFUND_FAILED_INSUFFICIENT_FUNDS INSUFFICIENT_MERCHANT_FUNDS].freeze
 
-    def initialize(message, status: nil, debug_id: nil)
+    attr_reader :status, :debug_id, :issue
+
+    def initialize(message, status: nil, debug_id: nil, issue: nil)
       super(message)
       @status = status
       @debug_id = debug_id
+      @issue = issue
     end
+
+    # PayPal refused a refund because the merchant balance cannot cover it.
+    def insufficient_funds? = INSUFFICIENT_FUNDS_ISSUES.include?(issue)
   end
 
   class NotConfigured < Error; end
@@ -57,8 +63,10 @@ class PaypalClient
     post("/v2/payments/authorizations/#{escape(authorization_id)}/void", nil, request_id: request_id)
   end
 
-  def refund(capture_id, request_id: SecureRandom.uuid)
-    post("/v2/payments/captures/#{escape(capture_id)}/refund", {}, request_id: request_id)
+  # Without an amount PayPal refunds what is left of the capture; with one it refunds that part.
+  def refund(capture_id, request_id: SecureRandom.uuid, amount: nil, currency: "USD")
+    body = amount ? { amount: { currency_code: currency, value: format("%.2f", amount) } } : {}
+    post("/v2/payments/captures/#{escape(capture_id)}/refund", body, request_id: request_id)
   end
 
   private
@@ -102,7 +110,8 @@ class PaypalClient
     body = response.body.to_s.empty? ? {} : JSON.parse(response.body)
     return body if response.is_a?(Net::HTTPSuccess)
 
-    raise Error.new(body["message"] || "PayPal returned #{response.code}", status: response.code.to_i, debug_id: body["debug_id"])
+    issue = body["details"]&.first&.dig("issue") || body["name"]
+    raise Error.new(body["message"] || "PayPal returned #{response.code}", status: response.code.to_i, debug_id: body["debug_id"], issue: issue)
   rescue JSON::ParserError
     raise Error.new("PayPal returned an unreadable response", status: response.code.to_i)
   end

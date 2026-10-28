@@ -119,6 +119,17 @@ export default function TransactionDetailsDialog({
               {transaction.simulated ? " (simulated)" : ""}
             </span>
           </div>
+          {(transaction.refunded_amount ?? 0) > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-neutral-500 dark:text-neutral-400">
+                Refunded so far
+              </span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                ${transaction.refunded_amount?.toFixed(2)} of $
+                {transaction.amount.toFixed(2)}
+              </span>
+            </div>
+          )}
           {transaction.action_reason && (
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               {transaction.action_reason}
