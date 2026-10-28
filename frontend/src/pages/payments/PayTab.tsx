@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import { useState } from "react";
 import {
   Card,
@@ -63,8 +64,8 @@ export default function PayTab() {
                       : "text-xs text-red-600 dark:text-red-400"
                   }
                 >
-                  Between {MIN_AMOUNT} and {MAX_AMOUNT.toLocaleString()}. Larger
-                  amounts are held for review.
+                  Between {formatMoney(MIN_AMOUNT)} and{" "}
+                  {formatMoney(MAX_AMOUNT)}. Larger amounts are held for review.
                 </p>
               </div>
               {valid && deviceId ? (

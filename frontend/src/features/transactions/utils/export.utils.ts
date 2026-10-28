@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import dayjs from "dayjs";
 import type { Transaction } from "@/types";
 
@@ -102,7 +103,7 @@ export function generatePDFReport(transactions: Transaction[]): void {
               (t) => `
             <tr>
               <td>${t.id.slice(0, 12)}...</td>
-              <td>₹${parseAmount(t.amount).toLocaleString()}</td>
+              <td>${formatMoney(parseAmount(t.amount))}</td>
               <td>${t.payment_method}</td>
               <td class="${t.status.toLowerCase()}">${t.status.toUpperCase()}</td>
               <td>${t.risk_score ?? 0}</td>
