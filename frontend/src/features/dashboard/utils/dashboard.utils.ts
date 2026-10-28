@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import type { Transaction } from "@/types";
 import type {
   DashboardStats,
@@ -132,13 +133,7 @@ export function generateHeatmapData(
 }
 
 export function formatCurrency(amount: number | string): string {
-  const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(numAmount);
+  return formatMoney(amount, { whole: true });
 }
 
 export function formatNumber(num: number): string {

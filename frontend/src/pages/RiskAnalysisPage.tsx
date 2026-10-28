@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
@@ -441,7 +442,7 @@ export default function RiskAnalysisPage() {
                       >
                         <div>
                           <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                            ₹{txn.amount.toLocaleString()}
+                            {formatMoney(txn.amount)}
                           </p>
                           <p className="text-xs text-neutral-500 dark:text-neutral-400">
                             {txn.payment_method} • {txn.id.slice(0, 8)}...

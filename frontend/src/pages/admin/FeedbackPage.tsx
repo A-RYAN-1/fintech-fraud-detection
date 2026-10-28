@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import { useState } from "react";
 import { MessageSquareWarning } from "lucide-react";
 import { PageTransition, EmptyState } from "@/components/common";
@@ -26,16 +27,12 @@ function DisagreementRow({ row }: { row: Disagreement }) {
     <div className="space-y-2 rounded-md border border-neutral-200 p-4 dark:border-neutral-800">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <div className="font-medium">
-            {row.amount.toLocaleString(undefined, {
-              style: "currency",
-              currency: "USD",
-            })}
-          </div>
+          <div className="font-medium">{formatMoney(row.amount)}</div>
           <div className="text-sm text-neutral-500">
             Human decision: {row.human_label}
-            {row.label_source === "refund" ? " (after a full refund)" : ""} by{" "}
-            {row.labeled_by ?? "unknown"} on{" "}
+            {row.label_source === "refund"
+              ? " (after a full refund)"
+              : ""} by {row.labeled_by ?? "unknown"} on{" "}
             {new Date(row.labeled_at).toLocaleString()}
           </div>
         </div>
@@ -118,12 +115,11 @@ export default function FeedbackPage() {
                         {formatRate(stats.agreement_rate)}
                       </div>
                       <div className="text-sm text-neutral-500">
-                        agrees with the human ({stats.agree} of{" "}
-                        {stats.answered})
+                        agrees with the human ({stats.agree} of {stats.answered}
+                        )
                       </div>
                       <div className="text-sm text-neutral-500">
-                        {stats.false_alarms} false alarms, {stats.misses}{" "}
-                        misses
+                        {stats.false_alarms} false alarms, {stats.misses} misses
                       </div>
                       <p className="pt-1 text-xs text-neutral-500">
                         {SIGNAL_HELP[key]}

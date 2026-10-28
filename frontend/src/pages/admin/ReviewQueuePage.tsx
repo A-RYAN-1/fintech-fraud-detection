@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import { ClipboardCheck } from "lucide-react";
 import { PageTransition, EmptyState } from "@/components/common";
 import { Skeleton } from "@/components/ui";
@@ -28,7 +29,7 @@ export default function ReviewQueuePage() {
             Payments the agent held. Every action is recorded in the audit log
             with who did it and what changed.
             {user?.role === "reviewer" && limit !== null
-              ? ` You can decide payments up to $${limit.toLocaleString()}.`
+              ? ` You can decide payments up to ${formatMoney(limit)}.`
               : ""}
           </p>
         </div>

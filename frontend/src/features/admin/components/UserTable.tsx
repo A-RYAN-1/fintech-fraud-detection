@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import dayjs from "dayjs";
 import {
   MoreHorizontal,
@@ -150,7 +151,7 @@ export default function UserTable({
                   </Badge>
                   {user.role === "reviewer" && user.decision_limit != null && (
                     <span className="ml-2 text-xs text-neutral-500">
-                      up to ${user.decision_limit.toLocaleString()}
+                      up to {formatMoney(user.decision_limit)}
                     </span>
                   )}
                 </td>

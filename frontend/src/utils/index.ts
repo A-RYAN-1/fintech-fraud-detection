@@ -8,3 +8,4 @@ export {
   formatISODate,
   formatISODateTime,
 } from "./date";
+export { formatMoney } from "./money";

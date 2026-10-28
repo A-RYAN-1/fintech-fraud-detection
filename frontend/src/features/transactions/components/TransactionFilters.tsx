@@ -281,7 +281,7 @@ export default function TransactionFilters({
 
           {/* Amount Range */}
           <div className="space-y-2">
-            <Label className="text-xs text-neutral-500">Min Amount (₹)</Label>
+            <Label className="text-xs text-neutral-500">Min Amount (USD)</Label>
             <Input
               type="number"
               placeholder="0"
@@ -290,7 +290,7 @@ export default function TransactionFilters({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs text-neutral-500">Max Amount (₹)</Label>
+            <Label className="text-xs text-neutral-500">Max Amount (USD)</Label>
             <Input
               type="number"
               placeholder="Any"

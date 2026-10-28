@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import { useState } from "react";
 import {
   Badge,
@@ -41,10 +42,7 @@ export function ReviewCard({
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <div className="text-lg font-semibold">
-              $
-              {payment.amount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-              })}
+              {formatMoney(payment.amount)}
             </div>
             <div className="text-sm text-neutral-500">
               {payment.user_email} on{" "}
@@ -131,8 +129,8 @@ export function ReviewCard({
           <div className="space-y-3">
             {overLimit && (
               <p className="text-sm text-amber-700 dark:text-amber-400">
-                This payment is over your decision limit of $
-                {limit?.toLocaleString()}. You can ask an admin to decide it;
+                This payment is over your decision limit of{" "}
+                {formatMoney(limit ?? 0)}. You can ask an admin to decide it;
                 nothing moves until they do.
               </p>
             )}

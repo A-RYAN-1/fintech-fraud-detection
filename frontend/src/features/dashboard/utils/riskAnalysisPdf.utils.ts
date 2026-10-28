@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import dayjs from "dayjs";
 import type { AnalyticsResponse, AnalyticsFilters } from "../types";
 
@@ -149,7 +150,7 @@ export function generateRiskAnalysisPDF(
                     (txn) => `
                   <div class="risk-txn">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span class="risk-txn-amount">₹${txn.amount.toLocaleString()}</span>
+                      <span class="risk-txn-amount">${formatMoney(txn.amount)}</span>
                       <span class="risk-txn-score">Score: ${txn.risk_score}</span>
                     </div>
                     <div class="risk-txn-details">${txn.payment_method} • ${txn.id.slice(0, 8)}... • ${txn.status.toUpperCase()}</div>

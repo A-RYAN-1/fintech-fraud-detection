@@ -1,3 +1,4 @@
+import { formatMoney } from "@/utils/money";
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
 import { PageTransition, EmptyState } from "@/components/common";
@@ -48,14 +49,11 @@ function RequestRow({
         <div>
           <div className="font-medium">
             {ACTION_LABEL[request.action]}{" "}
-            {(request.amount ?? request.payment.amount).toLocaleString(
-              undefined,
-              { style: "currency", currency: "USD" },
-            )}
+            {formatMoney(request.amount ?? request.payment.amount)}
             {request.action === "refund" &&
               request.amount !== null &&
               request.amount < request.payment.amount &&
-              ` of ${request.payment.amount.toLocaleString(undefined, { style: "currency", currency: "USD" })}`}
+              ` of ${formatMoney(request.payment.amount)}`}
           </div>
           <div className="text-sm text-neutral-500">
             {request.payment.user_email}, asked by {request.requested_by} on{" "}
@@ -142,19 +140,9 @@ function RefundRow({
   return (
     <div className="flex flex-col gap-3 rounded-md border border-neutral-200 p-4 sm:flex-row sm:items-end dark:border-neutral-800">
       <div className="flex-1">
-        <div className="font-medium">
-          {amount.toLocaleString(undefined, {
-            style: "currency",
-            currency: "USD",
-          })}
-        </div>
+        <div className="font-medium">{formatMoney(amount)}</div>
         <div className="text-sm text-neutral-500">
-          {userEmail},{" "}
-          {left.toLocaleString(undefined, {
-            style: "currency",
-            currency: "USD",
-          })}{" "}
-          left to refund
+          {userEmail}, {formatMoney(left)} left to refund
         </div>
       </div>
       {pending ? (
