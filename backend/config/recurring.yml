@@ -1,11 +1,16 @@
 # Recurring tasks for Solid Queue
 # Documentation: https://github.com/basecamp/solid_queue
-
+#
+# Solid Queue reads the section named after the Rails environment; a section called `default` is never loaded.
+# weekly_reports has not been scheduled since it was added (no section matched), so it is kept here but not enabled:
+# switching it on would start e-mailing every user, which needs mail delivery configured first.
 default:
   weekly_reports:
     class: WeeklyReportJob
     # Every Monday at 8 AM
     schedule: "0 8 * * 1"
+
+production:
   expiring_holds:
     class: ExpiringHoldsJob
     # Every 15 minutes: alert on holds close to lapsing, void the ones about to
