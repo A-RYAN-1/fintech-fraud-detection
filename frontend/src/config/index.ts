@@ -6,3 +6,4 @@ export {
   type NavItem,
   type NavSection,
 } from "./navigation.config";
+export { demoAccounts, type DemoAccount } from "./demoAccounts";
