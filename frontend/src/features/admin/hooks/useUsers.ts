@@ -31,6 +31,24 @@ export function useUpdateUserStatus() {
   });
 }
 
+export function useUpdateUserLimit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, limit }: { userId: string; limit: string }) =>
+      adminApi.updateUserLimit(userId, limit),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [USERS_QUERY_KEY] });
+      toast.success("Decision limit updated");
+    },
+    onError: (error) => {
+      toast.error("Failed to update limit", {
+        description: getErrorMessage(error),
+      });
+    },
+  });
+}
+
 export function useUpdateUserRole() {
   const queryClient = useQueryClient();
 

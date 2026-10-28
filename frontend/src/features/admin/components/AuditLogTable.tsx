@@ -36,6 +36,12 @@ function getEventBadgeVariant(eventType: string) {
   return "default";
 }
 
+function formatState(state: Record<string, unknown>) {
+  return Object.entries(state)
+    .map(([key, value]) => `${key}=${String(value)}`)
+    .join(" ");
+}
+
 export default function AuditLogTable({
   logs,
   isLoading = false,
@@ -95,6 +101,26 @@ export default function AuditLogTable({
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
               {log.description || "No description"}
             </p>
+            {(log.actor || log.before || log.after) && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500 dark:text-neutral-400">
+                {log.actor && (
+                  <span>
+                    By {log.actor}
+                    {log.actor_role ? ` (${log.actor_role})` : ""}
+                  </span>
+                )}
+                {log.before && (
+                  <span className="font-mono">
+                    before {formatState(log.before)}
+                  </span>
+                )}
+                {log.after && (
+                  <span className="font-mono">
+                    after {formatState(log.after)}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <div className="shrink-0 text-right">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">

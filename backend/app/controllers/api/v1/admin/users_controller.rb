@@ -3,8 +3,8 @@ module Api
     module Admin
       class UsersController < BaseController
         before_action :require_staff!, only: :index
-        before_action :require_admin!, only: [ :update_status, :update_role ]
-        before_action :set_user, only: [ :update_status, :update_role ]
+        before_action :require_admin!, only: [ :update_status, :update_role, :update_limit ]
+        before_action :set_user, only: [ :update_status, :update_role, :update_limit ]
 
         # GET /api/v1/admin/users?page=1&per_page=10&role=customer&status=active&search=jane
         def index
@@ -41,6 +41,24 @@ module Api
           change_attribute(:role, User.roles)
         end
 
+        # PATCH /api/v1/admin/users/:id/limit  { decision_limit: 500 }  the most a reviewer may decide alone (blank resets to the default)
+        def update_limit
+          return render_error("Only a reviewer has a decision limit", :unprocessable_entity) unless @user.reviewer?
+
+          raw = params[:decision_limit].to_s.strip
+          new_limit = raw.blank? ? nil : BigDecimal(raw, exception: false)
+          return render_error("Limit must be a number of 0 or more", :unprocessable_entity) if raw.present? && (new_limit.nil? || new_limit.negative?)
+
+          old_limit = @user.effective_decision_limit
+          ActiveRecord::Base.transaction do
+            @user.update!(decision_limit: new_limit)
+            AuditLog.record!(event_type: "USER_DECISION_LIMIT_CHANGED", entity_type: "User", entity_id: @user.id,
+                             description: "#{current_user.email} changed decision limit of #{@user.email} from #{old_limit.to_s('F')} to #{@user.effective_decision_limit.to_s('F')}",
+                             actor: current_user, before: { decision_limit: old_limit.to_s("F") }, after: { decision_limit: @user.effective_decision_limit.to_s("F") })
+          end
+          render_success(serialize_user(@user), "Decision limit updated")
+        end
+
         private
 
         def set_user
@@ -61,11 +79,12 @@ module Api
           unless old_value == new_value
             ActiveRecord::Base.transaction do
               @user.update!(attribute => new_value)
-              AuditLog.create!(
+              AuditLog.record!(
                 event_type: "USER_#{attribute.to_s.upcase}_CHANGED",
                 entity_type: "User",
-                entity_id: @user.id.to_s,
-                description: "#{current_user.email} changed #{attribute} of #{@user.email} from #{old_value} to #{new_value}"
+                entity_id: @user.id,
+                description: "#{current_user.email} changed #{attribute} of #{@user.email} from #{old_value} to #{new_value}",
+                actor: current_user, before: { attribute => old_value }, after: { attribute => new_value }
               )
             end
           end
@@ -81,6 +100,7 @@ module Api
             last_name: user.last_name,
             role: user.role,
             status: user.status,
+            decision_limit: user.effective_decision_limit&.to_f,
             created_at: user.created_at
           }
         end

@@ -14,12 +14,12 @@ admin:
   role: admin
   status: active
 
-manager:
-  email: manager@example.com
+reviewer:
+  email: reviewer@example.com
   password_digest: <%= BCrypt::Password.create('password123') %>
   first_name: Max
-  last_name: Manager
-  role: manager
+  last_name: Reviewer
+  role: reviewer
   status: active
 
 suspended:
@@ -29,3 +29,11 @@ suspended:
   last_name: Suspended
   role: customer
   status: suspended
+
+analyst:
+  email: analyst@example.com
+  password_digest: <%= BCrypt::Password.create('password123') %>
+  first_name: Ana
+  last_name: Analyst
+  role: analyst
+  status: active

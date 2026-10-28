@@ -15,13 +15,25 @@ interface ReviewCardProps {
   payment: HeldPayment;
   busy: boolean;
   canAct: boolean;
+  // The largest amount this person may decide alone; null or missing means no limit.
+  limit?: number | null;
   onAct: (id: string, action: ReviewAction, note: string) => void;
+  onNote?: (id: string, note: string, proposal?: ReviewAction) => void;
 }
 
-export function ReviewCard({ payment, busy, canAct, onAct }: ReviewCardProps) {
+export function ReviewCard({
+  payment,
+  busy,
+  canAct,
+  limit = null,
+  onAct,
+  onNote,
+}: ReviewCardProps) {
   const [note, setNote] = useState("");
   const noteId = `note-${payment.id}`;
   const expiry = holdExpiry(payment.authorization_expires_at);
+  const overLimit = canAct && limit !== null && payment.amount > limit;
+  const notes = payment.notes ?? [];
 
   return (
     <Card>
@@ -88,7 +100,33 @@ export function ReviewCard({ payment, busy, canAct, onAct }: ReviewCardProps) {
           </div>
         )}
 
-        {canAct ? (
+        {notes.length > 0 && (
+          <ul className="space-y-1 text-sm">
+            {notes.map((n) => (
+              <li
+                key={`${n.created_at}-${n.event_type}`}
+                className="text-neutral-600 dark:text-neutral-400"
+              >
+                <span className="font-medium">
+                  {n.actor ?? "Someone"}
+                  {n.role ? ` (${n.role})` : ""}
+                </span>{" "}
+                {n.proposal ? `proposes to ${n.proposal}` : "noted"}
+                {n.text ? `: ${n.text}` : ""}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {overLimit ? (
+          <p className="text-sm text-amber-700 dark:text-amber-400">
+            This payment is over your decision limit of $
+            {limit?.toLocaleString()}. An admin has to decide it. You can still
+            leave a note.
+          </p>
+        ) : null}
+
+        {canAct && !overLimit ? (
           <div className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor={noteId}>Note for the audit log (optional)</Label>
@@ -116,10 +154,44 @@ export function ReviewCard({ payment, busy, canAct, onAct }: ReviewCardProps) {
               </Button>
             </div>
           </div>
-        ) : (
+        ) : null}
+
+        {!canAct && (
           <p className="text-sm text-neutral-500">
-            Only an admin can approve or void.
+            Only an admin or reviewer can approve or void.
           </p>
+        )}
+
+        {onNote && (!canAct || overLimit) && (
+          <div className="space-y-2">
+            <Label htmlFor={noteId}>Note or recommendation</Label>
+            <Textarea
+              id={noteId}
+              value={note}
+              maxLength={200}
+              rows={2}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                disabled={busy || !note.trim()}
+                onClick={() => onNote(payment.id, note)}
+              >
+                Add note
+              </Button>
+              {(["approve", "void", "refund"] as ReviewAction[]).map((p) => (
+                <Button
+                  key={p}
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => onNote(payment.id, note, p)}
+                >
+                  Propose {p}
+                </Button>
+              ))}
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>

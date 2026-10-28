@@ -2,21 +2,39 @@ module Api
   module V1
     module Admin
       # The human side of the agent: payments the agent held (rules, model or AI sent them to review, or they broke a
-      # limit), with everything the reviewer needs, and the override actions. Every action is audited with the admin's email.
+      # limit), with everything the reviewer needs, and the override actions. Every action is audited with who, their role, before and after, and the reason.
+      # Analysts view, note and propose; reviewers decide up to their limit; admins decide anything.
       class ReviewQueueController < BaseController
         include Idempotent
 
-        before_action :require_staff!, only: :index
-        before_action :require_admin!, only: [ :approve, :void, :refund ]
+        before_action :require_staff!, only: [ :index, :note, :propose ]
+        before_action :require_decider!, only: [ :approve, :void, :refund ]
+        before_action :require_within_limit!, only: [ :approve, :void, :refund ]
         idempotent :approve, :void, :refund
-        
+
         MAX_NOTE = 200
+        PROPOSABLE = %w[approve void refund].freeze
+        NOTE_EVENTS = %w[REVIEW_NOTE DECISION_PROPOSED].freeze
 
         # GET /api/v1/admin/review_queue
         def index
           scope = Transaction.where(paypal_status: "HELD").includes(:fraud_evaluation, :user).order(created_at: :desc)
           records, meta = paginate(scope)
-          render_success({ held: records.map { |t| serialize(t) }, meta: meta })
+          notes = recent_notes(records.map { |t| t.id.to_s })
+          render_success({ held: records.map { |t| serialize(t, notes[t.id.to_s] || []) }, meta: meta,
+                           limit: current_user.effective_decision_limit&.to_f, role: current_user.role })
+        end
+
+        # POST /api/v1/admin/review_queue/:id/note  { note: "..." }  any staff member leaves a note on a payment
+        def note
+          leave("REVIEW_NOTE", "noted")
+        end
+
+        # POST /api/v1/admin/review_queue/:id/propose  { proposal: approve|void|refund, note: "..." }  an analyst's recommendation
+        def propose
+          return render_error("Proposal must be one of #{PROPOSABLE.join(', ')}", :unprocessable_entity) unless PROPOSABLE.include?(params[:proposal].to_s)
+
+          leave("DECISION_PROPOSED", "proposed to #{params[:proposal]}")
         end
 
         # POST /api/v1/admin/review_queue/:id/approve  { note: "..." }  captures the held payment
@@ -37,6 +55,44 @@ module Api
 
         private
 
+        def leave(event_type, verb)
+          transaction = Transaction.find(params[:id])
+          text = params[:note].to_s.squish.first(MAX_NOTE)
+          return render_error("A note is required", :unprocessable_entity) if text.blank? && event_type == "REVIEW_NOTE"
+
+          AuditLog.record!(event_type: event_type, entity_type: "Transaction", entity_id: transaction.id,
+                           description: "#{current_user.email} #{verb}: #{text}".strip, actor: current_user, reason: text,
+                           after: { proposal: params[:proposal].presence }.compact.presence)
+          render_success(serialize(transaction, recent_notes([ transaction.id.to_s ])[transaction.id.to_s] || []), "Saved")
+        rescue ActiveRecord::RecordNotFound
+          render_error("Transaction not found", :not_found)
+        end
+
+        def recent_notes(ids)
+          return {} if ids.empty?
+
+          AuditLog.where(entity_type: "Transaction", entity_id: ids, event_type: NOTE_EVENTS).includes(:actor).order(created_at: :desc)
+                  .group_by(&:entity_id).transform_values { |logs| logs.first(5).map { |l| serialize_note(l) } }
+        end
+
+        def serialize_note(log)
+          { event_type: log.event_type, actor: log.actor&.email, role: log.actor_role, text: log.reason,
+            proposal: log.after_state&.dig("proposal"), created_at: log.created_at }
+        end
+
+        # A reviewer decides only up to their limit; above it the payment waits for an admin.
+        def require_within_limit!
+          transaction = Transaction.find_by(id: params[:id])
+          return unless transaction
+
+          amount = transaction.amount
+          amount = BigDecimal(params[:amount].to_s, exception: false) || amount if action_name == "refund" && params[:amount].present?
+          return if current_user.within_limit?(amount)
+
+          render_error("This payment is over your decision limit of #{current_user.effective_decision_limit.to_s('F')}. An admin must decide it.",
+                       :forbidden, "over_decision_limit")
+        end
+
         def act
           transaction = Transaction.find(params[:id])
           return render_error("PayPal is not configured", :service_unavailable) unless transaction.simulated? || PaypalClient.configured?
@@ -56,7 +112,7 @@ module Api
         end
 
         def actor
-          current_user.email
+          current_user
         end
 
         def reason(default)
@@ -69,7 +125,7 @@ module Api
           PaypalClient.new
         end
 
-        def serialize(transaction)
+        def serialize(transaction, notes = [])
           evaluation = transaction.fraud_evaluation
           {
             id: transaction.id,
@@ -87,7 +143,8 @@ module Api
             rules_triggered: evaluation&.rules_triggered.to_s.split(","),
             ml_score: evaluation&.ml_score,
             ml_explanation: evaluation&.ml_explanation || [],
-            ai_verdict: evaluation&.ai_verdict
+            ai_verdict: evaluation&.ai_verdict,
+            notes: notes
           }
         end
       end

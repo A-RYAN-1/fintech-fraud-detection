@@ -40,7 +40,7 @@ export const navigationConfig: NavSection[] = [
         title: "Review Queue",
         href: "/admin/review",
         icon: ClipboardCheck,
-        roles: ["admin", "manager"],
+        roles: ["admin", "reviewer", "analyst"],
       },
       {
         title: "Risk Analysis",

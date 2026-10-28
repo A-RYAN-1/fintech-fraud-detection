@@ -100,7 +100,7 @@ class PaypalCheckoutTest < ActiveSupport::TestCase
 
   test "another user cannot settle someone else's order" do
     order_id = @checkout.create_order(amount: 10, device_id: "dev-1").paypal_order_id
-    other = PaypalCheckout.new(user: users(:manager), client: @client)
+    other = PaypalCheckout.new(user: users(:reviewer), client: @client)
     assert_raises(ActiveRecord::RecordNotFound) { other.settle(order_id) }
   end
 

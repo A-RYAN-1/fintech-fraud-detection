@@ -25,14 +25,19 @@ interface UserTableProps {
   isLoading?: boolean;
   onUpdateStatus: (userId: string, status: string) => void;
   onUpdateRole: (userId: string, role: string) => void;
+  // Admins only; the table hides the actions for everyone else.
+  onUpdateLimit?: (userId: string, limit: string) => void;
+  canManage?: boolean;
 }
 
 function getRoleBadgeVariant(role: User["role"]) {
   switch (role) {
     case "admin":
       return "danger";
-    case "manager":
+    case "reviewer":
       return "warning";
+    case "analyst":
+      return "info";
     default:
       return "default";
   }
@@ -56,6 +61,8 @@ export default function UserTable({
   isLoading = false,
   onUpdateStatus,
   onUpdateRole,
+  onUpdateLimit,
+  canManage = true,
 }: UserTableProps) {
   if (isLoading) {
     return (
@@ -141,6 +148,11 @@ export default function UserTable({
                   >
                     {user.role}
                   </Badge>
+                  {user.role === "reviewer" && user.decision_limit != null && (
+                    <span className="ml-2 text-xs text-neutral-500">
+                      up to ${user.decision_limit.toLocaleString()}
+                    </span>
+                  )}
                 </td>
                 <td className="py-3 px-4">
                   <Badge
@@ -156,52 +168,74 @@ export default function UserTable({
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Actions</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => onUpdateRole(user.id, "customer")}
-                      >
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        Set as Customer
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => onUpdateRole(user.id, "manager")}
-                      >
-                        <Shield className="mr-2 h-4 w-4" />
-                        Set as Manager
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => onUpdateRole(user.id, "admin")}
-                      >
-                        <Shield className="mr-2 h-4 w-4 text-danger-500" />
-                        Set as Admin
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      {user.status === "active" ? (
+                  {canManage && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => onUpdateStatus(user.id, "suspended")}
-                          className="text-danger-600 dark:text-danger-400"
+                          onClick={() => onUpdateRole(user.id, "customer")}
                         >
-                          <Ban className="mr-2 h-4 w-4" />
-                          Suspend User
+                          <UserIcon className="mr-2 h-4 w-4" />
+                          Set as Customer
                         </DropdownMenuItem>
-                      ) : (
                         <DropdownMenuItem
-                          onClick={() => onUpdateStatus(user.id, "active")}
-                          className="text-success-600 dark:text-success-400"
+                          onClick={() => onUpdateRole(user.id, "analyst")}
                         >
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Activate User
+                          <Shield className="mr-2 h-4 w-4" />
+                          Set as Analyst
                         </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <DropdownMenuItem
+                          onClick={() => onUpdateRole(user.id, "reviewer")}
+                        >
+                          <Shield className="mr-2 h-4 w-4" />
+                          Set as Reviewer
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onUpdateRole(user.id, "admin")}
+                        >
+                          <Shield className="mr-2 h-4 w-4 text-danger-500" />
+                          Set as Admin
+                        </DropdownMenuItem>
+                        {user.role === "reviewer" && onUpdateLimit && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              const value = window.prompt(
+                                `Decision limit for ${user.email} in dollars (blank for the default)`,
+                                String(user.decision_limit ?? ""),
+                              );
+                              if (value !== null) onUpdateLimit(user.id, value);
+                            }}
+                          >
+                            <Shield className="mr-2 h-4 w-4" />
+                            Set decision limit
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        {user.status === "active" ? (
+                          <DropdownMenuItem
+                            onClick={() => onUpdateStatus(user.id, "suspended")}
+                            className="text-danger-600 dark:text-danger-400"
+                          >
+                            <Ban className="mr-2 h-4 w-4" />
+                            Suspend User
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            onClick={() => onUpdateStatus(user.id, "active")}
+                            className="text-success-600 dark:text-success-400"
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Activate User
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </td>
               </tr>
             );

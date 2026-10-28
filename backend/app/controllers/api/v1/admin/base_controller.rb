@@ -11,7 +11,14 @@ module Api
         private
 
         def require_staff!
-          return if current_user.admin? || current_user.manager?
+          return if current_user.staff?
+
+          render_error("Not authorized", :forbidden, "pundit_unauthorized")
+        end
+
+        # Admin or reviewer: the roles that may approve, void or refund. Analysts only view, note and propose.
+        def require_decider!
+          return if current_user.can_decide?
 
           render_error("Not authorized", :forbidden, "pundit_unauthorized")
         end

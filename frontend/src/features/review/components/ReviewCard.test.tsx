@@ -24,6 +24,7 @@ const payment: HeldPayment = {
     confidence: 0.7,
     explanation: "Unusual size",
   },
+  notes: [],
 };
 
 describe("ReviewCard", () => {
@@ -49,7 +50,7 @@ describe("ReviewCard", () => {
       />,
     );
     expect(screen.queryByRole("button", { name: "Void" })).toBeNull();
-    expect(screen.getByText(/Only an admin/)).toBeInTheDocument();
+    expect(screen.getByText(/Only an admin or reviewer/)).toBeInTheDocument();
   });
 
   it("shows why it was held and the AI explanation", () => {
@@ -112,5 +113,70 @@ describe("ReviewCard", () => {
       <ReviewCard payment={payment} busy={false} canAct onAct={vi.fn()} />,
     );
     expect(screen.queryByText(/Hold expire/)).toBeNull();
+  });
+});
+
+describe("ReviewCard roles", () => {
+  it("hides the decision buttons above the reviewer's limit and offers a note", () => {
+    render(
+      <ReviewCard
+        payment={payment}
+        busy={false}
+        canAct
+        limit={1000}
+        onAct={vi.fn()}
+        onNote={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/over your decision limit/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Approve and capture" }),
+    ).toBeNull();
+    expect(screen.getByRole("button", { name: "Add note" })).toBeDisabled();
+  });
+
+  it("lets an analyst propose a decision with a note", async () => {
+    const onNote = vi.fn();
+    render(
+      <ReviewCard
+        payment={payment}
+        busy={false}
+        canAct={false}
+        onAct={vi.fn()}
+        onNote={onNote}
+      />,
+    );
+    await userEvent.type(
+      screen.getByLabelText("Note or recommendation"),
+      "ring",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Propose void" }));
+    expect(onNote).toHaveBeenCalledWith("abc", "ring", "void");
+  });
+
+  it("shows earlier notes and proposals", () => {
+    render(
+      <ReviewCard
+        payment={{
+          ...payment,
+          notes: [
+            {
+              event_type: "DECISION_PROPOSED",
+              actor: "ana@example.com",
+              role: "analyst",
+              text: "shared device",
+              proposal: "void",
+              created_at: "2026-10-28T10:00:00Z",
+            },
+          ],
+        }}
+        busy={false}
+        canAct
+        onAct={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByText(/proposes to void: shared device/),
+    ).toBeInTheDocument();
   });
 });

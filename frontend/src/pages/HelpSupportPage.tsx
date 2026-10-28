@@ -85,14 +85,14 @@ const faqData: FAQItem[] = [
     id: "6",
     question: "What user roles are available?",
     answer:
-      "The system supports three main roles: Analyst - Can view transactions and reports, flag suspicious activity. Manager - All analyst permissions plus user management and rule configuration. Admin - Full system access including audit logs and system settings.",
+      "The system supports three main roles: Analyst - Can view the review queue, add notes and propose a decision, but cannot move money. Reviewer - Can approve, void or refund held payments up to a decision limit. Admin - Everything: payments of any size, users, roles, limits, rules and the audit log.",
     category: "users",
   },
   {
     id: "7",
     question: "How do I add a new team member?",
     answer:
-      "Admins and Managers can add new users through Admin > Users. Click 'Add User', enter their email and assign a role. They will receive an invitation email to set up their account.",
+      "Admins can add new users through Admin > Users. Click 'Add User', enter their email and assign a role. They will receive an invitation email to set up their account.",
     category: "users",
   },
   {

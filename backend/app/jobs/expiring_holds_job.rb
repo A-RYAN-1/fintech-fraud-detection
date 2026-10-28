@@ -1,5 +1,5 @@
 # Holds are PayPal authorizations and they lapse (29 days). A hold nobody decided must not lapse silently:
-#   - ALERT_WINDOW before the end every admin and manager gets one high-priority notification;
+#   - ALERT_WINDOW before the end every admin and reviewer gets one high-priority notification;
 #   - VOID_WINDOW before the end the system voids it itself. Voiding is the safe direction: the buyer is not charged and
 #     the hold is released, which is the same thing PayPal would do at expiry, only recorded and explained in the log.
 # The system never captures: only a human or the policy under its limits moves money.
@@ -35,7 +35,7 @@ class ExpiringHoldsJob < ApplicationJob
     return if Notification.unscoped.where(notification_type: "system").exists?([ "data->>'transaction_id' = ? AND data->>'kind' = 'hold_expiring'", transaction.id.to_s ])
 
     hours = ((transaction.paypal_authorization_expires_at - Time.current) / 1.hour).floor
-    User.where(role: %i[admin manager], status: :active).find_each do |user|
+    User.where(role: %i[admin reviewer], status: :active).find_each do |user|
       user.notifications.create!(notification_type: "system", priority: "high", title: "A held payment is about to expire",
                                  message: "A held payment of #{transaction.amount.to_s('F')} expires in about #{hours} hours. Approve or void it in the review queue, or it is voided automatically 12 hours before it lapses.",
                                  data: { kind: "hold_expiring", transaction_id: transaction.id.to_s })

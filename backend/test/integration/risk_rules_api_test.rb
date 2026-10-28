@@ -3,7 +3,7 @@ require "test_helper"
 class RiskRulesApiTest < ActionDispatch::IntegrationTest
   setup do
     @admin = users(:admin)
-    @manager = users(:manager)
+    @reviewer = users(:reviewer)
     @customer = users(:one)
   end
 
@@ -39,8 +39,8 @@ class RiskRulesApiTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  test "a manager can read rules but not change or reset them" do
-    login_as @manager
+  test "a reviewer can read rules but not change or reset them" do
+    login_as @reviewer
     get api_v1_admin_risk_rules_url
     assert_response :success
     patch api_v1_admin_risk_rule_url("block_threshold"), params: { value: 80 }

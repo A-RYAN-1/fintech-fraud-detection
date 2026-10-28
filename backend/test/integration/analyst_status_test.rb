@@ -17,7 +17,7 @@ class AnalystStatusTest < ActionDispatch::IntegrationTest
   end
 
   test "staff see the breaker and bucket state" do
-    login_as(users(:manager))
+    login_as(users(:reviewer))
     AnalystGuard.instance.acquire
     get "/api/v1/admin/analyst_status"
     assert_response :success

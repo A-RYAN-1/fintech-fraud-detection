@@ -9,8 +9,33 @@ class User < ApplicationRecord
   has_one :user_transaction_stat, dependent: :destroy
 
   # Enums
-  enum :role, { customer: 0, admin: 1, manager: 2 }, default: :customer
+  enum :role, { customer: 0, admin: 1, reviewer: 2, analyst: 3 }, default: :customer
   enum :status, { active: 0, suspended: 1, pending: 2 }, default: :active
+
+  # Reviewers decide up to this amount unless the admin set a limit of their own; admins have none; analysts decide nothing.
+  DEFAULT_REVIEWER_LIMIT = BigDecimal("1000")
+  STAFF_ROLES = %w[admin reviewer analyst].freeze
+
+  def staff?
+    STAFF_ROLES.include?(role)
+  end
+
+  def can_decide?
+    admin? || reviewer?
+  end
+
+  # nil means no limit (admin); a number is the largest payment this person may approve, void or refund alone.
+  def effective_decision_limit
+    return nil if admin?
+    return BigDecimal("0") unless reviewer?
+
+    decision_limit || DEFAULT_REVIEWER_LIMIT
+  end
+
+  def within_limit?(amount)
+    limit = effective_decision_limit
+    limit.nil? || amount <= limit
+  end
 
   # Validations
   validates :email, presence: true,
@@ -20,6 +45,7 @@ class User < ApplicationRecord
                        length: { minimum: 8 },
                        if: -> { new_record? || password.present? }
   validates :first_name, :last_name, presence: true
+  validates :decision_limit, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 
   # Callbacks
   before_save :normalize_email

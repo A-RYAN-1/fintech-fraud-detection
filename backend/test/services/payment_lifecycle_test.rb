@@ -164,7 +164,7 @@ class PaymentLifecycleTest < ActiveSupport::TestCase
 
   test "the job alerts staff once when a hold is within three days of lapsing" do
     t = held(expires_in: 48.hours)
-    staff = User.where(role: %i[admin manager], status: :active).count
+    staff = User.where(role: %i[admin reviewer], status: :active).count
     assert_difference("Notification.count", staff) { ExpiringHoldsJob.perform_now }
     assert_no_difference("Notification.count") { ExpiringHoldsJob.perform_now }
     assert_equal "HELD", t.reload.paypal_status

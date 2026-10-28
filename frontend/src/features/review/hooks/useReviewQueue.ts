@@ -23,6 +23,32 @@ const DONE: Record<ReviewAction, string> = {
 // One key per payment and action, kept until it succeeds, so a retried click is answered, not repeated.
 const keys = createKeyStore();
 
+export function useReviewNote() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      note,
+      proposal,
+    }: {
+      id: string;
+      note: string;
+      proposal?: ReviewAction;
+    }) =>
+      proposal
+        ? reviewApi.propose(id, proposal, note)
+        : reviewApi.note(id, note),
+    onSuccess: (_data, { proposal }) => {
+      queryClient.invalidateQueries({ queryKey: [REVIEW_QUEUE_QUERY_KEY] });
+      toast.success(proposal ? `Proposed to ${proposal}` : "Note saved");
+    },
+    onError: (error) => {
+      toast.error("Could not save", { description: getErrorMessage(error) });
+    },
+  });
+}
+
 export function useReviewAction() {
   const queryClient = useQueryClient();
 
