@@ -1,6 +1,7 @@
 export { default as envConfig } from "./env.config";
 export {
-  navigationConfig,
+  navigationFor,
+  homePathFor,
   breadcrumbNameMap,
   type NavItem,
   type NavSection,

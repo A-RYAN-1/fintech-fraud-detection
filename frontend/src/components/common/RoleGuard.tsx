@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks";
+import { homePathFor } from "@/config";
 import type { UserRole } from "@/types";
 
 interface RoleGuardProps {
@@ -12,12 +13,12 @@ interface RoleGuardProps {
 export default function RoleGuard({
   children,
   allowedRoles,
-  fallbackPath = "/dashboard",
+  fallbackPath,
 }: RoleGuardProps) {
   const { user } = useAuth();
 
   if (!user || !allowedRoles.includes(user.role)) {
-    return <Navigate to={fallbackPath} replace />;
+    return <Navigate to={fallbackPath ?? homePathFor(user?.role)} replace />;
   }
 
   return <>{children}</>;

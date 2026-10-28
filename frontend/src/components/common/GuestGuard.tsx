@@ -2,6 +2,7 @@ import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks";
 import { Skeleton } from "@/components/ui";
+import { homePathFor } from "@/config";
 
 interface GuestGuardProps {
   children: ReactNode;
@@ -24,7 +25,8 @@ function LoadingScreen() {
 }
 
 export default function GuestGuard({ children }: GuestGuardProps) {
-  const { isAuthenticated, isInitialized, isLoading, checkSession } = useAuth();
+  const { user, isAuthenticated, isInitialized, isLoading, checkSession } =
+    useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -41,7 +43,8 @@ export default function GuestGuard({ children }: GuestGuardProps) {
   // Redirect to dashboard if already authenticated
   if (isAuthenticated) {
     const from =
-      (location.state as { from?: Location })?.from?.pathname || "/dashboard";
+      (location.state as { from?: Location })?.from?.pathname ||
+      homePathFor(user?.role);
     return <Navigate to={from} replace />;
   }
 

@@ -41,7 +41,10 @@ export default function ThemeToggle() {
           <Sun className="mr-2 h-4 w-4" />
           <span>Light</span>
           {theme === "light" && (
-            <Check className="ml-auto h-4 w-4 text-primary-600" aria-hidden="true" />
+            <Check
+              className="ml-auto h-4 w-4 text-primary-600"
+              aria-hidden="true"
+            />
           )}
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -51,7 +54,10 @@ export default function ThemeToggle() {
           <Moon className="mr-2 h-4 w-4" />
           <span>Dark</span>
           {theme === "dark" && (
-            <Check className="ml-auto h-4 w-4 text-primary-600" aria-hidden="true" />
+            <Check
+              className="ml-auto h-4 w-4 text-primary-600"
+              aria-hidden="true"
+            />
           )}
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -61,7 +67,10 @@ export default function ThemeToggle() {
           <Monitor className="mr-2 h-4 w-4" />
           <span>System</span>
           {theme === "system" && (
-            <Check className="ml-auto h-4 w-4 text-primary-600" aria-hidden="true" />
+            <Check
+              className="ml-auto h-4 w-4 text-primary-600"
+              aria-hidden="true"
+            />
           )}
         </DropdownMenuItem>
       </DropdownMenuContent>

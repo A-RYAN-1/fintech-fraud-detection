@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { X } from "lucide-react";
 import { cn } from "@/utils";
-import { navigationConfig, type NavItem } from "@/config";
+import { navigationFor, homePathFor, type NavItem } from "@/config";
 import { useAuth } from "@/features/auth/hooks";
 import { useTheme } from "@/hooks";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -74,15 +74,8 @@ export default function MobileSidebar() {
     };
   }, [isOpen]);
 
-  const filteredNavigation = navigationConfig
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => {
-        if (!item.roles) return true;
-        return user && item.roles.includes(user.role);
-      }),
-    }))
-    .filter((section) => section.items.length > 0);
+  const filteredNavigation = navigationFor(user?.role);
+  const homePath = homePathFor(user?.role);
 
   const handleClose = () => dispatch(setSidebarOpen(false));
 
@@ -102,7 +95,7 @@ export default function MobileSidebar() {
           {/* Header */}
           <div className="flex h-20 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 px-6 py-6">
             <Link
-              to="/dashboard"
+              to={homePath}
               className="flex items-center justify-center gap-2 flex-1"
               onClick={handleClose}
             >
