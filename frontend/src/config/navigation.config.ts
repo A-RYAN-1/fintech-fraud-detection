@@ -4,6 +4,7 @@ import {
   CreditCard,
   ClipboardCheck,
   ShieldCheck,
+  Scale,
   Users,
   FileText,
   Settings,
@@ -49,6 +50,12 @@ export const navigationConfig: NavSection[] = [
         title: "Approvals",
         href: "/admin/approvals",
         icon: ShieldCheck,
+        roles: ["admin", "reviewer", "analyst"],
+      },
+      {
+        title: "Feedback",
+        href: "/admin/feedback",
+        icon: Scale,
         roles: ["admin", "reviewer", "analyst"],
       },
       {
@@ -99,6 +106,7 @@ export const breadcrumbNameMap: Record<string, string> = {
   "/payments/history": "History",
   "/admin/review": "Review Queue",
   "/admin/approvals": "Approvals",
+  "/admin/feedback": "Feedback",
   "/risk-analysis": "Risk Analysis",
   "/admin": "Administration",
   "/admin/users": "User Management",
