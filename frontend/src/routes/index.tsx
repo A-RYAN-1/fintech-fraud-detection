@@ -1,4 +1,9 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  type RouteObject,
+} from "react-router-dom";
+import HomeRedirect from "@/components/common/HomeRedirect";
 import { AuthGuard, GuestGuard, RoleGuard } from "@/components/common";
 import { MainLayout } from "@/layouts";
 import {
@@ -19,7 +24,7 @@ import {
   FeedbackPage,
 } from "@/pages";
 
-export const router = createBrowserRouter([
+export const routes: RouteObject[] = [
   // Public routes (guest only)
   {
     path: "/login",
@@ -49,7 +54,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
+        element: <HomeRedirect />,
       },
       {
         path: "dashboard",
@@ -57,7 +62,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "payments",
-        element: <PaymentsLayout />,
+        element: (
+          <RoleGuard allowedRoles={["customer"]}>
+            <PaymentsLayout />
+          </RoleGuard>
+        ),
         children: [
           { index: true, element: <Navigate to="pay" replace /> },
           { path: "pay", element: <PayTab /> },
@@ -103,7 +112,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "risk-analysis",
-        element: <RiskAnalysisPage />,
+        element: (
+          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
+            <RiskAnalysisPage />
+          </RoleGuard>
+        ),
       },
       {
         path: "settings",
@@ -117,7 +130,7 @@ export const router = createBrowserRouter([
       {
         path: "admin/users",
         element: (
-          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
+          <RoleGuard allowedRoles={["admin"]}>
             <UsersPage />
           </RoleGuard>
         ),
@@ -138,4 +151,6 @@ export const router = createBrowserRouter([
     path: "*",
     element: <NotFoundPage />,
   },
-]);
+];
+
+export const router = createBrowserRouter(routes);

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/utils";
-import { navigationConfig, type NavItem } from "@/config";
+import { navigationFor, homePathFor, type NavItem } from "@/config";
 import { useAuth } from "@/features/auth/hooks";
 import { useTheme } from "@/hooks";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -74,15 +74,8 @@ export default function Sidebar() {
   const dispatch = useAppDispatch();
   const collapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
 
-  const filteredNavigation = navigationConfig
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => {
-        if (!item.roles) return true;
-        return user && item.roles.includes(user.role);
-      }),
-    }))
-    .filter((section) => section.items.length > 0);
+  const filteredNavigation = navigationFor(user?.role);
+  const homePath = homePathFor(user?.role);
 
   return (
     <aside
@@ -100,7 +93,7 @@ export default function Sidebar() {
           )}
         >
           <Link
-            to="/dashboard"
+            to={homePath}
             className="flex items-center justify-center w-full"
           >
             {collapsed ? (

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAppDispatch } from "@/store";
 import { setUser } from "@/store/slices/authSlice";
+import { homePathFor } from "@/config";
 import { authApi } from "../api";
 import { getErrorMessage } from "@/types";
 import type { LoginCredentials } from "@/types";
@@ -18,7 +19,7 @@ export function useLogin() {
       toast.success("Welcome back!", {
         description: `Logged in as ${user.email}`,
       });
-      navigate("/dashboard", { replace: true });
+      navigate(homePathFor(user.role), { replace: true });
     },
     onError: (error) => {
       toast.error("Login failed", {

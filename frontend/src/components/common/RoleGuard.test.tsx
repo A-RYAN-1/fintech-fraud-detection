@@ -80,8 +80,38 @@ describe("RoleGuard", () => {
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
     expect(screen.getByTestId("navigate")).toHaveAttribute(
       "data-to",
-      "/dashboard",
+      "/payments",
     );
+  });
+
+  it.each([
+    ["analyst", "/admin/review"],
+    ["reviewer", "/admin/review"],
+    ["admin", "/admin/review"],
+  ] as const)("sends a refused %s to %s", (role, path) => {
+    mockUseAuth.mockReturnValue({
+      user: {
+        id: "1",
+        email: "test@example.com",
+        first_name: "John",
+        last_name: "Doe",
+        role,
+        status: "active",
+      },
+      isAuthenticated: true,
+      isLoading: false,
+      isInitialized: true,
+      checkSession: vi.fn(),
+      logout: vi.fn(),
+    });
+
+    renderWithProviders(
+      <RoleGuard allowedRoles={["customer"]}>
+        <div>Protected Content</div>
+      </RoleGuard>,
+    );
+
+    expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", path);
   });
 
   it("redirects to custom path when specified", () => {

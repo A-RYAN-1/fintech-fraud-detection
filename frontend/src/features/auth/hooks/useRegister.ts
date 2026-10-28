@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAppDispatch } from "@/store";
 import { setUser } from "@/store/slices/authSlice";
+import { homePathFor } from "@/config";
 import { authApi } from "../api";
 import { getErrorMessage } from "@/types";
 import type { RegisterCredentials } from "@/types";
@@ -19,7 +20,7 @@ export function useRegister() {
       toast.success("Account created!", {
         description: "Welcome to Fintech Risk Engine",
       });
-      navigate("/dashboard", { replace: true });
+      navigate(homePathFor(user.role), { replace: true });
     },
     onError: (error) => {
       toast.error("Registration failed", {

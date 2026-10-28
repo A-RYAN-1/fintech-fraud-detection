@@ -7,8 +7,6 @@ import {
   Scale,
   Users,
   FileText,
-  Settings,
-  HelpCircle,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types";
@@ -27,77 +25,61 @@ export interface NavSection {
   items: NavItem[];
 }
 
-export const navigationConfig: NavSection[] = [
-  {
-    items: [
-      {
-        title: "Dashboard",
-        href: "/dashboard",
-        icon: LayoutDashboard,
-      },
-      {
-        title: "Payments",
-        href: "/payments",
-        icon: CreditCard,
-      },
-      {
-        title: "Review Queue",
-        href: "/admin/review",
-        icon: ClipboardCheck,
-        roles: ["admin", "reviewer", "analyst"],
-      },
-      {
-        title: "Approvals",
-        href: "/admin/approvals",
-        icon: ShieldCheck,
-        roles: ["admin", "reviewer", "analyst"],
-      },
-      {
-        title: "Feedback",
-        href: "/admin/feedback",
-        icon: Scale,
-        roles: ["admin", "reviewer", "analyst"],
-      },
-      {
-        title: "Risk Analysis",
-        href: "/risk-analysis",
-        icon: Shield,
-      },
-    ],
+const STAFF: UserRole[] = ["admin", "reviewer", "analyst"];
+
+const ITEMS = {
+  dashboard: {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
   },
-  {
-    title: "Administration",
-    items: [
-      {
-        title: "Users",
-        href: "/admin/users",
-        icon: Users,
-        roles: ["admin"],
-      },
-      {
-        title: "Audit Logs",
-        href: "/admin/audit-logs",
-        icon: FileText,
-        roles: ["admin"],
-      },
-    ],
+  payments: { title: "Payments", href: "/payments", icon: CreditCard },
+  review: {
+    title: "Review Queue",
+    href: "/admin/review",
+    icon: ClipboardCheck,
   },
-  {
-    title: "Settings",
-    items: [
-      {
-        title: "Preferences",
-        href: "/settings",
-        icon: Settings,
-      },
-      {
-        title: "Help & Support",
-        href: "/help",
-        icon: HelpCircle,
-      },
-    ],
+  approvals: {
+    title: "Approvals",
+    href: "/admin/approvals",
+    icon: ShieldCheck,
   },
-];
+  feedback: { title: "Feedback", href: "/admin/feedback", icon: Scale },
+  risk: { title: "Risk Analysis", href: "/risk-analysis", icon: Shield },
+  users: { title: "Users", href: "/admin/users", icon: Users },
+  audit: { title: "Audit Logs", href: "/admin/audit-logs", icon: FileText },
+} satisfies Record<string, NavItem>;
+
+/** Where each role lands after login and when a hidden URL is refused. */
+export function homePathFor(role: UserRole | undefined): string {
+  return role && STAFF.includes(role) ? "/admin/review" : "/payments";
+}
+
+/** Sidebar sections for a role. Help lives in the user menu, theme in the header. */
+export function navigationFor(role: UserRole | undefined): NavSection[] {
+  if (!role) return [];
+  if (role === "customer") {
+    return [{ items: [ITEMS.dashboard, ITEMS.payments] }];
+  }
+  const sections: NavSection[] = [
+    {
+      items: [
+        ITEMS.review,
+        ITEMS.approvals,
+        ITEMS.feedback,
+        ITEMS.dashboard,
+        ITEMS.risk,
+      ],
+    },
+  ];
+  if (role === "admin") {
+    sections.push({
+      title: "Administration",
+      items: [ITEMS.users, ITEMS.audit],
+    });
+  }
+  return sections;
+}
 
 export const breadcrumbNameMap: Record<string, string> = {
   "/dashboard": "Dashboard",
