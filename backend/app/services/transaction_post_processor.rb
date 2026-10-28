@@ -33,7 +33,7 @@ class TransactionPostProcessor
     ml = @result[:ml]
     return {} unless ml
 
-    { ml_score: ml[:probability], ml_version: ml[:version], ml_explanation: ml[:reasons] }
+    { ml_score: ml[:probability], ml_version: ml[:version], ml_explanation: ml[:reasons], ml_features: ml[:features] }
   end
 
   def ai_attributes

@@ -37,6 +37,7 @@ class PaypalActions
       transaction.update!(paypal_capture_id: response.fetch("id"), paypal_status: "CAPTURED", paypal_captured_at: Time.current,
                           paypal_capture_mode: auto ? "auto" : "human", paypal_action_reason: reason.to_s.truncate(255))
       audit(transaction, "PAYPAL_CAPTURED", actor, reason, before)
+      label!(transaction, actor, "approve", "decision") if before[:paypal_status] == "HELD"
       transaction
     end
   end
@@ -62,6 +63,7 @@ class PaypalActions
       @client.void(transaction.paypal_authorization_id, request_id: "void-#{transaction.id}")
       transaction.update!(paypal_status: "VOIDED", paypal_action_reason: reason.to_s.truncate(255))
       audit(transaction, "PAYPAL_VOIDED", actor, reason, before)
+      label!(transaction, actor, "block", "decision") if before[:paypal_status] == "HELD"
       transaction
     end
   end
@@ -87,6 +89,7 @@ class PaypalActions
                           paypal_status: total >= transaction.amount ? "REFUNDED" : "PARTIALLY_REFUNDED")
       audit(transaction, total >= transaction.amount ? "PAYPAL_REFUNDED" : "PAYPAL_PARTIALLY_REFUNDED", actor,
             "#{reason} (refunded #{refund_amount.to_s('F')} of #{transaction.amount.to_s('F')}, #{total.to_s('F')} in total)", before)
+      label!(transaction, actor, "block", "refund") if total >= transaction.amount
       transaction
     end
   end
@@ -110,6 +113,14 @@ class PaypalActions
     return if allowed.include?(transaction.paypal_status)
 
     raise InvalidState, "Cannot #{action} a payment that is #{transaction.paypal_status.to_s.downcase.presence || 'not authorized'}"
+  end
+
+  # A person's decision is the label the automatic signals are scored against (see FeedbackReport). The agent's own
+  # actions are not labels. A later full refund turns an approval into a block.
+  def label!(transaction, actor, value, source)
+    return unless actor.is_a?(User)
+
+    transaction.fraud_evaluation&.update!(human_label: value, label_source: source, labeled_by: actor, labeled_at: Time.current)
   end
 
   def snapshot(transaction)
