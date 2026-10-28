@@ -8,6 +8,15 @@ namespace :demo do
     puts report.to_h.map { |k, v| "#{k}=#{v}" }.join(" ")
   end
 
+  desc "Create or reset the public sandbox reviewer login shown on the sign-in page (idempotent; safe in production, never an admin)"
+  task judges: :environment do
+    user = User.find_or_initialize_by(email: "judge.reviewer@sentrix.demo")
+    user.assign_attributes(first_name: "Judge", last_name: "Reviewer", role: :reviewer, status: :active,
+                           decision_limit: 5000, password: "password123")
+    user.save!
+    puts "ready #{user.email} role=#{user.role} limit=#{user.decision_limit}"
+  end
+
   desc "Remove everything demo:traffic created (users under demo.sentrix.test and their payments)"
   task clean: :environment do
     puts "removed #{DemoTraffic.clean!} payments"
