@@ -39,10 +39,11 @@ class TransactionRiskEvaluator
 
   # The model may lift a SUCCESS to FLAGGED and explain itself; it never blocks and never lowers a rule result.
   def add_ml_score(rule_results, stats)
-    ml = MlRiskScorer.score(MlFeatureBuilder.new(@transaction, @user, stats).vector)
+    vector = MlFeatureBuilder.new(@transaction, @user, stats).vector
+    ml = MlRiskScorer.score(vector)
     return rule_results unless ml
 
-    results = rule_results.merge(ml: ml)
+    results = rule_results.merge(ml: ml.merge(features: vector))
     return results unless ml[:flag] && rule_results[:status] == :success
 
     results.merge(

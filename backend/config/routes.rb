@@ -23,6 +23,7 @@ Rails.application.routes.draw do
           end
         end
         resources :audit_logs, only: [ :index ]
+        resource :feedback, only: [ :show ], controller: "feedback"
         resources :approval_requests, only: [ :index ] do
           member do
             post :approve

@@ -145,6 +145,14 @@ class DemoTraffic
     else
       actions.void(transaction, actor: reviewer, reason: "Voided by a human: shared device across customers")
     end
+    stamp_label(transaction)
     @counts[:decided] += 1
+  end
+
+  # The decision is made some hours after the payment, so the agreement history spreads over the run.
+  def stamp_label(transaction)
+    evaluation = transaction.fraud_evaluation
+    at = [ transaction.created_at + (1 + @rng.rand(20)).hours, Time.current ].min
+    evaluation&.update_columns(labeled_at: at)
   end
 end

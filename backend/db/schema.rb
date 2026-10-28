@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_28_220000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -73,7 +73,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200000) do
     t.string "ml_version"
     t.jsonb "ml_explanation"
     t.jsonb "ai_verdict"
+    t.jsonb "ml_features"
+    t.string "human_label"
+    t.string "label_source"
+    t.datetime "labeled_at"
+    t.bigint "labeled_by_id"
+    t.index ["human_label"], name: "index_fraud_evaluations_on_human_label"
     t.index ["is_accurate"], name: "index_fraud_evaluations_on_is_accurate"
+    t.index ["labeled_by_id"], name: "index_fraud_evaluations_on_labeled_by_id"
     t.index ["transaction_id"], name: "index_fraud_evaluations_on_transaction_id"
   end
 
@@ -302,6 +309,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200000) do
   add_foreign_key "audit_logs", "users", column: "actor_id", on_delete: :nullify
   add_foreign_key "devices", "users"
   add_foreign_key "fraud_evaluations", "transactions"
+  add_foreign_key "fraud_evaluations", "users", column: "labeled_by_id", on_delete: :nullify
   add_foreign_key "idempotency_keys", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "risk_rule_settings", "users", column: "updated_by_id", on_delete: :nullify

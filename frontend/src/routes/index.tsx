@@ -16,6 +16,7 @@ import {
   AuditLogsPage,
   ReviewQueuePage,
   ApprovalsPage,
+  FeedbackPage,
 } from "@/pages";
 
 export const router = createBrowserRouter([
@@ -89,6 +90,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
             <ApprovalsPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "admin/feedback",
+        element: (
+          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
+            <FeedbackPage />
           </RoleGuard>
         ),
       },
