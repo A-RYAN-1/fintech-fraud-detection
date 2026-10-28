@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_26_050000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_28_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -50,6 +50,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_26_050000) do
     t.jsonb "ai_verdict"
     t.index ["is_accurate"], name: "index_fraud_evaluations_on_is_accurate"
     t.index ["transaction_id"], name: "index_fraud_evaluations_on_transaction_id"
+  end
+
+  create_table "idempotency_keys", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "key", null: false
+    t.string "request_method", null: false
+    t.string "request_path", null: false
+    t.string "request_fingerprint", null: false
+    t.integer "response_status"
+    t.text "response_body"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_idempotency_keys_on_created_at"
+    t.index ["user_id", "key"], name: "index_idempotency_keys_on_user_id_and_key", unique: true
+    t.index ["user_id"], name: "index_idempotency_keys_on_user_id"
   end
 
   create_table "notifications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -253,6 +268,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_26_050000) do
 
   add_foreign_key "devices", "users"
   add_foreign_key "fraud_evaluations", "transactions"
+  add_foreign_key "idempotency_keys", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "risk_rule_settings", "users", column: "updated_by_id", on_delete: :nullify
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

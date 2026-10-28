@@ -12,10 +12,10 @@ class PaypalCheckout
   end
 
   # Creates the pending transaction and the PayPal order; the browser then asks the buyer to approve it.
-  def create_order(amount:, device_id:, ip_address: nil)
+  def create_order(amount:, device_id:, ip_address: nil, request_id: SecureRandom.uuid)
     transaction = @user.transactions.new(amount: amount, payment_method: "wallet", device_id: device_id, ip_address: ip_address)
     transaction.save!
-    order = @client.create_order(amount: transaction.amount, currency: CURRENCY, reference: transaction.id)
+    order = @client.create_order(amount: transaction.amount, currency: CURRENCY, reference: transaction.id, request_id: request_id)
     transaction.update!(paypal_order_id: order.fetch("id"), paypal_status: "CREATED")
     transaction
   end
@@ -25,7 +25,7 @@ class PaypalCheckout
     transaction = @user.transactions.find_by!(paypal_order_id: order_id)
     return Result.new(transaction: transaction, decision: decision_for(transaction)) if transaction.paypal_authorization_id.present?
 
-    authorization = @client.authorize_order(order_id)
+    authorization = @client.authorize_order(order_id, request_id: "authorize-#{order_id}")
     transaction.update!(paypal_authorization_id: authorization.fetch("id"), paypal_status: "AUTHORIZED")
 
     TransactionRiskEvaluator.new(transaction).evaluate

@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib";
 import type { ApiResponse } from "@/types";
+import { idempotencyHeaders } from "@/utils/idempotency";
 
 export type TimelineImpact = "raises_risk" | "lowers_risk" | "neutral";
 
@@ -40,10 +41,12 @@ export const checkoutApi = {
   createOrder: async (
     amount: number,
     deviceId: string,
+    idempotencyKey: string,
   ): Promise<CreatedOrder> => {
     const response = await apiClient.post<ApiResponse<CreatedOrder>>(
       "/paypal/orders",
       { amount, device_id: deviceId },
+      { headers: idempotencyHeaders(idempotencyKey) },
     );
     return response.data.data;
   },
@@ -52,17 +55,22 @@ export const checkoutApi = {
   simulate: async (
     amount: number,
     deviceId: string,
+    idempotencyKey: string,
   ): Promise<SettledPayment> => {
     const response = await apiClient.post<ApiResponse<SettledPayment>>(
       "/payments/simulate",
       { amount, device_id: deviceId },
+      { headers: idempotencyHeaders(idempotencyKey) },
     );
     return response.data.data;
   },
 
   authorizeOrder: async (orderId: string): Promise<SettledPayment> => {
+    // Keyed by the order: authorizing the same order twice returns the first result.
     const response = await apiClient.post<ApiResponse<SettledPayment>>(
       `/paypal/orders/${encodeURIComponent(orderId)}/authorize`,
+      undefined,
+      { headers: idempotencyHeaders(`authorize-${orderId}`) },
     );
     return response.data.data;
   },

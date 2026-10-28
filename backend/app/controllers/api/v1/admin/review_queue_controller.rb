@@ -4,8 +4,11 @@ module Api
       # The human side of the agent: payments the agent held (rules, model or AI sent them to review, or they broke a
       # limit), with everything the reviewer needs, and the override actions. Every action is audited with the admin's email.
       class ReviewQueueController < BaseController
+        include Idempotent
+
         before_action :require_staff!, only: :index
         before_action :require_admin!, only: [ :approve, :void, :refund ]
+        idempotent :approve, :void, :refund
         
         MAX_NOTE = 200
 

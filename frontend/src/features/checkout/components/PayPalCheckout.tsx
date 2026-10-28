@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/types";
+import { createKeyStore } from "@/utils/idempotency";
 import { checkoutApi, type SettledPayment } from "../api";
 import { usePayPalSdk } from "../hooks";
 
@@ -20,6 +21,7 @@ export function PayPalCheckout({
   const container = useRef<HTMLDivElement>(null);
   const amountRef = useRef(amount);
   const callback = useRef(onSettled);
+  const keys = useRef(createKeyStore());
 
   useEffect(() => {
     amountRef.current = amount;
@@ -33,14 +35,17 @@ export function PayPalCheckout({
     const buttons = window.paypal.Buttons({
       style: { layout: "vertical", shape: "rect", label: "pay" },
       createOrder: async () => {
+        // Same amount and device while no payment completed: a retry gets the same order back.
         const order = await checkoutApi.createOrder(
           amountRef.current,
           deviceId,
+          keys.current.keyFor(`order:${amountRef.current}:${deviceId}`),
         );
         return order.order_id;
       },
       onApprove: async ({ orderID }) => {
         const payment = await checkoutApi.authorizeOrder(orderID);
+        keys.current.release(`order:${amountRef.current}:${deviceId}`);
         callback.current(payment);
       },
       onError: (error) => {

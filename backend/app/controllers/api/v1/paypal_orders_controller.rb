@@ -1,8 +1,11 @@
 module Api
   module V1
     class PaypalOrdersController < ApplicationController
+      include Idempotent
+
       before_action :authenticate_user!
       before_action :require_paypal, except: :simulate
+      idempotent :create, :simulate, :authorize
 
       MAX_AMOUNT = 10_000
 
@@ -12,7 +15,8 @@ module Api
         amount = valid_amount
         return unless amount
 
-        transaction = checkout.create_order(amount: amount, device_id: params.require(:device_id).to_s.first(255), ip_address: request.remote_ip)
+        transaction = checkout.create_order(amount: amount, device_id: params.require(:device_id).to_s.first(255), ip_address: request.remote_ip,
+                                       request_id: paypal_request_id)
         render_success({ order_id: transaction.paypal_order_id, transaction_id: transaction.id }, "PayPal order created", :created)
       rescue ActiveRecord::RecordInvalid => e
         render_error("Order could not be created", :unprocessable_entity, e.record.errors.full_messages)
@@ -75,6 +79,13 @@ module Api
 
       def checkout
         @checkout ||= PaypalCheckout.new(user: current_user, client: paypal_client)
+      end
+
+      # The client's Idempotency-Key becomes PayPal's PayPal-Request-Id, so even a retry that got past our own
+      # replay (a crash between the PayPal call and the stored response) cannot create a second PayPal order.
+      def paypal_request_id
+        key = idempotency_key
+        key ? Digest::SHA256.hexdigest("order:#{current_user.id}:#{key}") : SecureRandom.uuid
       end
 
       # Tests replace this to avoid the network.

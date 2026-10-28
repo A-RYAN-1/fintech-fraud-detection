@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib";
+import { idempotencyHeaders } from "@/utils/idempotency";
 import type { ApiResponse, PaginationMeta } from "@/types";
 import type { AiVerdict } from "@/features/checkout";
 
@@ -37,10 +38,12 @@ export const reviewApi = {
     id: string,
     action: ReviewAction,
     note: string,
+    idempotencyKey: string,
   ): Promise<HeldPayment> => {
     const response = await apiClient.post<ApiResponse<HeldPayment>>(
       `/admin/review_queue/${id}/${action}`,
       { note },
+      { headers: idempotencyHeaders(idempotencyKey) },
     );
     return response.data.data;
   },

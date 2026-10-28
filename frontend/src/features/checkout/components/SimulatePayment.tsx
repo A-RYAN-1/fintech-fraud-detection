@@ -1,9 +1,11 @@
+import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui";
 import { TRANSACTIONS_QUERY_KEY } from "@/features/transactions";
 import { getErrorMessage } from "@/types";
+import { createKeyStore } from "@/utils/idempotency";
 import { checkoutApi, type SettledPayment } from "../api";
 
 interface SimulatePaymentProps {
@@ -19,9 +21,13 @@ export function SimulatePayment({
   onSettled,
 }: SimulatePaymentProps) {
   const queryClient = useQueryClient();
+  const keys = useRef(createKeyStore());
+  const intent = `simulate:${amount}:${deviceId}`;
   const mutation = useMutation({
-    mutationFn: () => checkoutApi.simulate(amount, deviceId),
+    mutationFn: () =>
+      checkoutApi.simulate(amount, deviceId, keys.current.keyFor(intent)),
     onSuccess: (payment) => {
+      keys.current.release(intent);
       void queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_QUERY_KEY] });
       onSettled(payment);
     },
