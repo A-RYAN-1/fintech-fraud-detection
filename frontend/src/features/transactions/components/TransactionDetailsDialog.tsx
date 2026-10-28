@@ -126,7 +126,7 @@ export default function TransactionDetailsDialog({
               </span>
               <span className="font-medium text-neutral-900 dark:text-neutral-100">
                 ${transaction.refunded_amount?.toFixed(2)} of $
-                {transaction.amount.toFixed(2)}
+                {Number(transaction.amount).toFixed(2)}
               </span>
             </div>
           )}
