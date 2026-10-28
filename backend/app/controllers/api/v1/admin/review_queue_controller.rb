@@ -9,18 +9,20 @@ module Api
 
         before_action :require_staff!, only: [ :index, :note, :propose ]
         before_action :require_decider!, only: [ :approve, :void, :refund ]
-        before_action :require_within_limit!, only: [ :approve, :void, :refund ]
         idempotent :approve, :void, :refund
 
         MAX_NOTE = 200
         PROPOSABLE = %w[approve void refund].freeze
         NOTE_EVENTS = %w[REVIEW_NOTE DECISION_PROPOSED].freeze
 
-        # GET /api/v1/admin/review_queue
+        # GET /api/v1/admin/review_queue            payments waiting for a decision
+        # GET /api/v1/admin/review_queue?scope=captured   captured payments, where a refund can be requested
         def index
-          scope = Transaction.where(paypal_status: "HELD").includes(:fraud_evaluation, :user).order(created_at: :desc)
+          statuses = params[:scope] == "captured" ? %w[CAPTURED PARTIALLY_REFUNDED] : %w[HELD]
+          scope = Transaction.where(paypal_status: statuses).includes(:fraud_evaluation, :user).order(created_at: :desc)
           records, meta = paginate(scope)
           notes = recent_notes(records.map { |t| t.id.to_s })
+          @pending = ApprovalRequest.pending.where(payment_id: records.map(&:id)).includes(:requested_by).group_by(&:payment_id)
           render_success({ held: records.map { |t| serialize(t, notes[t.id.to_s] || []) }, meta: meta,
                            limit: current_user.effective_decision_limit&.to_f, role: current_user.role })
         end
@@ -37,23 +39,46 @@ module Api
           leave("DECISION_PROPOSED", "proposed to #{params[:proposal]}")
         end
 
-        # POST /api/v1/admin/review_queue/:id/approve  { note: "..." }  captures the held payment
+        # POST /api/v1/admin/review_queue/:id/approve  { note: "..." }  captures the held payment. Above the caller's
+        # decision limit it becomes a request for an admin (202) and nothing moves.
         def approve
+          return request_admin("approve") unless within_limit?
+
           act { |actions, transaction| actions.capture(transaction, actor: actor, reason: reason("Approved by a human")) }
         end
 
         # POST /api/v1/admin/review_queue/:id/void  { note: "..." }  releases the authorization, nothing is charged
         def void
+          return request_admin("void") unless within_limit?
+
           act { |actions, transaction| actions.void(transaction, actor: actor, reason: reason("Voided by a human")) }
         end
 
-        # POST /api/v1/admin/review_queue/:id/refund  { note: "...", amount: 12.50 }  returns a captured payment, in
-        # full or in part (amount); refunds add up and never pass the captured amount
+        # POST /api/v1/admin/review_queue/:id/refund  { note: "...", amount: 12.50 }  asks for a refund, in full or in
+        # part (amount). A refund needs two distinct people, so this raises a request (202) for a different admin to
+        # settle; refunds add up and never pass the captured amount.
         def refund
-          act { |actions, transaction| actions.refund(transaction, actor: actor, reason: reason("Refunded by a human"), amount: params[:amount].presence) }
+          request_admin("refund", amount: params[:amount].presence)
         end
 
         private
+
+        def within_limit?
+          transaction = Transaction.find_by(id: params[:id])
+          transaction.nil? || current_user.within_limit?(transaction.amount)
+        end
+
+        def request_admin(action, amount: nil)
+          transaction = Transaction.find(params[:id])
+          request = ApprovalWorkflow.new.request!(payment: transaction, action: action, requester: current_user, reason: params[:note], amount: amount)
+          render json: { status: "success", message: "Sent to an admin for a decision", data: { approval_request: ApprovalRequestsController.serialize(request) } }, status: :accepted
+        rescue ActiveRecord::RecordNotFound
+          render_error("Transaction not found", :not_found)
+        rescue PaypalActions::InvalidState => e
+          render_error(e.message, :conflict)
+        rescue PaypalActions::InvalidAmount, ArgumentError => e
+          render_error(e.is_a?(ArgumentError) ? "Refund amount is not a number" : e.message, :unprocessable_entity)
+        end
 
         def leave(event_type, verb)
           transaction = Transaction.find(params[:id])
@@ -75,22 +100,14 @@ module Api
                   .group_by(&:entity_id).transform_values { |logs| logs.first(5).map { |l| serialize_note(l) } }
         end
 
+        def pending_request_for(transaction)
+          request = (@pending || {})[transaction.id]&.first || ApprovalRequest.pending.find_by(payment_id: transaction.id)
+          request && ApprovalRequestsController.serialize(request)
+        end
+
         def serialize_note(log)
           { event_type: log.event_type, actor: log.actor&.email, role: log.actor_role, text: log.reason,
             proposal: log.after_state&.dig("proposal"), created_at: log.created_at }
-        end
-
-        # A reviewer decides only up to their limit; above it the payment waits for an admin.
-        def require_within_limit!
-          transaction = Transaction.find_by(id: params[:id])
-          return unless transaction
-
-          amount = transaction.amount
-          amount = BigDecimal(params[:amount].to_s, exception: false) || amount if action_name == "refund" && params[:amount].present?
-          return if current_user.within_limit?(amount)
-
-          render_error("This payment is over your decision limit of #{current_user.effective_decision_limit.to_s('F')}. An admin must decide it.",
-                       :forbidden, "over_decision_limit")
         end
 
         def act
@@ -144,6 +161,7 @@ module Api
             ml_score: evaluation&.ml_score,
             ml_explanation: evaluation&.ml_explanation || [],
             ai_verdict: evaluation&.ai_verdict,
+            pending_request: pending_request_for(transaction),
             notes: notes
           }
         end

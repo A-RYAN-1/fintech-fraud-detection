@@ -6,6 +6,87 @@ import { reviewApi, type ReviewAction } from "../api";
 
 export const REVIEW_QUEUE_QUERY_KEY = "admin-review-queue";
 
+export function useCapturedPayments(page = 1) {
+  return useQuery({
+    queryKey: [REVIEW_QUEUE_QUERY_KEY, "captured", page],
+    queryFn: () => reviewApi.list(page, "captured"),
+    staleTime: 1000 * 15,
+  });
+}
+
+export function useApprovalRequests(
+  status: "pending" | "approved" | "rejected" | "all" = "pending",
+) {
+  return useQuery({
+    queryKey: [REVIEW_QUEUE_QUERY_KEY, "requests", status],
+    queryFn: () => reviewApi.listRequests(status),
+    staleTime: 1000 * 15,
+  });
+}
+
+const settleKeys = createKeyStore();
+
+export function useSettleRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      decision,
+      note,
+    }: {
+      id: number;
+      decision: "approve" | "reject";
+      note: string;
+    }) =>
+      reviewApi.settleRequest(
+        id,
+        decision,
+        note,
+        settleKeys.keyFor(`${id}:${decision}`),
+      ),
+    onSuccess: (_data, { id, decision }) => {
+      settleKeys.release(`${id}:${decision}`);
+      queryClient.invalidateQueries({ queryKey: [REVIEW_QUEUE_QUERY_KEY] });
+      toast.success(
+        decision === "approve"
+          ? "Approved and carried out"
+          : "Request rejected",
+      );
+    },
+    onError: (error) => {
+      toast.error("Could not settle the request", {
+        description: getErrorMessage(error),
+      });
+    },
+  });
+}
+
+export function useRequestRefund() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      amount,
+      note,
+    }: {
+      id: string;
+      amount: string;
+      note: string;
+    }) => reviewApi.requestRefund(id, amount, note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [REVIEW_QUEUE_QUERY_KEY] });
+      toast.success("Refund sent to an admin for approval");
+    },
+    onError: (error) => {
+      toast.error("Could not request the refund", {
+        description: getErrorMessage(error),
+      });
+    },
+  });
+}
+
 export function useReviewQueue(page = 1) {
   return useQuery({
     queryKey: [REVIEW_QUEUE_QUERY_KEY, page],
@@ -62,10 +143,12 @@ export function useReviewAction() {
       action: ReviewAction;
       note: string;
     }) => reviewApi.act(id, action, note, keys.keyFor(`${id}:${action}`)),
-    onSuccess: (_data, { id, action }) => {
+    onSuccess: (data, { id, action }) => {
       keys.release(`${id}:${action}`);
       queryClient.invalidateQueries({ queryKey: [REVIEW_QUEUE_QUERY_KEY] });
-      toast.success(DONE[action]);
+      toast.success(
+        data.requested ? "Sent to an admin for a decision" : DONE[action],
+      );
     },
     onError: (error) => {
       toast.error("Action failed", { description: getErrorMessage(error) });

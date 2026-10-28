@@ -3,6 +3,9 @@ import {
   Shield,
   CreditCard,
   ClipboardCheck,
+  ShieldCheck,
+  Users,
+  FileText,
   Settings,
   HelpCircle,
   type LucideIcon,
@@ -43,29 +46,35 @@ export const navigationConfig: NavSection[] = [
         roles: ["admin", "reviewer", "analyst"],
       },
       {
+        title: "Approvals",
+        href: "/admin/approvals",
+        icon: ShieldCheck,
+        roles: ["admin", "reviewer", "analyst"],
+      },
+      {
         title: "Risk Analysis",
         href: "/risk-analysis",
         icon: Shield,
       },
     ],
   },
-  // {
-  //   title: "Administration",
-  //   items: [
-  //     {
-  //       title: "Users",
-  //       href: "/admin/users",
-  //       icon: Users,
-  //       // roles: ["admin", "manager"],
-  //     },
-  //     {
-  //       title: "Audit Logs",
-  //       href: "/admin/audit-logs",
-  //       icon: FileText,
-  //       // roles: ["admin"],
-  //     },
-  //   ],
-  // },
+  {
+    title: "Administration",
+    items: [
+      {
+        title: "Users",
+        href: "/admin/users",
+        icon: Users,
+        roles: ["admin"],
+      },
+      {
+        title: "Audit Logs",
+        href: "/admin/audit-logs",
+        icon: FileText,
+        roles: ["admin"],
+      },
+    ],
+  },
   {
     title: "Settings",
     items: [
@@ -89,6 +98,7 @@ export const breadcrumbNameMap: Record<string, string> = {
   "/payments/pay": "Pay",
   "/payments/history": "History",
   "/admin/review": "Review Queue",
+  "/admin/approvals": "Approvals",
   "/risk-analysis": "Risk Analysis",
   "/admin": "Administration",
   "/admin/users": "User Management",
