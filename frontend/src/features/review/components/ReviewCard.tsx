@@ -118,18 +118,30 @@ export function ReviewCard({
           </ul>
         )}
 
-        {overLimit ? (
-          <p className="text-sm text-amber-700 dark:text-amber-400">
-            This payment is over your decision limit of $
-            {limit?.toLocaleString()}. An admin has to decide it. You can still
-            leave a note.
+        {payment.pending_request ? (
+          <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+            Waiting for an admin: {payment.pending_request.requested_by} asked
+            to {payment.pending_request.action}
+            {payment.pending_request.reason
+              ? ` (${payment.pending_request.reason})`
+              : ""}
+            . It is settled on the Approvals page.
           </p>
-        ) : null}
-
-        {canAct && !overLimit ? (
+        ) : canAct ? (
           <div className="space-y-3">
+            {overLimit && (
+              <p className="text-sm text-amber-700 dark:text-amber-400">
+                This payment is over your decision limit of $
+                {limit?.toLocaleString()}. You can ask an admin to decide it;
+                nothing moves until they do.
+              </p>
+            )}
             <div className="space-y-1">
-              <Label htmlFor={noteId}>Note for the audit log (optional)</Label>
+              <Label htmlFor={noteId}>
+                {overLimit
+                  ? "Why should it be approved or voided?"
+                  : "Note for the audit log (optional)"}
+              </Label>
               <Textarea
                 id={noteId}
                 value={note}
@@ -143,26 +155,24 @@ export function ReviewCard({
                 disabled={busy}
                 onClick={() => onAct(payment.id, "approve", note)}
               >
-                Approve and capture
+                {overLimit ? "Ask an admin to approve" : "Approve and capture"}
               </Button>
               <Button
                 variant="outline"
                 disabled={busy}
                 onClick={() => onAct(payment.id, "void", note)}
               >
-                Void
+                {overLimit ? "Ask an admin to void" : "Void"}
               </Button>
             </div>
           </div>
-        ) : null}
-
-        {!canAct && (
+        ) : (
           <p className="text-sm text-neutral-500">
             Only an admin or reviewer can approve or void.
           </p>
         )}
 
-        {onNote && (!canAct || overLimit) && (
+        {onNote && !canAct && (
           <div className="space-y-2">
             <Label htmlFor={noteId}>Note or recommendation</Label>
             <Textarea
@@ -180,7 +190,7 @@ export function ReviewCard({
               >
                 Add note
               </Button>
-              {(["approve", "void", "refund"] as ReviewAction[]).map((p) => (
+              {(["approve", "void"] as ReviewAction[]).map((p) => (
                 <Button
                   key={p}
                   variant="outline"

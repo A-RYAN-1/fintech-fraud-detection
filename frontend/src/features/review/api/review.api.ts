@@ -3,6 +3,28 @@ import { idempotencyHeaders } from "@/utils/idempotency";
 import type { ApiResponse, PaginationMeta } from "@/types";
 import type { AiVerdict } from "@/features/checkout";
 
+export type ReviewAction = "approve" | "void" | "refund";
+
+export interface ApprovalRequest {
+  id: number;
+  transaction_id: string;
+  action: ReviewAction;
+  amount: number | null;
+  reason: string | null;
+  status: "pending" | "approved" | "rejected";
+  requested_by: string;
+  decided_by: string | null;
+  decided_at: string | null;
+  decision_note: string | null;
+  created_at: string;
+  payment: {
+    amount: number;
+    user_email: string;
+    paypal_status: string;
+    simulated: boolean;
+  };
+}
+
 export interface ReviewNote {
   event_type: "REVIEW_NOTE" | "DECISION_PROPOSED";
   actor: string | null;
@@ -29,6 +51,7 @@ export interface HeldPayment {
   ml_explanation: unknown[];
   ai_verdict: AiVerdict | null;
   notes: ReviewNote[];
+  pending_request: ApprovalRequest | null;
 }
 
 export interface ReviewQueueResponse {
@@ -39,14 +62,64 @@ export interface ReviewQueueResponse {
   role: string;
 }
 
-export type ReviewAction = "approve" | "void" | "refund";
+// An approve or void either happens (payment) or, above the caller's limit, becomes a request for an admin.
+export type ActResult =
+  | { payment: HeldPayment; requested?: undefined }
+  | { requested: ApprovalRequest; payment?: undefined };
 
 export const reviewApi = {
-  list: async (page = 1): Promise<ReviewQueueResponse> => {
+  list: async (
+    page = 1,
+    scope: "held" | "captured" = "held",
+  ): Promise<ReviewQueueResponse> => {
     const response = await apiClient.get<ApiResponse<ReviewQueueResponse>>(
-      `/admin/review_queue?page=${page}`,
+      `/admin/review_queue?page=${page}&scope=${scope}`,
     );
     return response.data.data;
+  },
+
+  listRequests: async (
+    status: "pending" | "approved" | "rejected" | "all" = "pending",
+    page = 1,
+  ): Promise<{
+    approval_requests: ApprovalRequest[];
+    meta: PaginationMeta;
+  }> => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        approval_requests: ApprovalRequest[];
+        meta: PaginationMeta;
+      }>
+    >(`/admin/approval_requests?status=${status}&page=${page}`);
+    return response.data.data;
+  },
+
+  settleRequest: async (
+    id: number,
+    decision: "approve" | "reject",
+    note: string,
+    idempotencyKey: string,
+  ): Promise<ApprovalRequest> => {
+    const response = await apiClient.post<ApiResponse<ApprovalRequest>>(
+      `/admin/approval_requests/${id}/${decision}`,
+      { note },
+      { headers: idempotencyHeaders(idempotencyKey) },
+    );
+    return response.data.data;
+  },
+
+  requestRefund: async (
+    id: string,
+    amount: string,
+    note: string,
+  ): Promise<ApprovalRequest> => {
+    const response = await apiClient.post<
+      ApiResponse<{ approval_request: ApprovalRequest }>
+    >(`/admin/review_queue/${id}/refund`, {
+      amount: amount || undefined,
+      note,
+    });
+    return response.data.data.approval_request;
   },
 
   act: async (
@@ -54,13 +127,18 @@ export const reviewApi = {
     action: ReviewAction,
     note: string,
     idempotencyKey: string,
-  ): Promise<HeldPayment> => {
-    const response = await apiClient.post<ApiResponse<HeldPayment>>(
+  ): Promise<ActResult> => {
+    const response = await apiClient.post<
+      ApiResponse<HeldPayment | { approval_request: ApprovalRequest }>
+    >(
       `/admin/review_queue/${id}/${action}`,
       { note },
       { headers: idempotencyHeaders(idempotencyKey) },
     );
-    return response.data.data;
+    const data = response.data.data;
+    return "approval_request" in data
+      ? { requested: data.approval_request }
+      : { payment: data };
   },
 
   note: async (id: string, note: string): Promise<HeldPayment> => {

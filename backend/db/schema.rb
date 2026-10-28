@@ -10,10 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_180000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_28_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+
+  create_table "approval_requests", force: :cascade do |t|
+    t.uuid "payment_id", null: false
+    t.string "action", null: false
+    t.decimal "amount", precision: 12, scale: 2
+    t.string "reason"
+    t.string "status", default: "pending", null: false
+    t.bigint "requested_by_id", null: false
+    t.bigint "decided_by_id"
+    t.datetime "decided_at"
+    t.string "decision_note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["decided_by_id"], name: "index_approval_requests_on_decided_by_id"
+    t.index ["payment_id", "action"], name: "index_approval_requests_one_pending", unique: true, where: "((status)::text = 'pending'::text)"
+    t.index ["payment_id"], name: "index_approval_requests_on_payment_id"
+    t.index ["requested_by_id"], name: "index_approval_requests_on_requested_by_id"
+    t.index ["status"], name: "index_approval_requests_on_status"
+  end
 
   create_table "audit_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -277,6 +296,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_180000) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "approval_requests", "transactions", column: "payment_id"
+  add_foreign_key "approval_requests", "users", column: "decided_by_id"
+  add_foreign_key "approval_requests", "users", column: "requested_by_id"
   add_foreign_key "audit_logs", "users", column: "actor_id", on_delete: :nullify
   add_foreign_key "devices", "users"
   add_foreign_key "fraud_evaluations", "transactions"

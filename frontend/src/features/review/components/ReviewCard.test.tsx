@@ -25,6 +25,7 @@ const payment: HeldPayment = {
     explanation: "Unusual size",
   },
   notes: [],
+  pending_request: null,
 };
 
 describe("ReviewCard", () => {
@@ -117,14 +118,15 @@ describe("ReviewCard", () => {
 });
 
 describe("ReviewCard roles", () => {
-  it("hides the decision buttons above the reviewer's limit and offers a note", () => {
+  it("turns the decision buttons into requests above the reviewer's limit", async () => {
+    const onAct = vi.fn();
     render(
       <ReviewCard
         payment={payment}
         busy={false}
         canAct
         limit={1000}
-        onAct={vi.fn()}
+        onAct={onAct}
         onNote={vi.fn()}
       />,
     );
@@ -132,7 +134,46 @@ describe("ReviewCard roles", () => {
     expect(
       screen.queryByRole("button", { name: "Approve and capture" }),
     ).toBeNull();
-    expect(screen.getByRole("button", { name: "Add note" })).toBeDisabled();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ask an admin to void" }),
+    );
+    expect(onAct).toHaveBeenCalledWith("abc", "void", "");
+  });
+
+  it("shows a waiting banner instead of buttons while a request is pending", () => {
+    render(
+      <ReviewCard
+        payment={{
+          ...payment,
+          pending_request: {
+            id: 7,
+            transaction_id: "abc",
+            action: "approve",
+            amount: null,
+            reason: "customer called",
+            status: "pending",
+            requested_by: "rev@example.com",
+            decided_by: null,
+            decided_at: null,
+            decision_note: null,
+            created_at: "2026-10-28T10:00:00Z",
+            payment: {
+              amount: 2500,
+              user_email: "buyer@example.com",
+              paypal_status: "HELD",
+              simulated: false,
+            },
+          },
+        }}
+        busy={false}
+        canAct
+        onAct={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/Waiting for an admin/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Approve and capture" }),
+    ).toBeNull();
   });
 
   it("lets an analyst propose a decision with a note", async () => {

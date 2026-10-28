@@ -63,7 +63,7 @@ class AdminApiTest < ActionDispatch::IntegrationTest
   test "users list filters by role, status and search, and paginates" do
     login_as @admin
     get api_v1_admin_users_url, params: { role: "admin" }
-    assert_equal [ "admin@example.com" ], body["data"]["users"].map { |u| u["email"] }
+    assert_equal [ "admin2@example.com", "admin@example.com" ], body["data"]["users"].map { |u| u["email"] }
 
     get api_v1_admin_users_url, params: { status: "suspended" }
     assert_equal [ "suspended@example.com" ], body["data"]["users"].map { |u| u["email"] }

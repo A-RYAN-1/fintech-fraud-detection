@@ -37,3 +37,11 @@ analyst:
   last_name: Analyst
   role: analyst
   status: active
+
+second_admin:
+  email: admin2@example.com
+  password_digest: <%= BCrypt::Password.create('password123') %>
+  first_name: Bo
+  last_name: Admin
+  role: admin
+  status: active

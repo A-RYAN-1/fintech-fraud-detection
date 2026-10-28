@@ -29,6 +29,17 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
 
   def body = JSON.parse(response.body)
 
+  # A refund needs two people: the reviewer asks, a different admin settles.
+  def refund_via_admin(payment, amount: nil)
+    login_as users(:reviewer)
+    post "/api/v1/admin/review_queue/#{payment.id}/refund", params: { amount: amount, note: "customer asked" }.compact
+    assert_response :accepted
+    request_id = body.dig("data", "approval_request", "id")
+    delete api_v1_auth_logout_url
+    login_as users(:admin)
+    with_paypal { post "/api/v1/admin/approval_requests/#{request_id}/approve" }
+  end
+
   def with_paypal(&block)
     replace_class_method(PaypalClient, :configured?, -> { true }) do
       replace_class_method(PaypalClient, :new, ->(*) { FakeClient.new }, &block)
@@ -73,19 +84,82 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
     assert_includes log.reason, "looks fine"
   end
 
-  test "a reviewer cannot decide above their limit but an admin can" do
+  test "above their limit a reviewer's approve becomes a request that moves no money until an admin approves" do
     big = held_payment("HELD", amount: 2500)
     login_as users(:reviewer)
-    with_paypal { post "/api/v1/admin/review_queue/#{big.id}/approve" }
-    assert_response :forbidden
-    assert_includes response.body, "over_decision_limit"
+    with_paypal { post "/api/v1/admin/review_queue/#{big.id}/approve", params: { note: "customer called" } }
+    assert_response :accepted
+    assert_equal "pending", body.dig("data", "approval_request", "status")
     assert_equal "HELD", big.reload.paypal_status
+    assert_not AuditLog.exists?(entity_id: big.id.to_s, event_type: "PAYPAL_CAPTURED")
+
+    post "/api/v1/admin/review_queue/#{big.id}/approve"
+    assert_response :conflict, "a second request for the same action is refused while one is pending"
+
+    get "/api/v1/admin/review_queue"
+    assert_equal "pending", body.dig("data", "held").find { |r| r["id"] == big.id }.dig("pending_request", "status")
+
+    request_id = ApprovalRequest.sole.id
+    with_paypal { post "/api/v1/admin/approval_requests/#{request_id}/approve" }
+    assert_response :forbidden, "a reviewer cannot settle a request"
+    assert_equal "HELD", big.reload.paypal_status
+
     delete api_v1_auth_logout_url
     login_as users(:admin)
-    with_paypal { post "/api/v1/admin/review_queue/#{big.id}/approve" }
+    with_paypal { post "/api/v1/admin/approval_requests/#{request_id}/approve", params: { note: "verified by phone" } }
     assert_response :success
     assert_equal "CAPTURED", big.reload.paypal_status
-    assert_equal "admin", AuditLog.where(entity_id: big.id.to_s, event_type: "PAYPAL_CAPTURED").last.actor_role
+    capture = AuditLog.where(entity_id: big.id.to_s, event_type: "PAYPAL_CAPTURED").last
+    assert_equal "admin", capture.actor_role
+    assert_includes capture.description, "requested by reviewer@example.com"
+    assert_includes capture.description, "approved by admin@example.com"
+    assert_equal %w[APPROVAL_APPROVED APPROVAL_REQUESTED], AuditLog.where(entity_id: big.id.to_s, event_type: %w[APPROVAL_REQUESTED APPROVAL_APPROVED]).order(:event_type).pluck(:event_type)
+    assert_equal "approved", ApprovalRequest.sole.status
+
+    with_paypal { post "/api/v1/admin/approval_requests/#{request_id}/approve" }
+    assert_response :conflict, "settling twice is refused"
+  end
+
+  test "an admin can reject a request and the payment stays held" do
+    big = held_payment("HELD", amount: 2500)
+    login_as users(:reviewer)
+    post "/api/v1/admin/review_queue/#{big.id}/void"
+    assert_response :accepted
+    request_id = ApprovalRequest.sole.id
+    delete api_v1_auth_logout_url
+    login_as users(:admin)
+    post "/api/v1/admin/approval_requests/#{request_id}/reject", params: { note: "wait for the customer" }
+    assert_response :success
+    assert_equal "rejected", body.dig("data", "status")
+    assert_equal "HELD", big.reload.paypal_status
+    get "/api/v1/admin/approval_requests", params: { status: "all" }
+    assert_equal "wait for the customer", body.dig("data", "approval_requests").first["decision_note"]
+  end
+
+  test "an admin cannot settle their own request" do
+    login_as users(:admin)
+    captured = held_payment("CAPTURED")
+    post "/api/v1/admin/review_queue/#{captured.id}/refund"
+    assert_response :accepted
+    with_paypal { post "/api/v1/admin/approval_requests/#{ApprovalRequest.sole.id}/approve" }
+    assert_response :forbidden
+    assert_includes response.body, "self_approval"
+    assert_equal "CAPTURED", captured.reload.paypal_status
+    delete api_v1_auth_logout_url
+    login_as users(:second_admin)
+    with_paypal { post "/api/v1/admin/approval_requests/#{ApprovalRequest.sole.id}/approve" }
+    assert_response :success
+    assert_equal "REFUNDED", captured.reload.paypal_status
+  end
+
+  test "an analyst can read requests but not raise or settle them" do
+    big = held_payment("HELD", amount: 2500)
+    login_as users(:analyst)
+    get "/api/v1/admin/approval_requests"
+    assert_response :success
+    post "/api/v1/admin/review_queue/#{big.id}/void"
+    assert_response :forbidden
+    assert_equal 0, ApprovalRequest.count
   end
 
   test "an admin raises a reviewer's limit and the change is audited" do
@@ -174,15 +248,16 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
   end
 
   test "refund returns a captured payment and refuses one that was never captured" do
-    login_as users(:admin)
     captured = held_payment("CAPTURED")
-    with_paypal { post "/api/v1/admin/review_queue/#{captured.id}/refund" }
+    refund_via_admin(captured)
     assert_response :success
     assert_equal "REFUNDED", captured.reload.paypal_status
 
-    with_paypal { post "/api/v1/admin/review_queue/#{@held.id}/refund" }
+    login_as users(:admin)
+    post "/api/v1/admin/review_queue/#{@held.id}/refund"
     assert_response :conflict
     assert_equal "HELD", @held.reload.paypal_status
+    assert_equal 1, ApprovalRequest.count
   end
 
   test "voiding a captured payment is a conflict" do
@@ -220,34 +295,37 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
   end
 
   test "refund accepts an amount, tracks the total and rejects more than is left" do
-    login_as(users(:admin))
     captured = held_payment("CAPTURED")
-    with_paypal do
-      post "/api/v1/admin/review_queue/#{captured.id}/refund", params: { amount: "100" }
-      assert_response :success
-      assert_equal "PARTIALLY_REFUNDED", body.dig("data", "paypal_status")
-      assert_equal 100.0, body.dig("data", "refunded_amount")
+    refund_via_admin(captured, amount: "100")
+    assert_response :success
+    assert_equal "PARTIALLY_REFUNDED", body.dig("data", "payment", "paypal_status")
+    assert_equal 100.0, captured.reload.refunded_amount.to_f
 
-      post "/api/v1/admin/review_queue/#{captured.id}/refund", params: { amount: "250" }
-      assert_response :unprocessable_entity
-      assert_includes body["message"], "at most 200"
+    login_as users(:reviewer)
+    post "/api/v1/admin/review_queue/#{captured.id}/refund", params: { amount: "250" }
+    assert_response :unprocessable_entity
+    assert_includes body["message"], "at most 200"
 
-      post "/api/v1/admin/review_queue/#{captured.id}/refund", params: { amount: "abc" }
-      assert_response :unprocessable_entity
-    end
+    post "/api/v1/admin/review_queue/#{captured.id}/refund", params: { amount: "abc" }
+    assert_response :unprocessable_entity
   end
 
   test "a refund PayPal cannot fund is a 409 with a clear message" do
-    login_as(users(:admin))
     captured = held_payment("CAPTURED")
     broke = FakeClient.new
     def broke.refund(_id, **) = raise(PaypalClient::Error.new("no funds", status: 422, issue: "INSUFFICIENT_FUNDS"))
+    login_as users(:reviewer)
+    post "/api/v1/admin/review_queue/#{captured.id}/refund"
+    assert_response :accepted
+    delete api_v1_auth_logout_url
+    login_as users(:admin)
     replace_class_method(PaypalClient, :configured?, -> { true }) do
-      replace_class_method(PaypalClient, :new, ->(*) { broke }) { post "/api/v1/admin/review_queue/#{captured.id}/refund" }
+      replace_class_method(PaypalClient, :new, ->(*) { broke }) { post "/api/v1/admin/approval_requests/#{ApprovalRequest.sole.id}/approve" }
     end
     assert_response :conflict
     assert_includes body["message"], "merchant balance"
     assert_equal "CAPTURED", captured.reload.paypal_status
+    assert_equal "pending", ApprovalRequest.sole.status
   end
 
   test "the queue shows when each hold lapses" do

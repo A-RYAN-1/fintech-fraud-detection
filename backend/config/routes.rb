@@ -23,6 +23,12 @@ Rails.application.routes.draw do
           end
         end
         resources :audit_logs, only: [ :index ]
+        resources :approval_requests, only: [ :index ] do
+          member do
+            post :approve
+            post :reject
+          end
+        end
         resource :analyst_status, only: [ :show ], controller: "analyst_status"
         resources :risk_rules, only: [ :index ], param: :key do
           collection { post :reset }
