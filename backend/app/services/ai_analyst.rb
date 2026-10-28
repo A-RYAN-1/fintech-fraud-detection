@@ -4,7 +4,14 @@
 #   - its answer is validated against a closed schema, anything else is discarded;
 #   - any failure (not configured, timeout, 429, bad JSON) returns nil and the rules decision stands alone.
 # Set AI_ANALYST_ENABLED=false to switch it off without a deploy.
+# Resilience (AnalystGuard): a token bucket and a circuit breaker skip the call when it would only fail, and one
+# retry (MAX_RETRIES) is allowed for a quick 429 or 5xx, never for a timeout, and only within RETRY_BUDGET seconds.
 class AiAnalyst
+  MAX_RETRIES = 1
+  RETRY_BUDGET = 3.0
+  MAX_BACKOFF = 2.0
+  BACKOFF = 0.4
+
   ACTIONS = %w[approve review block].freeze
   STATUS_TO_ACTION = { success: "approve", flagged: "review", blocked: "block" }.freeze
   MAX_EXPLANATION = 400
@@ -58,17 +65,26 @@ class AiAnalyst
     "5,000 and above"
   end
 
-  def initialize(client: nil)
+  def initialize(client: nil, guard: AnalystGuard.instance, sleeper: ->(seconds) { sleep(seconds) })
     @client = client
+    @guard = guard
+    @sleeper = sleeper
   end
 
   # facts: see AiFactsBuilder. Returns { action:, confidence:, explanation:, model: } or nil.
   def verdict(facts)
     return nil unless @client || self.class.enabled?
 
+    skipped = @guard.acquire
+    unless skipped == :ok
+      Rails.logger.info("AI analyst skipped: #{skipped}")
+      return nil
+    end
+
     client = @client || GeminiClient.new
     payload = facts.to_json
-    result = parse(client.generate_json(system: SYSTEM, prompt: "Transaction facts (JSON):\n#{payload}", schema: SCHEMA), client.model)
+    raw = generate_with_retry(client, "Transaction facts (JSON):\n#{payload}")
+    result = parse(raw, client.model)
     # The facts-only payload is the whole input; its size is stored and logged so the pruning claim is measured.
     return nil unless result
 
@@ -76,11 +92,35 @@ class AiAnalyst
     Rails.logger.info("AI analyst verdict action=#{result[:action]} payload_bytes=#{payload.bytesize} timeline=#{result[:timeline].size}")
     result
   rescue GeminiClient::Error => e
+    @guard.failure(e.message)
     Rails.logger.warn("AI analyst skipped: #{e.message}")
     nil
   end
 
   private
+
+  # One call, plus at most MAX_RETRIES more for a quick retryable refusal; the guard sees one success or one failure.
+  def generate_with_retry(client, prompt)
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    attempts = 0
+    begin
+      raw = client.generate_json(system: SYSTEM, prompt: prompt, schema: SCHEMA)
+      @guard.success
+      raw
+    rescue GeminiClient::Error => e
+      elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+      raise unless e.retryable? && attempts < MAX_RETRIES && elapsed < RETRY_BUDGET && @guard.acquire_retry
+
+      attempts += 1
+      @sleeper.call(backoff(e, attempts))
+      retry
+    end
+  end
+
+  def backoff(error, attempt)
+    wait = error.retry_after || (BACKOFF * attempt)
+    (wait + rand * 0.2).clamp(0.0, MAX_BACKOFF)
+  end
 
   def parse(raw, model)
     return nil unless raw.is_a?(Hash)

@@ -22,6 +22,7 @@ Rails.application.routes.draw do
           end
         end
         resources :audit_logs, only: [ :index ]
+        resource :analyst_status, only: [ :show ], controller: "analyst_status"
         resources :risk_rules, only: [ :index ], param: :key do
           collection { post :reset }
         end

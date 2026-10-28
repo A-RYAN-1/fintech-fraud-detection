@@ -9,7 +9,20 @@ class GeminiClient
   BASE_URL = "https://generativelanguage.googleapis.com/v1beta".freeze
   DEFAULT_MODEL = "gemini-3.1-flash-lite".freeze
 
-  class Error < StandardError; end
+  class Error < StandardError
+    RETRYABLE_STATUSES = [ 429, 500, 502, 503, 504 ].freeze
+
+    attr_reader :status, :retry_after
+
+    def initialize(message, status: nil, retry_after: nil)
+      super(message)
+      @status = status
+      @retry_after = retry_after
+    end
+
+    # A quick HTTP refusal that may pass on a second try. A timeout is not retried: the time is already spent.
+    def retryable? = RETRYABLE_STATUSES.include?(status)
+  end
 
   def self.configured?
     ENV["GEMINI_API_KEY"].present?
@@ -38,7 +51,9 @@ class GeminiClient
     }.to_json
 
     response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 3, read_timeout: @timeout) { |http| http.request(req) }
-    raise Error, "Gemini returned #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+    unless response.is_a?(Net::HTTPSuccess)
+      raise Error.new("Gemini returned #{response.code}", status: response.code.to_i, retry_after: response["Retry-After"]&.to_f)
+    end
 
     text = JSON.parse(response.body).dig("candidates", 0, "content", "parts")&.map { |p| p["text"] }&.compact&.join
     raise Error, "Gemini returned no text" if text.blank?
