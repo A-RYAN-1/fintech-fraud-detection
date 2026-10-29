@@ -1,4 +1,5 @@
-export type NotificationType = "transaction" | "security" | "system" | "info";
+export type NotificationType =
+  "transaction" | "security" | "system" | "info" | "support";
 export type NotificationPriority = "low" | "medium" | "high";
 
 export interface Notification {

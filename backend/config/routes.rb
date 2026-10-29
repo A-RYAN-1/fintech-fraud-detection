@@ -58,6 +58,8 @@ Rails.application.routes.draw do
         post "feedback", to: "fraud_feedbacks#create"
       end
 
+      post "support_messages", to: "support_messages#create"
+
       resources :notifications, only: [ :index, :destroy ] do
         member do
           patch :mark_read

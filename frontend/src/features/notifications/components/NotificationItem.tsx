@@ -1,4 +1,4 @@
-import { X, ShieldAlert, Bell, Info } from "lucide-react";
+import { X, ShieldAlert, Bell, Info, LifeBuoy } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Button } from "@/components/ui";
@@ -19,6 +19,7 @@ const iconMap = {
   security: ShieldAlert,
   system: Info,
   info: Info,
+  support: LifeBuoy,
 };
 
 const priorityStyles = {

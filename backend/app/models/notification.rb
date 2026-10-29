@@ -2,7 +2,7 @@ class Notification < ApplicationRecord
   belongs_to :user
 
   # Validations
-  validates :notification_type, presence: true, inclusion: { in: %w[transaction security system info] }
+  validates :notification_type, presence: true, inclusion: { in: %w[transaction security system info support] }
   validates :title, presence: true, length: { maximum: 255 }
   validates :message, presence: true, length: { maximum: 1000 }
   validates :priority, presence: true, inclusion: { in: %w[low medium high] }
@@ -34,7 +34,7 @@ class Notification < ApplicationRecord
   def self.create_transaction_notification(user:, transaction:, status:)
     amount = transaction.amount.to_f
     risk_score = transaction.risk_score || 0
-    formatted_amount = ActiveSupport::NumberHelper.number_to_delimited(amount.to_i)
+    formatted_amount = ActiveSupport::NumberHelper.number_to_currency(amount, unit: "$")
 
     case status.to_s.upcase
     when "BLOCKED"
@@ -42,7 +42,7 @@ class Notification < ApplicationRecord
         user: user,
         notification_type: "security",
         title: "Transaction Blocked",
-        message: "A transaction of ₹#{formatted_amount} was blocked due to high risk (Score: #{risk_score}).",
+        message: "A payment of #{formatted_amount} was blocked due to high risk (Score: #{risk_score}).",
         priority: "high",
         data: {
           transaction_id: transaction.id,
@@ -56,7 +56,7 @@ class Notification < ApplicationRecord
         user: user,
         notification_type: "transaction",
         title: "Transaction Flagged",
-        message: "A transaction of ₹#{formatted_amount} was flagged for review (Score: #{risk_score}).",
+        message: "A payment of #{formatted_amount} was held for review (Score: #{risk_score}).",
         priority: "medium",
         data: {
           transaction_id: transaction.id,
