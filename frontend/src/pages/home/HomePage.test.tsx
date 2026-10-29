@@ -65,13 +65,17 @@ describe("HomePage", () => {
     renderAs("customer");
     expect(screen.getByText("Welcome, Ada")).toBeInTheDocument();
     expect(screen.getByText(/then Sentrix checks the payment/)).toBeInTheDocument();
-    expect(cardLinks()).toEqual(["/pay", "/history", "/dashboard"]);
+    expect(cardLinks()).toEqual(["/pay", "/history", "/spending"]);
   });
 
   it("keeps an analyst away from Approvals", () => {
     summary({ kind: "queue_empty", count: 0 });
     renderAs("analyst");
-    expect(cardLinks()).toEqual(["/admin/review", "/admin/feedback"]);
+    expect(cardLinks()).toEqual([
+      "/admin/review",
+      "/admin/feedback",
+      "/insights",
+    ]);
   });
 
   it("gives an admin the admin pages", () => {
@@ -85,6 +89,7 @@ describe("HomePage", () => {
       "/admin/review",
       "/admin/approvals",
       "/admin/feedback",
+      "/insights",
       "/admin/users",
       "/admin/audit-logs",
     ]);

@@ -17,20 +17,27 @@ describe("LoginForm demo logins", () => {
       "reviewer",
       "admin",
     ]);
-    expect(
-      screen.getByRole("button", { name: /judge\.admin@sentrix\.demo/ }),
-    ).toBeInTheDocument();
+    for (const label of ["Customer", "Reviewer", "Admin"]) {
+      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+    }
   });
 
-  it("fills the form when a demo login is chosen", async () => {
+  it("fills the form and shows the credentials when a demo login is chosen", async () => {
     const user = userEvent.setup();
     renderWithProviders(<LoginForm />);
 
-    await user.click(screen.getByRole("button", { name: /^Reviewer/ }));
+    await user.click(screen.getByRole("button", { name: "Reviewer" }));
 
     expect(screen.getByLabelText(/email/i)).toHaveValue(demoAccounts[1].email);
     expect(screen.getByLabelText(/password/i)).toHaveValue(
       demoAccounts[1].password,
     );
+    expect(screen.getByRole("button", { name: "Reviewer" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.getByText(/judge\.reviewer@sentrix\.demo \/ password123/),
+    ).toBeInTheDocument();
   });
 });

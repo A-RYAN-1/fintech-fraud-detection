@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       get "analytics", to: "analytics#show"
       get "payment_limits", to: "payment_limits#show"
       get "home", to: "home#show"
+      get "spending", to: "spending#show"
 
       namespace :admin do
         resources :users, only: [ :index ] do
@@ -36,6 +37,7 @@ Rails.application.routes.draw do
           end
         end
         resource :analyst_status, only: [ :show ], controller: "analyst_status"
+        resource :insights, only: [ :show ], controller: "insights"
         resources :risk_rules, only: [ :index ], param: :key do
           collection { post :reset }
         end

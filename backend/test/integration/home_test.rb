@@ -30,6 +30,7 @@ class HomeTest < ActionDispatch::IntegrationTest
     payment(@other, status: "FLAGGED", paypal: "CAPTURED", rules: "ML_RISK_SCORE", label: "approve")
     payment(@other, status: "SUCCESS", paypal: "HELD", ai: "review", at: 2.hours.ago)
     payment(@other, status: "SUCCESS", paypal: "REFUNDED", at: 10.days.ago)
+    Transaction.create!(user: @customer, amount: 5, status: "PENDING", paypal_status: "CREATED", device_id: "d1") # never approved
   end
 
   test "a customer sees only their own payments and is told to wait on a held one" do

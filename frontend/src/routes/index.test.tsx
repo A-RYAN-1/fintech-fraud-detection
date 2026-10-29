@@ -26,10 +26,10 @@ vi.mock("@/pages", () => {
     LoginPage: page("login"),
     RegisterPage: page("register"),
     HomePage: page("home"),
-    DashboardPage: page("dashboard"),
+    MySpendingPage: page("spending"),
+    InsightsPage: page("insights"),
     PayPage: page("pay"),
     HistoryPage: page("history"),
-    RiskAnalysisPage: page("risk"),
     HelpSupportPage: page("help"),
     ProfilePage: page("profile"),
     NotFoundPage: page("notfound"),
@@ -69,7 +69,7 @@ describe("route access per role", () => {
     "/admin/review",
     "/admin/approvals",
     "/admin/feedback",
-    "/risk-analysis",
+    "/insights",
     "/admin/users",
     "/admin/audit-logs",
   ])("redirects a customer from %s to Home", (path) => {
@@ -100,8 +100,7 @@ describe("route access per role", () => {
     for (const path of [
       "/admin/review",
       "/admin/feedback",
-      "/risk-analysis",
-      "/dashboard",
+      "/insights",
     ]) {
       expect(visit("analyst", path).state.location.pathname).toBe(path);
     }
@@ -120,7 +119,7 @@ describe("route access per role", () => {
   });
 
   it("lets a customer open Home, Pay, History and My Spending", () => {
-    for (const path of ["/home", "/pay", "/history", "/dashboard"]) {
+    for (const path of ["/home", "/pay", "/history", "/spending"]) {
       expect(visit("customer", path).state.location.pathname).toBe(path);
     }
   });
@@ -142,6 +141,19 @@ describe("route access per role", () => {
       expect(visit(role, "/help").state.location.pathname).toBe("/help");
     },
   );
+
+  it("sends the old Dashboard to each role's own analytics page", () => {
+    expect(visit("customer", "/dashboard").state.location.pathname).toBe(
+      "/spending",
+    );
+    expect(visit("analyst", "/dashboard").state.location.pathname).toBe(
+      "/insights",
+    );
+    expect(visit("reviewer", "/risk-analysis").state.location.pathname).toBe(
+      "/insights",
+    );
+    expect(visit("analyst", "/spending").state.location.pathname).toBe("/home");
+  });
 
   it("sends the removed Settings page to Home", () => {
     expect(visit("reviewer", "/settings").state.location.pathname).toBe(
