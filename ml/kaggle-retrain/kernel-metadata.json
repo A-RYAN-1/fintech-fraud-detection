@@ -1,0 +1,11 @@
+{
+  "id": "aryan111deshmukh/fintech-fraud-retrain",
+  "title": "fintech fraud retrain",
+  "code_file": "main.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": false,
+  "dataset_sources": ["aryan111deshmukh/fintech-fraud-demo-labels"]
+}

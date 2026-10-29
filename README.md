@@ -229,6 +229,10 @@ wrote ([`ml/synthetic.py`](ml/synthetic.py)), so these numbers show the second s
 rules lack on that generator, not that it detects real fraud. The customer feedback (accurate or not)
 already stored on each evaluation is the route to real labels.
 
+Reviewer decisions are now stored as labels too, and `rake ml:export` plus `ml/retrain.py` retrain on them and
+compare with the shipped model on a fixed hold-out; the procedure and the result are in
+[`docs/ml-retrain.md`](docs/ml-retrain.md).
+
 ### Tech stack
 
 | Layer | Technology |

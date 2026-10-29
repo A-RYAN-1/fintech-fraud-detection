@@ -48,6 +48,14 @@ class DemoTrafficTest < ActiveSupport::TestCase
     assert approved.exists?, "legitimate travellers are approved by the reviewer"
   end
 
+  test "rings scales the number of shared-device groups, each with its own device and IP" do
+    run_traffic(customers: 12, rings: 2)
+
+    devices = demo_payments.where("device_id LIKE ?", "demo-ring-%").distinct.pluck(:device_id).sort
+    assert_equal %w[demo-ring-1 demo-ring-2], devices
+    assert_equal 2, demo_payments.where("device_id LIKE ?", "demo-ring-%").distinct.pluck(:ip_address).size
+  end
+
   test "clean removes what a run created and nothing else" do
     existing = users(:one).transactions.create!(amount: 10, payment_method: "wallet", device_id: "mine", status: "SUCCESS")
     run_traffic
