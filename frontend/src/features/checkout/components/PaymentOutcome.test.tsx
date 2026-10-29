@@ -83,4 +83,15 @@ describe("PaymentOutcome", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Untrusted device")).toBeInTheDocument();
   });
+
+  it("explains a hold in one sentence and words the status", () => {
+    render(
+      <PaymentOutcome
+        payment={{ ...base, decision: "held", paypal_status: "HELD" }}
+      />,
+    );
+    expect(screen.getByText(/reserved, not taken/)).toBeInTheDocument();
+    expect(screen.getByText("Held for review")).toBeInTheDocument();
+    expect(screen.queryByText("HELD")).not.toBeInTheDocument();
+  });
 });

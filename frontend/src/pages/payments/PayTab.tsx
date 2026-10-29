@@ -15,6 +15,7 @@ import {
   PayPalCheckout,
   PaymentOutcome,
   SimulatePayment,
+  usePaymentLimits,
   type SettledPayment,
 } from "@/features/checkout";
 
@@ -23,6 +24,7 @@ const MAX_AMOUNT = 10000;
 
 export default function PayTab() {
   const { deviceId } = useDeviceId();
+  const { data: limits } = usePaymentLimits();
   const [amountText, setAmountText] = useState("49.00");
   const [payment, setPayment] = useState<SettledPayment | null>(null);
 
@@ -65,7 +67,9 @@ export default function PayTab() {
                   }
                 >
                   Between {formatMoney(MIN_AMOUNT)} and{" "}
-                  {formatMoney(MAX_AMOUNT)}. Larger amounts are held for review.
+                  {formatMoney(MAX_AMOUNT)}.
+                  {limits &&
+                    ` Payments above ${formatMoney(limits.max_auto_capture_amount)} are held for a reviewer.`}
                 </p>
               </div>
               {valid && deviceId ? (
