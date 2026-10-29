@@ -1,16 +1,16 @@
 import { formatMoney } from "@/utils/money";
 import { useState } from "react";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  Label,
-  Textarea,
-} from "@/components/ui";
+import { Button, Card, CardContent, Label, Textarea } from "@/components/ui";
 import type { HeldPayment, ReviewAction } from "../api";
 import { CaseTimeline } from "./CaseTimeline";
 import { holdExpiry } from "../utils/hold-expiry";
+import { ruleLabel } from "@/utils/ruleLabels";
+
+const VERB: Record<ReviewAction, string> = {
+  approve: "capture",
+  void: "void",
+  refund: "refund",
+};
 
 interface ReviewCardProps {
   payment: HeldPayment;
@@ -49,7 +49,6 @@ export function ReviewCard({
               {new Date(payment.created_at).toLocaleString()}
             </div>
           </div>
-          <Badge variant="outline">Risk {payment.risk_score}</Badge>
         </div>
 
         {payment.action_reason && (
@@ -73,29 +72,56 @@ export function ReviewCard({
           </p>
         )}
 
-        {payment.rules_triggered.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {payment.rules_triggered.map((rule) => (
-              <Badge key={rule} variant="info">
-                {rule}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        {payment.ai_verdict && (
+        <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
             <div className="mb-1 font-medium">
-              AI analyst: {payment.ai_verdict.action} (
-              {Math.round(payment.ai_verdict.confidence * 100)}%)
+              Rules: score {payment.risk_score}
+            </div>
+            {payment.rules_triggered.length > 0 ? (
+              <ul className="list-disc space-y-0.5 pl-4 text-neutral-600 dark:text-neutral-400">
+                {payment.rules_triggered.map((rule) => (
+                  <li key={rule}>{ruleLabel(rule)}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-neutral-500">No rule fired.</p>
+            )}
+          </div>
+          <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
+            <div className="mb-1 font-medium">
+              Model
+              {payment.ml_score !== null
+                ? `: ${Math.round(payment.ml_score * 100)}% risk`
+                : ""}
             </div>
             <p className="text-neutral-600 dark:text-neutral-400">
-              {payment.ai_verdict.explanation}
+              {payment.ml_score !== null
+                ? "A second score from a model trained on labelled payments. It can ask for a hold, never a block."
+                : "The model did not score this payment."}
             </p>
-            <div className="mt-3">
-              <CaseTimeline entries={payment.ai_verdict.timeline} />
-            </div>
           </div>
+          <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
+            {payment.ai_verdict ? (
+              <>
+                <div className="mb-1 font-medium">
+                  AI analyst: {payment.ai_verdict.action} (
+                  {Math.round(payment.ai_verdict.confidence * 100)}%)
+                </div>
+                <p className="text-neutral-600 dark:text-neutral-400">
+                  {payment.ai_verdict.explanation}
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="mb-1 font-medium">AI analyst</div>
+                <p className="text-neutral-500">Did not read this payment.</p>
+              </>
+            )}
+          </div>
+        </div>
+
+        {payment.ai_verdict && (
+          <CaseTimeline entries={payment.ai_verdict.timeline} />
         )}
 
         {notes.length > 0 && (
@@ -109,7 +135,9 @@ export function ReviewCard({
                   {n.actor ?? "Someone"}
                   {n.role ? ` (${n.role})` : ""}
                 </span>{" "}
-                {n.proposal ? `proposes to ${n.proposal}` : "noted"}
+                {n.proposal
+                  ? `proposes to ${VERB[n.proposal as ReviewAction] ?? n.proposal}`
+                  : "noted"}
                 {n.text ? `: ${n.text}` : ""}
               </li>
             ))}
@@ -119,7 +147,7 @@ export function ReviewCard({
         {payment.pending_request ? (
           <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
             Waiting for an admin: {payment.pending_request.requested_by} asked
-            to {payment.pending_request.action}
+            to {VERB[payment.pending_request.action]} the payment
             {payment.pending_request.reason
               ? ` (${payment.pending_request.reason})`
               : ""}
@@ -137,7 +165,7 @@ export function ReviewCard({
             <div className="space-y-1">
               <Label htmlFor={noteId}>
                 {overLimit
-                  ? "Why should it be approved or voided?"
+                  ? "Why should it be captured or voided?"
                   : "Note for the audit log (optional)"}
               </Label>
               <Textarea
@@ -153,20 +181,20 @@ export function ReviewCard({
                 disabled={busy}
                 onClick={() => onAct(payment.id, "approve", note)}
               >
-                {overLimit ? "Ask an admin to approve" : "Approve and capture"}
+                {overLimit ? "Ask an admin to capture" : "Capture at PayPal"}
               </Button>
               <Button
                 variant="outline"
                 disabled={busy}
                 onClick={() => onAct(payment.id, "void", note)}
               >
-                {overLimit ? "Ask an admin to void" : "Void"}
+                {overLimit ? "Ask an admin to void" : "Void at PayPal"}
               </Button>
             </div>
           </div>
         ) : (
           <p className="text-sm text-neutral-500">
-            Only an admin or reviewer can approve or void.
+            Only an admin or reviewer can capture or void.
           </p>
         )}
 
@@ -195,7 +223,7 @@ export function ReviewCard({
                   disabled={busy}
                   onClick={() => onNote(payment.id, note, p)}
                 >
-                  Propose {p}
+                  Propose {VERB[p]}
                 </Button>
               ))}
             </div>

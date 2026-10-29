@@ -9,9 +9,27 @@ const response: FeedbackResponse = {
   human_approve: 2,
   human_block: 2,
   signals: {
-    rules: { answered: 4, agree: 3, agreement_rate: 0.75, false_alarms: 1, misses: 0 },
-    ml: { answered: 4, agree: 2, agreement_rate: 0.5, false_alarms: 1, misses: 1 },
-    ai: { answered: 0, agree: 0, agreement_rate: null, false_alarms: 0, misses: 0 },
+    rules: {
+      answered: 4,
+      agree: 3,
+      agreement_rate: 0.75,
+      false_alarms: 1,
+      misses: 0,
+    },
+    ml: {
+      answered: 4,
+      agree: 2,
+      agreement_rate: 0.5,
+      false_alarms: 1,
+      misses: 1,
+    },
+    ai: {
+      answered: 0,
+      agree: 0,
+      agreement_rate: null,
+      false_alarms: 0,
+      misses: 0,
+    },
   },
   daily: [{ date: "2026-10-28", labelled: 4, rules: 0.75, ml: 0.5, ai: null }],
   disagreements: [
@@ -31,7 +49,11 @@ const response: FeedbackResponse = {
       disagreeing: ["rules", "ai"],
     },
   ],
-  meta: { current_page: 1, total_pages: 1, total_count: 1 } as FeedbackResponse["meta"],
+  meta: {
+    current_page: 1,
+    total_pages: 1,
+    total_count: 1,
+  } as FeedbackResponse["meta"],
 };
 
 describe("FeedbackPage", () => {

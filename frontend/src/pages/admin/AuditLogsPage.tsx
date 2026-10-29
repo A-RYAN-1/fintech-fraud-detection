@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui";
-import { PageTransition, EmptyState } from "@/components/common";
+import { PageTransition, EmptyState, PageHeader } from "@/components/common";
 import { AuditLogTable, useAuditLogs } from "@/features/admin";
 import { Pagination } from "@/features/transactions";
 
@@ -40,14 +40,10 @@ export default function AuditLogsPage() {
     <PageTransition>
       <div className="space-y-6">
         {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            Audit Logs
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            Track all system activities and changes
-          </p>
-        </div>
+        <PageHeader
+          title="Audit log"
+          description="Who did what, as which role, with the state before and after. Filter by event, entity or the role of the person."
+        />
 
         {/* Filters */}
         <motion.div
@@ -81,6 +77,18 @@ export default function AuditLogsPage() {
                     </SelectItem>
                     <SelectItem value="USER_DECISION_LIMIT_CHANGED">
                       Limit changes
+                    </SelectItem>
+                    <SelectItem value="APPROVAL_REQUESTED">
+                      Approval requests
+                    </SelectItem>
+                    <SelectItem value="APPROVAL_APPROVED">
+                      Approvals granted
+                    </SelectItem>
+                    <SelectItem value="APPROVAL_REJECTED">
+                      Approvals rejected
+                    </SelectItem>
+                    <SelectItem value="SUPPORT_MESSAGE_SENT">
+                      Support messages
                     </SelectItem>
                     <SelectItem value="TRANSACTION_BLOCKED">Blocked</SelectItem>
                     <SelectItem value="TRANSACTION_FLAGGED">Flagged</SelectItem>

@@ -1,7 +1,7 @@
 import { formatMoney } from "@/utils/money";
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
-import { PageTransition, EmptyState } from "@/components/common";
+import { PageTransition, EmptyState, PageHeader } from "@/components/common";
 import {
   Badge,
   Button,
@@ -81,7 +81,11 @@ function RequestRow({
       )}
       {request.status !== "pending" && (
         <p className="text-sm text-neutral-500">
-          {request.status} by {request.decided_by}
+          {request.status === "approved" ? "Approved" : "Rejected"} by{" "}
+          {request.decided_by}
+          {request.decided_at
+            ? ` on ${new Date(request.decided_at).toLocaleString()}`
+            : ""}
           {request.decision_note ? `: ${request.decision_note}` : ""}
         </p>
       )}
@@ -201,16 +205,10 @@ export default function ApprovalsPage() {
   return (
     <PageTransition>
       <div className="mx-auto max-w-3xl space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            Approvals
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            Decisions above a reviewer&apos;s limit and every refund need a
-            second person. One asks, a different admin settles; nothing moves
-            until then.
-          </p>
-        </div>
+        <PageHeader
+          title="Approvals"
+          description="Decisions above a reviewer's limit and every refund need a second person. One asks, a different admin settles; nothing moves until then."
+        />
 
         <Card>
           <CardHeader>

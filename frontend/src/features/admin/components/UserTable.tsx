@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatMoney } from "@/utils/money";
 import dayjs from "dayjs";
 import {
@@ -20,6 +21,7 @@ import {
   Skeleton,
 } from "@/components/ui";
 import type { User } from "@/types";
+import UserActionDialog, { type PendingUserAction } from "./UserActionDialog";
 
 interface UserTableProps {
   users: User[];
@@ -65,6 +67,9 @@ export default function UserTable({
   onUpdateLimit,
   canManage = true,
 }: UserTableProps) {
+  const [pending, setPending] = useState<PendingUserAction | null>(null);
+  const done = () => setPending(null);
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -95,6 +100,22 @@ export default function UserTable({
 
   return (
     <div className="overflow-x-auto">
+      <UserActionDialog
+        action={pending}
+        onCancel={done}
+        onRole={(id, role) => {
+          onUpdateRole(id, role);
+          done();
+        }}
+        onStatus={(id, status) => {
+          onUpdateStatus(id, status);
+          done();
+        }}
+        onLimit={(id, limit) => {
+          onUpdateLimit?.(id, limit);
+          done();
+        }}
+      />
       <table className="w-full">
         <thead>
           <tr className="border-b border-neutral-200 dark:border-neutral-800">
@@ -179,38 +200,40 @@ export default function UserTable({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => onUpdateRole(user.id, "customer")}
+                          onClick={() =>
+                            setPending({ kind: "role", user, role: "customer" })
+                          }
                         >
                           <UserIcon className="mr-2 h-4 w-4" />
                           Set as Customer
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => onUpdateRole(user.id, "analyst")}
+                          onClick={() =>
+                            setPending({ kind: "role", user, role: "analyst" })
+                          }
                         >
                           <Shield className="mr-2 h-4 w-4" />
                           Set as Analyst
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => onUpdateRole(user.id, "reviewer")}
+                          onClick={() =>
+                            setPending({ kind: "role", user, role: "reviewer" })
+                          }
                         >
                           <Shield className="mr-2 h-4 w-4" />
                           Set as Reviewer
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => onUpdateRole(user.id, "admin")}
+                          onClick={() =>
+                            setPending({ kind: "role", user, role: "admin" })
+                          }
                         >
                           <Shield className="mr-2 h-4 w-4 text-danger-500" />
                           Set as Admin
                         </DropdownMenuItem>
                         {user.role === "reviewer" && onUpdateLimit && (
                           <DropdownMenuItem
-                            onClick={() => {
-                              const value = window.prompt(
-                                `Decision limit for ${user.email} in dollars (blank for the default)`,
-                                String(user.decision_limit ?? ""),
-                              );
-                              if (value !== null) onUpdateLimit(user.id, value);
-                            }}
+                            onClick={() => setPending({ kind: "limit", user })}
                           >
                             <Shield className="mr-2 h-4 w-4" />
                             Set decision limit
@@ -219,7 +242,13 @@ export default function UserTable({
                         <DropdownMenuSeparator />
                         {user.status === "active" ? (
                           <DropdownMenuItem
-                            onClick={() => onUpdateStatus(user.id, "suspended")}
+                            onClick={() =>
+                              setPending({
+                                kind: "status",
+                                user,
+                                status: "suspended",
+                              })
+                            }
                             className="text-danger-600 dark:text-danger-400"
                           >
                             <Ban className="mr-2 h-4 w-4" />
@@ -227,7 +256,13 @@ export default function UserTable({
                           </DropdownMenuItem>
                         ) : (
                           <DropdownMenuItem
-                            onClick={() => onUpdateStatus(user.id, "active")}
+                            onClick={() =>
+                              setPending({
+                                kind: "status",
+                                user,
+                                status: "active",
+                              })
+                            }
                             className="text-success-600 dark:text-success-400"
                           >
                             <CheckCircle className="mr-2 h-4 w-4" />
