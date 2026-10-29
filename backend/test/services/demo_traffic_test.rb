@@ -76,4 +76,18 @@ class DemoTrafficTest < ActiveSupport::TestCase
     assert seen.all? { |v| v == "false" } if seen.any?
     assert_nil ENV["AI_ANALYST_ENABLED"], "the environment is restored after the run"
   end
+
+  test "seed_customer! gives a shared login a history once and never calls PayPal" do
+    user = users(:one)
+    added = replace_class_method(PaypalClient, :new, ->(*) { raise "PayPal must not be called" }) do
+      DemoTraffic.seed_customer!(user)
+    end
+
+    paypal = user.transactions.where.not(paypal_status: [ nil, *HomeSummary::NOT_AUTHORIZED ])
+    assert_equal 8, added
+    assert_equal 8, paypal.count
+    assert paypal.all?(&:simulated?)
+    assert_equal({ "CAPTURED" => 6, "HELD" => 1, "VOIDED" => 1 }, paypal.group(:paypal_status).count)
+    assert_equal 0, DemoTraffic.seed_customer!(user), "a second run adds nothing"
+  end
 end
