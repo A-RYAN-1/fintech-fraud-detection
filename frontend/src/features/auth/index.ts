@@ -13,4 +13,4 @@ export {
 } from "./schemas";
 
 // API
-export { authApi } from "./api";
+export { authApi, type ActivityEntry } from "./api";

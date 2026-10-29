@@ -83,8 +83,11 @@ Open **https://fintech-fraud-detection-aryan.vercel.app** and sign in:
 |---|---|---|
 | Customer | `john@example.com` | `password123` |
 | Reviewer (approves held payments up to $5,000) | `judge.reviewer@sentrix.demo` | `password123` |
+| Admin (settles requests above a reviewer's limit and refunds, manages users) | `judge.admin@sentrix.demo` | `password123` |
 
-These are public sandbox accounts (PayPal sandbox, no real money); the sign-in page lists them too. The API runs on a free instance that sleeps after 15
+These are public sandbox accounts (PayPal sandbox, no real money); the sign-in page lists them too. They are read-only
+(name and password cannot be changed), and the sandbox admin cannot change other admins or these accounts, or make
+anyone an admin; `rake demo:judges` creates and resets all three. The API runs on a free instance that sleeps after 15
 minutes without traffic, so the first sign-in can take about a minute.
 
 Things to try in the first two minutes:

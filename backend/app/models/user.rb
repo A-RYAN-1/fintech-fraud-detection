@@ -15,9 +15,22 @@ class User < ApplicationRecord
   # Reviewers decide up to this amount unless the admin set a limit of their own; admins have none; analysts decide nothing.
   DEFAULT_REVIEWER_LIMIT = BigDecimal("1000")
   STAFF_ROLES = %w[admin reviewer analyst].freeze
+  # The sandbox logins on the sign-in page. Everyone who tries Sentrix shares them, so the app never edits them;
+  # `rake demo:judges` creates and resets them.
+  SANDBOX_ADMIN_EMAIL = "judge.admin@sentrix.demo"
+  DEMO_EMAILS = [ "john@example.com", "judge.reviewer@sentrix.demo", SANDBOX_ADMIN_EMAIL ].freeze
 
   def staff?
     STAFF_ROLES.include?(role)
+  end
+
+  def demo_account?
+    DEMO_EMAILS.include?(email)
+  end
+
+  # The shared admin login: it settles requests like any admin but cannot change admins or demo accounts.
+  def sandbox_admin?
+    admin? && email == SANDBOX_ADMIN_EMAIL
   end
 
   def can_decide?

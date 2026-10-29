@@ -6,21 +6,27 @@ import { demoAccounts } from "@/config";
 import LoginForm from "./LoginForm";
 
 describe("LoginForm demo logins", () => {
-  it("lists a customer and a staff sandbox login, never an admin", () => {
+  it("lists the customer, reviewer and sandbox admin logins", () => {
     renderWithProviders(<LoginForm />);
 
     expect(
       screen.getByRole("heading", { name: /sandbox demo logins/i }),
     ).toBeInTheDocument();
-    expect(demoAccounts.map((a) => a.role)).toEqual(["customer", "reviewer"]);
-    expect(demoAccounts.some((a) => a.role === "admin")).toBe(false);
+    expect(demoAccounts.map((a) => a.role)).toEqual([
+      "customer",
+      "reviewer",
+      "admin",
+    ]);
+    expect(
+      screen.getByRole("button", { name: /judge\.admin@sentrix\.demo/ }),
+    ).toBeInTheDocument();
   });
 
   it("fills the form when a demo login is chosen", async () => {
     const user = userEvent.setup();
     renderWithProviders(<LoginForm />);
 
-    await user.click(screen.getByRole("button", { name: /reviewer/i }));
+    await user.click(screen.getByRole("button", { name: /^Reviewer/ }));
 
     expect(screen.getByLabelText(/email/i)).toHaveValue(demoAccounts[1].email);
     expect(screen.getByLabelText(/password/i)).toHaveValue(

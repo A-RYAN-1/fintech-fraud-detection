@@ -38,14 +38,7 @@ module Api
         private
 
         def serialize_user(user)
-          {
-            id: user.id,
-            email: user.email,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            role: user.role,
-            status: user.status
-          }
+          ProfilesController.serialize(user)
         end
       end
     end
