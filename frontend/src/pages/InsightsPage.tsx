@@ -23,14 +23,8 @@ import {
 import { PeriodSelector } from "@/features/dashboard";
 import { useInsights, type InsightsPeriod } from "@/features/insights";
 import { formatMoney } from "@/utils/money";
+import { formatMinutes } from "@/utils/formatMinutes";
 import { ruleLabel } from "@/utils/ruleLabels";
-
-export function formatMinutes(minutes: number | null): string {
-  if (minutes === null) return "none yet";
-  if (minutes < 1) return "under a minute";
-  if (minutes < 90) return `${Math.round(minutes)} min`;
-  return `${(minutes / 60).toFixed(1)} h`;
-}
 
 function Stat({
   label,
@@ -189,12 +183,23 @@ export default function InsightsPage() {
               title="Payments per day"
               description="Held covers the rules and the model; blocked is the rules alone."
             >
-              <div className="h-72" role="img" aria-label="Payments per day: passed, held and blocked">
+              <div
+                className="h-72"
+                role="img"
+                aria-label="Payments per day: passed, held and blocked"
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={daily}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-neutral-200 dark:stroke-neutral-800" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="stroke-neutral-200 dark:stroke-neutral-800"
+                    />
                     <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={32} />
+                    <YAxis
+                      allowDecimals={false}
+                      tick={{ fontSize: 12 }}
+                      width={32}
+                    />
                     <Tooltip />
                     <Legend />
                     <Bar dataKey="Passed" stackId="a" fill="#22c55e" />
