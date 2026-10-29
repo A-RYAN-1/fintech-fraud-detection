@@ -139,7 +139,7 @@ export default function FeedbackPage() {
               </p>
             ) : (
               <div
-                className="overflow-x-auto"
+                className="relative overflow-x-auto"
                 tabIndex={0}
                 role="region"
                 aria-label="Agreement by signal"

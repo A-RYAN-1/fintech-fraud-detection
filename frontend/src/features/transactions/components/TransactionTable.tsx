@@ -126,7 +126,7 @@ export default function TransactionTable({
 
   return (
     <div
-      className="overflow-x-auto"
+      className="relative overflow-x-auto"
       tabIndex={0}
       role="region"
       aria-label="Payments"
