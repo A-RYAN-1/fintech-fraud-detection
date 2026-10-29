@@ -126,7 +126,7 @@ export default function AuditLogTable({
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {formatShortDateTime(log.created_at)}
             </p>
-            <p className="text-xs text-neutral-400 dark:text-neutral-500">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {formatRelativeTime(log.created_at)}
             </p>
           </div>

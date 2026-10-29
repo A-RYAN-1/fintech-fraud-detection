@@ -91,7 +91,10 @@ export default function UsersPage() {
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger className="w-full sm:w-36">
+                  <SelectTrigger
+                    aria-label="Filter by role"
+                    className="w-full sm:w-36"
+                  >
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -109,7 +112,10 @@ export default function UsersPage() {
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger className="w-full sm:w-36">
+                  <SelectTrigger
+                    aria-label="Filter by status"
+                    className="w-full sm:w-36"
+                  >
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>

@@ -42,7 +42,7 @@ export default function LoginFlipCard() {
   }, [showLogin]);
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-6 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+    <main className="relative flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-6 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
       <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
@@ -130,7 +130,7 @@ export default function LoginFlipCard() {
               <button
                 type="button"
                 onClick={() => setShowLogin(false)}
-                className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-primary-400"
+                className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary-700 hover:text-primary-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-primary-400"
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 About Sentrix
@@ -139,6 +139,6 @@ export default function LoginFlipCard() {
           </section>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

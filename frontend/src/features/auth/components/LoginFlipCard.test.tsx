@@ -19,6 +19,7 @@ describe("LoginFlipCard", () => {
     expect(
       screen.getByRole("heading", { name: /judged by AI/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("main")).toBeInTheDocument();
     expect(emailFace()).toHaveAttribute("inert");
 
     await user.click(

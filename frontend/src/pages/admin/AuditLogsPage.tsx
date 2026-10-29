@@ -61,7 +61,10 @@ export default function AuditLogsPage() {
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger className="w-full sm:w-48">
+                  <SelectTrigger
+                    aria-label="Filter by event"
+                    className="w-full sm:w-48"
+                  >
                     <SelectValue placeholder="Event Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -101,7 +104,10 @@ export default function AuditLogsPage() {
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger className="w-full sm:w-40">
+                  <SelectTrigger
+                    aria-label="Filter by entity"
+                    className="w-full sm:w-40"
+                  >
                     <SelectValue placeholder="Entity Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -118,7 +124,10 @@ export default function AuditLogsPage() {
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger className="w-full sm:w-40">
+                  <SelectTrigger
+                    aria-label="Filter by actor role"
+                    className="w-full sm:w-40"
+                  >
                     <SelectValue placeholder="Actor role" />
                   </SelectTrigger>
                   <SelectContent>

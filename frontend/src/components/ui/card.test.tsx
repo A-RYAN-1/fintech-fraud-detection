@@ -50,9 +50,9 @@ describe("Card components", () => {
   });
 
   describe("CardTitle", () => {
-    it("renders as h3", () => {
+    it("renders as h2", () => {
       render(<CardTitle>Title</CardTitle>);
-      expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
+      expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
         "Title",
       );
     });
