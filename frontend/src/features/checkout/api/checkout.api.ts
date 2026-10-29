@@ -37,7 +37,18 @@ export interface SettledPayment {
   simulated?: boolean;
 }
 
+export interface PaymentLimits {
+  max_auto_capture_amount: number;
+  daily_auto_capture_cap: number;
+}
+
 export const checkoutApi = {
+  limits: async (): Promise<PaymentLimits> => {
+    const response =
+      await apiClient.get<ApiResponse<PaymentLimits>>("/payment_limits");
+    return response.data.data;
+  },
+
   createOrder: async (
     amount: number,
     deviceId: string,

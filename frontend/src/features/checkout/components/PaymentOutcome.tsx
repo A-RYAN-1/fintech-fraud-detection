@@ -14,7 +14,7 @@ const OUTCOME = {
     icon: PauseCircle,
     title: "Payment held for review",
     tone: "text-amber-700 dark:text-amber-400",
-    text: "Funds are authorized but not taken. A reviewer decides.",
+    text: "Your funds are reserved, not taken, until a reviewer approves or releases them.",
   },
   voided: {
     icon: XCircle,
@@ -23,6 +23,15 @@ const OUTCOME = {
     text: "The authorization was released. Nothing was charged.",
   },
 } as const;
+
+const PAYMENT_STATUS: Record<string, string> = {
+  CAPTURED: "Captured",
+  HELD: "Held for review",
+  VOIDED: "Released, nothing charged",
+  AUTHORIZED: "Authorized",
+  REFUNDED: "Refunded",
+  PARTIALLY_REFUNDED: "Partly refunded",
+};
 
 export function PaymentOutcome({ payment }: { payment: SettledPayment }) {
   const outcome = OUTCOME[payment.decision];
@@ -50,8 +59,8 @@ export function PaymentOutcome({ payment }: { payment: SettledPayment }) {
           <dd className="font-medium">{payment.risk_score}</dd>
         </div>
         <div>
-          <dt className="text-neutral-500">PayPal status</dt>
-          <dd className="font-medium">{payment.paypal_status}</dd>
+          <dt className="text-neutral-500">Payment status</dt>
+          <dd className="font-medium">{PAYMENT_STATUS[payment.paypal_status] ?? payment.paypal_status}</dd>
         </div>
       </dl>
 

@@ -5,4 +5,5 @@ export {
   type TimelineImpact,
   type CreatedOrder,
   type SettledPayment,
+  type PaymentLimits,
 } from "./checkout.api";

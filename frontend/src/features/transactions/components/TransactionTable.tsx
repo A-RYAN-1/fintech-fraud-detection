@@ -106,8 +106,11 @@ export default function TransactionTable({
   if (transactions.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-neutral-500 dark:text-neutral-400">
-          No transactions found
+        <p className="font-medium text-neutral-700 dark:text-neutral-300">
+          No payments yet
+        </p>
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+          Make a payment on the Pay tab and it appears here with its verdict.
         </p>
       </div>
     );

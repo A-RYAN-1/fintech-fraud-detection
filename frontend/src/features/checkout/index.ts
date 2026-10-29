@@ -5,8 +5,9 @@ export {
   type TimelineImpact,
   type CreatedOrder,
   type SettledPayment,
+  type PaymentLimits,
 } from "./api";
-export { usePayPalSdk } from "./hooks";
+export { usePayPalSdk, usePaymentLimits } from "./hooks";
 export {
   PayPalCheckout,
   PaymentOutcome,
