@@ -8,13 +8,18 @@ namespace :demo do
     puts report.to_h.map { |k, v| "#{k}=#{v}" }.join(" ")
   end
 
-  desc "Create or reset the public sandbox reviewer login shown on the sign-in page (idempotent; safe in production, never an admin)"
+  desc "Create or reset the shared sandbox logins shown on the sign-in page: customer, reviewer and the guarded sandbox admin (idempotent; safe in production)"
   task judges: :environment do
-    user = User.find_or_initialize_by(email: "judge.reviewer@sentrix.demo")
-    user.assign_attributes(first_name: "Judge", last_name: "Reviewer", role: :reviewer, status: :active,
-                           decision_limit: 5000, password: "password123")
-    user.save!
-    puts "ready #{user.email} role=#{user.role} limit=#{user.decision_limit}"
+    [
+      { email: "john@example.com", first_name: "John", last_name: "Success", role: :customer, decision_limit: nil },
+      { email: "judge.reviewer@sentrix.demo", first_name: "Judge", last_name: "Reviewer", role: :reviewer, decision_limit: 5000 },
+      { email: User::SANDBOX_ADMIN_EMAIL, first_name: "Judge", last_name: "Admin", role: :admin, decision_limit: nil }
+    ].each do |attrs|
+      user = User.find_or_initialize_by(email: attrs[:email])
+      user.assign_attributes(**attrs, status: :active, password: "password123")
+      user.save!
+      puts "ready #{user.email} role=#{user.role} limit=#{user.effective_decision_limit&.to_s('F') || 'none'}"
+    end
   end
 
   desc "Remove everything demo:traffic created (users under demo.sentrix.test and their payments)"

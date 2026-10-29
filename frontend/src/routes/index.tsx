@@ -15,6 +15,7 @@ import {
   HistoryPage,
   RiskAnalysisPage,
   HelpSupportPage,
+  ProfilePage,
   NotFoundPage,
   UsersPage,
   AuditLogsPage,
@@ -123,6 +124,10 @@ export const routes: RouteObject[] = [
             <RiskAnalysisPage />
           </RoleGuard>
         ),
+      },
+      {
+        path: "profile",
+        element: <ProfilePage />,
       },
       {
         path: "help",

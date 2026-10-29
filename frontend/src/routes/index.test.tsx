@@ -31,6 +31,7 @@ vi.mock("@/pages", () => {
     HistoryPage: page("history"),
     RiskAnalysisPage: page("risk"),
     HelpSupportPage: page("help"),
+    ProfilePage: page("profile"),
     NotFoundPage: page("notfound"),
     UsersPage: page("users"),
     AuditLogsPage: page("audit"),
@@ -133,6 +134,14 @@ describe("route access per role", () => {
   ])("sends the old address %s to %s", (from, to) => {
     expect(visit("customer", from).state.location.pathname).toBe(to);
   });
+
+  it.each(["customer", "analyst", "reviewer", "admin"] as UserRole[])(
+    "lets %s open Profile and Help",
+    (role) => {
+      expect(visit(role, "/profile").state.location.pathname).toBe("/profile");
+      expect(visit(role, "/help").state.location.pathname).toBe("/help");
+    },
+  );
 
   it("sends the removed Settings page to Home", () => {
     expect(visit("reviewer", "/settings").state.location.pathname).toBe(

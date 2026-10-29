@@ -197,4 +197,50 @@ class AdminApiTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_operator body["data"]["users"].size, :<=, 100
   end
+
+  # The public sandbox admin
+
+  def sandbox_admin
+    User.create!(email: User::SANDBOX_ADMIN_EMAIL, first_name: "Judge", last_name: "Admin", role: :admin, password: "password123")
+  end
+
+  test "the sandbox admin cannot change an admin, a demo account or make an admin" do
+    judge_reviewer = User.create!(email: "judge.reviewer@sentrix.demo", first_name: "Judge", last_name: "Reviewer",
+                                  role: :reviewer, password: "password123")
+    login_as sandbox_admin
+
+    assert_no_difference("AuditLog.count") do
+      patch role_api_v1_admin_user_url(@admin), params: { role: "customer" }
+      assert_response :forbidden
+      assert_equal "The sandbox admin cannot change an admin", body["message"]
+
+      patch status_api_v1_admin_user_url(judge_reviewer), params: { status: "suspended" }
+      assert_response :forbidden
+      patch limit_api_v1_admin_user_url(judge_reviewer), params: { decision_limit: 1 }
+      assert_response :forbidden
+
+      patch role_api_v1_admin_user_url(@customer), params: { role: "admin" }
+      assert_response :forbidden
+      assert_equal "The sandbox admin cannot make anyone an admin", body["message"]
+    end
+    assert @admin.reload.admin?
+    assert judge_reviewer.reload.active?
+    assert @customer.reload.customer?
+  end
+
+  test "the sandbox admin can still manage ordinary accounts" do
+    login_as sandbox_admin
+    patch role_api_v1_admin_user_url(@customer), params: { role: "reviewer" }
+    assert_response :success
+    patch limit_api_v1_admin_user_url(@reviewer), params: { decision_limit: 250 }
+    assert_response :success
+    assert_equal 250, @reviewer.reload.decision_limit
+  end
+
+  test "a real admin may still change the sandbox admin" do
+    judge = sandbox_admin
+    login_as @admin
+    patch status_api_v1_admin_user_url(judge), params: { status: "suspended" }
+    assert_response :success
+  end
 end

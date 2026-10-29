@@ -5,6 +5,7 @@ module Api
         before_action :require_staff!, only: :index
         before_action :require_admin!, only: [ :update_status, :update_role, :update_limit ]
         before_action :set_user, only: [ :update_status, :update_role, :update_limit ]
+        before_action :limit_sandbox_admin!, only: [ :update_status, :update_role, :update_limit ]
 
         # GET /api/v1/admin/users?page=1&per_page=10&role=customer&status=active&search=jane
         def index
@@ -65,6 +66,19 @@ module Api
           @user = User.find(params[:id])
         rescue ActiveRecord::RecordNotFound
           render_error("User not found", :not_found)
+        end
+
+        # The public sandbox admin may run the demo but not take it over: no change to an admin (itself included),
+        # to a shared demo login, and nobody becomes an admin through it.
+        def limit_sandbox_admin!
+          return unless current_user.sandbox_admin?
+
+          reason =
+            if @user.admin? then "cannot change an admin"
+            elsif @user.demo_account? then "cannot change a shared demo account"
+            elsif params[:role].to_s == "admin" then "cannot make anyone an admin"
+            end
+          render_error("The sandbox admin #{reason}", :forbidden, "sandbox_admin") if reason
         end
 
         # Changes one enum attribute and records who did it, in one transaction.

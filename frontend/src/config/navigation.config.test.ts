@@ -70,9 +70,12 @@ describe("navigationFor", () => {
 });
 
 describe("accountNavigationFor", () => {
-  it("puts Help in the shared bottom group for every role", () => {
+  it("puts Profile and Help in the shared bottom group for every role", () => {
     for (const role of ROLES) {
-      expect(accountNavigationFor(role).map((i) => i.title)).toEqual(["Help"]);
+      expect(accountNavigationFor(role).map((i) => i.title)).toEqual([
+        "Profile",
+        "Help",
+      ]);
     }
   });
 });

@@ -28,6 +28,8 @@ export interface User {
   status: UserStatus;
   decision_limit?: number | null;
   created_at?: string;
+  /** A shared sandbox login from the sign-in page; the API refuses edits to it. */
+  demo_account?: boolean;
 }
 
 // Transaction Types - Backend returns lowercase, we normalize to uppercase for display

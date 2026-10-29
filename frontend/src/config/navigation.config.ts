@@ -2,6 +2,7 @@ import {
   Home,
   History,
   HelpCircle,
+  UserRound,
   LayoutDashboard,
   Shield,
   CreditCard,
@@ -56,6 +57,7 @@ const ITEMS = {
   risk: { title: "Risk Analysis", href: "/risk-analysis", icon: Shield },
   users: { title: "Users", href: "/admin/users", icon: Users },
   audit: { title: "Audit Log", href: "/admin/audit-logs", icon: FileText },
+  profile: { title: "Profile", href: "/profile", icon: UserRound },
   help: { title: "Help", href: "/help", icon: HelpCircle },
 } satisfies Record<string, NavItem>;
 
@@ -68,7 +70,9 @@ export function homePathFor(role: UserRole | undefined): string {
 export function navigationFor(role: UserRole | undefined): NavSection[] {
   switch (role) {
     case "customer":
-      return [{ items: [ITEMS.home, ITEMS.pay, ITEMS.history, ITEMS.spending] }];
+      return [
+        { items: [ITEMS.home, ITEMS.pay, ITEMS.history, ITEMS.spending] },
+      ];
     case "analyst":
       return [
         {
@@ -115,7 +119,7 @@ export function navigationFor(role: UserRole | undefined): NavSection[] {
 
 /** The shared bottom group of the sidebar, the same for every role. */
 export function accountNavigationFor(role: UserRole | undefined): NavItem[] {
-  return role ? [ITEMS.help] : [];
+  return role ? [ITEMS.profile, ITEMS.help] : [];
 }
 
 export const breadcrumbNameMap: Record<string, string> = {
@@ -130,6 +134,7 @@ export const breadcrumbNameMap: Record<string, string> = {
   "/admin": "Administration",
   "/admin/users": "Users",
   "/admin/audit-logs": "Audit Log",
+  "/profile": "Profile",
   "/help": "Help",
 };
 
@@ -142,5 +147,7 @@ export function pageTitleFor(
     ...navigationFor(role).flatMap((section) => section.items),
     ...accountNavigationFor(role),
   ];
-  return items.find((item) => item.href === path)?.title ?? breadcrumbNameMap[path];
+  return (
+    items.find((item) => item.href === path)?.title ?? breadcrumbNameMap[path]
+  );
 }
