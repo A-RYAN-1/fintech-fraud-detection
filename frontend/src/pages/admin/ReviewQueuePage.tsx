@@ -1,6 +1,6 @@
 import { formatMoney } from "@/utils/money";
 import { ClipboardCheck } from "lucide-react";
-import { PageTransition, EmptyState } from "@/components/common";
+import { PageTransition, EmptyState, PageHeader } from "@/components/common";
 import { Skeleton } from "@/components/ui";
 import { useAppSelector } from "@/store";
 import {
@@ -21,18 +21,14 @@ export default function ReviewQueuePage() {
   return (
     <PageTransition>
       <div className="mx-auto max-w-3xl space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            Review queue
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            Payments the agent held. Every action is recorded in the audit log
-            with who did it and what changed.
-            {user?.role === "reviewer" && limit !== null
+        <PageHeader
+          title="Review queue"
+          description={`Payments held for a person. Each card shows the rules, the model and the AI analyst side by side; capture or void is a PayPal call and is written to the audit log.${
+            user?.role === "reviewer" && limit !== null
               ? ` You can decide payments up to ${formatMoney(limit)}.`
-              : ""}
-          </p>
-        </div>
+              : ""
+          }`}
+        />
 
         {isLoading ? (
           <div className="space-y-4">

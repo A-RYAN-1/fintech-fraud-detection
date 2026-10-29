@@ -1,7 +1,7 @@
 import { formatMoney } from "@/utils/money";
 import { useState } from "react";
 import { MessageSquareWarning } from "lucide-react";
-import { PageTransition, EmptyState } from "@/components/common";
+import { PageTransition, EmptyState, PageHeader } from "@/components/common";
 import {
   Badge,
   Button,
@@ -84,17 +84,10 @@ export default function FeedbackPage() {
   return (
     <PageTransition>
       <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            Feedback loop
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            A reviewer&apos;s decision on a held payment is the label. Each
-            automatic signal votes safe or risky and is scored against it. In
-            the demo the decisions come from a scripted traffic generator, so
-            these figures are on synthetic data.
-          </p>
-        </div>
+        <PageHeader
+          title="Feedback loop"
+          description="A reviewer's decision on a held payment is the label. Each automatic signal votes safe or risky and is scored against it. In the demo the decisions come from a scripted traffic generator, so these figures are on synthetic data."
+        />
 
         <div className="grid gap-4 sm:grid-cols-3">
           {SIGNALS.map((key) => {

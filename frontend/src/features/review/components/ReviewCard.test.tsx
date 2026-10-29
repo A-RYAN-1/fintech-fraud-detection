@@ -28,6 +28,44 @@ const payment: HeldPayment = {
   pending_request: null,
 };
 
+describe("ReviewCard evidence", () => {
+  it("shows the rules, the model and the AI analyst side by side", () => {
+    render(
+      <ReviewCard
+        payment={{ ...payment, rules_triggered: ["UNTRUSTED_DEVICE"] }}
+        busy={false}
+        canAct
+        onAct={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Rules: score 45")).toBeInTheDocument();
+    expect(screen.getByText("New or untrusted device")).toBeInTheDocument();
+    expect(screen.getByText("Model: 40% risk")).toBeInTheDocument();
+    expect(screen.getByText(/AI analyst: review \(70%\)/)).toBeInTheDocument();
+  });
+
+  it("says plainly when the model and the AI analyst did not read it", () => {
+    render(
+      <ReviewCard
+        payment={{
+          ...payment,
+          ml_score: null,
+          ai_verdict: null,
+          rules_triggered: [],
+        }}
+        busy={false}
+        canAct
+        onAct={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("No rule fired.")).toBeInTheDocument();
+    expect(screen.getByText(/did not score this payment/)).toBeInTheDocument();
+    expect(screen.getByText(/did not read this payment/i)).toBeInTheDocument();
+  });
+});
+
 describe("ReviewCard", () => {
   it("passes the note with the approve action", async () => {
     const onAct = vi.fn();
@@ -35,7 +73,7 @@ describe("ReviewCard", () => {
 
     await userEvent.type(screen.getByLabelText(/Note for the audit log/), "ok");
     await userEvent.click(
-      screen.getByRole("button", { name: "Approve and capture" }),
+      screen.getByRole("button", { name: "Capture at PayPal" }),
     );
 
     expect(onAct).toHaveBeenCalledWith("abc", "approve", "ok");
@@ -50,7 +88,7 @@ describe("ReviewCard", () => {
         onAct={vi.fn()}
       />,
     );
-    expect(screen.queryByRole("button", { name: "Void" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Void at PayPal" })).toBeNull();
     expect(screen.getByText(/Only an admin or reviewer/)).toBeInTheDocument();
   });
 
@@ -81,7 +119,11 @@ describe("ReviewCard", () => {
       <ReviewCard payment={withTimeline} busy={false} canAct onAct={vi.fn()} />,
     );
 
-    const items = screen.getAllByRole("listitem");
+    const items = screen
+      .getAllByRole("listitem")
+      .filter((li) =>
+        /New device|About the average/.test(li.textContent ?? ""),
+      );
     expect(items[0]).toHaveTextContent("Device");
     expect(items[0]).toHaveTextContent("New device");
     expect(items[1]).toHaveTextContent("Amount");
@@ -132,7 +174,7 @@ describe("ReviewCard roles", () => {
     );
     expect(screen.getByText(/over your decision limit/)).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Approve and capture" }),
+      screen.queryByRole("button", { name: "Capture at PayPal" }),
     ).toBeNull();
     await userEvent.click(
       screen.getByRole("button", { name: "Ask an admin to void" }),
@@ -172,7 +214,7 @@ describe("ReviewCard roles", () => {
     );
     expect(screen.getByText(/Waiting for an admin/)).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Approve and capture" }),
+      screen.queryByRole("button", { name: "Capture at PayPal" }),
     ).toBeNull();
   });
 

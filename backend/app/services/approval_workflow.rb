@@ -20,7 +20,7 @@ class ApprovalWorkflow
 
       request = ApprovalRequest.create!(payment: payment, action: action, amount: amount, reason: reason.to_s.squish.first(MAX_NOTE).presence, requested_by: requester)
       AuditLog.record!(event_type: "APPROVAL_REQUESTED", entity_type: "Transaction", entity_id: payment.id, actor: requester,
-                       description: "#{requester.email} asked an admin to #{action} #{describe(request)}: #{reason.presence || 'no reason given'}",
+                       description: "#{requester.email} asked an admin to #{describe(request)}: #{reason.presence || 'no reason given'}",
                        after: { request_id: request.id, action: action, amount: amount&.to_s("F") }.compact, reason: reason)
       request
     end
@@ -82,7 +82,7 @@ class ApprovalWorkflow
   def settle!(request, admin, status, note)
     request.update!(status: status, decided_by: admin, decided_at: Time.current, decision_note: note.to_s.squish.first(MAX_NOTE).presence)
     AuditLog.record!(event_type: "APPROVAL_#{status.to_s.upcase}", entity_type: "Transaction", entity_id: request.payment_id, actor: admin,
-                     description: "#{admin.email} #{status} the #{request.action} requested by #{request.requested_by.email}#{note.present? ? ": #{note}" : ''}",
+                     description: "#{admin.email} #{status} the #{noun(request)} requested by #{request.requested_by.email}#{note.present? ? ": #{note}" : ''}",
                      before: { status: "pending" }, after: { status: status.to_s }, reason: note)
     request
   end
@@ -95,7 +95,17 @@ class ApprovalWorkflow
     { "approve" => "Capture", "void" => "Void", "refund" => "Refund" }.fetch(request.action)
   end
 
+  # "capture the payment", "void the payment", "refund $5.00"
   def describe(request)
-    request.amount ? "of #{request.amount.to_s('F')}" : "of the payment"
+    case request.action
+    when "approve" then "capture the payment"
+    when "void" then "void the payment"
+    else request.amount ? "refund #{format('$%.2f', request.amount)}" : "refund the payment"
+    end
+  end
+
+  # "capture", "void", "refund"
+  def noun(request)
+    { "approve" => "capture", "void" => "void", "refund" => "refund" }.fetch(request.action)
   end
 end

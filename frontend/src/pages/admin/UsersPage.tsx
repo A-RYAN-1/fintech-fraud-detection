@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui";
-import { PageTransition, EmptyState } from "@/components/common";
+import { PageTransition, EmptyState, PageHeader } from "@/components/common";
 import {
   UserTable,
   useUsers,
@@ -58,15 +58,10 @@ export default function UsersPage() {
   return (
     <PageTransition>
       <div className="space-y-6">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            User Management
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            Manage user accounts, roles, and permissions
-          </p>
-        </div>
+        <PageHeader
+          title="Users"
+          description="Change roles, set a reviewer's decision limit, and suspend or activate accounts. Every change is in the audit log."
+        />
 
         {/* Filters */}
         <motion.div

@@ -115,6 +115,9 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
     assert_includes capture.description, "approved by admin@example.com"
     assert_equal %w[APPROVAL_APPROVED APPROVAL_REQUESTED], AuditLog.where(entity_id: big.id.to_s, event_type: %w[APPROVAL_REQUESTED APPROVAL_APPROVED]).order(:event_type).pluck(:event_type)
     assert_equal "approved", ApprovalRequest.sole.status
+    rows = AuditLog.where(entity_id: big.id.to_s, event_type: %w[APPROVAL_REQUESTED APPROVAL_APPROVED]).index_by(&:event_type)
+    assert_includes rows["APPROVAL_REQUESTED"].description, "asked an admin to capture the payment"
+    assert_includes rows["APPROVAL_APPROVED"].description, "admin@example.com approved the capture requested by reviewer@example.com"
 
     with_paypal { post "/api/v1/admin/approval_requests/#{request_id}/approve" }
     assert_response :conflict, "settling twice is refused"
