@@ -99,7 +99,12 @@ export default function UserTable({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div
+      className="overflow-x-auto"
+      tabIndex={0}
+      role="region"
+      aria-label="Users"
+    >
       <UserActionDialog
         action={pending}
         onCancel={done}

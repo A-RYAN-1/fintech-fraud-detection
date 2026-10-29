@@ -138,7 +138,12 @@ export default function FeedbackPage() {
                 here.
               </p>
             ) : (
-              <div className="overflow-x-auto">
+              <div
+                className="overflow-x-auto"
+                tabIndex={0}
+                role="region"
+                aria-label="Agreement by signal"
+              >
                 <table className="w-full text-sm">
                   <caption className="sr-only">
                     Share of each day&apos;s human decisions each signal agreed

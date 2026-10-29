@@ -13,7 +13,7 @@ describe("Button", () => {
   it("applies default variant styles", () => {
     render(<Button>Default</Button>);
     const button = screen.getByRole("button");
-    expect(button).toHaveClass("bg-primary-600");
+    expect(button).toHaveClass("bg-primary-700");
   });
 
   it("applies destructive variant", () => {

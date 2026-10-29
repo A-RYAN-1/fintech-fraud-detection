@@ -12,7 +12,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200 bg-white/80 backdrop-blur-sm px-4 dark:border-neutral-800 dark:bg-neutral-900/80">
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 items-center gap-4">
         {/* Mobile menu button */}
         <Button
           variant="ghost"
@@ -25,10 +25,12 @@ export default function Header() {
         </Button>
 
         {/* Breadcrumbs */}
-        <Breadcrumbs />
+        <div className="hidden min-w-0 sm:block">
+          <Breadcrumbs />
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         {/* Notifications */}
         <NotificationCenter />
 

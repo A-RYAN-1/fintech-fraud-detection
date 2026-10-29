@@ -195,7 +195,10 @@ export default function TransactionFilters({
           value={filters.status || "all"}
           onValueChange={handleStatusChange}
         >
-          <SelectTrigger className="w-full sm:w-40">
+          <SelectTrigger
+            aria-label="Filter by status"
+            className="w-full sm:w-40"
+          >
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -212,7 +215,10 @@ export default function TransactionFilters({
           value={filters.payment_method || "all"}
           onValueChange={handlePaymentMethodChange}
         >
-          <SelectTrigger className="w-full sm:w-44">
+          <SelectTrigger
+            aria-label="Filter by payment method"
+            className="w-full sm:w-44"
+          >
             <SelectValue placeholder="Payment Method" />
           </SelectTrigger>
           <SelectContent>

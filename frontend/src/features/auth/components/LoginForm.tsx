@@ -98,7 +98,7 @@ export default function LoginForm() {
           <Link
             to="/register"
             className={cn(
-              "font-medium text-primary-600 hover:text-primary-700",
+              "font-medium text-primary-700 hover:text-primary-800",
               "dark:text-primary-400 dark:hover:text-primary-300",
             )}
           >

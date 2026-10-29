@@ -69,7 +69,7 @@ function getRiskLevel(score: number) {
   if (score >= 30)
     return {
       label: "Medium Risk",
-      color: "text-warning-600 dark:text-warning-400",
+      color: "text-warning-700 dark:text-warning-400",
     };
   return { label: "Low Risk", color: "text-success-600 dark:text-success-400" };
 }

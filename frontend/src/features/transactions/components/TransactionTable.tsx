@@ -125,7 +125,12 @@ export default function TransactionTable({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div
+      className="overflow-x-auto"
+      tabIndex={0}
+      role="region"
+      aria-label="Payments"
+    >
       <table className="w-full">
         <thead>
           <tr className="border-b border-neutral-200 dark:border-neutral-800">
@@ -196,7 +201,7 @@ export default function TransactionTable({
                     (transaction.risk_score ?? 0) >= 70
                       ? "text-danger-600 dark:text-danger-400"
                       : (transaction.risk_score ?? 0) >= 30
-                        ? "text-warning-600 dark:text-warning-400"
+                        ? "text-warning-700 dark:text-warning-400"
                         : "text-success-600 dark:text-success-400",
                   )}
                 >
