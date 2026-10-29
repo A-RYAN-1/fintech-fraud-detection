@@ -17,6 +17,7 @@ Rails.application.routes.draw do
 
       get "analytics", to: "analytics#show"
       get "payment_limits", to: "payment_limits#show"
+      get "home", to: "home#show"
 
       namespace :admin do
         resources :users, only: [ :index ] do
