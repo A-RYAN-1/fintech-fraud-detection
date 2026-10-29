@@ -20,14 +20,16 @@ export const demoAccounts: DemoAccount[] = [
     label: "Customer",
     email: "john@example.com",
     password: "password123",
-    description: "Pay, see the verdict, watch your own spend.",
+    description:
+      "Pay with PayPal's buttons, then see the rules, model and AI analyst verdict on your payment.",
   },
   {
     role: "reviewer",
     label: "Reviewer",
     email: "judge.reviewer@sentrix.demo",
     password: "password123",
-    description: "Approve or void held payments up to a $5,000 limit.",
+    description:
+      "Read the model score and AI verdict on held payments, then capture or void at PayPal up to $5,000.",
   },
   {
     role: "admin",
@@ -35,6 +37,6 @@ export const demoAccounts: DemoAccount[] = [
     email: "judge.admin@sentrix.demo",
     password: "password123",
     description:
-      "Settle requests above a reviewer's limit and refunds, manage users. Sandbox admin: cannot change other admins.",
+      "Settle requests above a reviewer's limit and PayPal refunds, see how the AI and model scored, manage users. Cannot change other admins.",
   },
 ];

@@ -1,34 +1,30 @@
 import type { ReactNode } from "react";
-import { Shield, ListChecks, Cpu, Sparkles, UserCheck } from "lucide-react";
+import {
+  Shield,
+  Wallet,
+  ListChecks,
+  Cpu,
+  Sparkles,
+  UserCheck,
+  CircleCheck,
+  type LucideIcon,
+} from "lucide-react";
 import ThemeToggle from "@/components/common/ThemeToggle";
+import { pipelineSteps, type PipelineStep } from "@/config";
 
-const CHECKS = [
-  {
-    icon: ListChecks,
-    title: "Rules",
-    text: "Amount, device, velocity and location rules add up a risk score.",
-  },
-  {
-    icon: Cpu,
-    title: "Model",
-    text: "A trained model scores the same payment from its features.",
-  },
-  {
-    icon: Sparkles,
-    title: "AI analyst",
-    text: "An agent reads the evidence and explains its verdict in words.",
-  },
-  {
-    icon: UserCheck,
-    title: "Human gate",
-    text: "Held payments wait for a reviewer; big ones need a second person.",
-  },
-];
+const ICONS: Record<PipelineStep["key"], LucideIcon> = {
+  paypal: Wallet,
+  rules: ListChecks,
+  model: Cpu,
+  ai: Sparkles,
+  human: UserCheck,
+  result: CircleCheck,
+};
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      <aside className="border-b border-neutral-200 bg-white px-6 py-8 dark:border-neutral-800 dark:bg-neutral-900 lg:flex lg:flex-col lg:justify-between lg:border-b-0 lg:border-r lg:px-12 lg:py-12">
+    <div className="flex min-h-screen flex-col bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      <aside className="border-t border-neutral-200 lg:border-t-0 bg-white px-6 py-8 dark:border-neutral-800 dark:bg-neutral-900 lg:flex lg:flex-col lg:justify-between lg:border-b-0 lg:border-r lg:px-12 lg:py-12">
         <div>
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600 text-white">
@@ -40,38 +36,47 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           </div>
 
           <h1 className="mt-8 text-2xl font-semibold leading-tight sm:text-3xl">
-            Every payment is judged before the money moves.
+            PayPal payments, judged by AI before the money moves.
           </h1>
           <p className="mt-3 max-w-md text-neutral-600 dark:text-neutral-400">
-            Sentrix sits between a PayPal checkout and your books. It approves
-            safe payments, holds doubtful ones for a person, and blocks the
-            rest, with the reason for each decision on record.
+            Sentrix sits between a PayPal checkout and the capture. Rules, a
+            trained model and an AI analyst check every authorized payment; safe
+            ones are captured, doubtful ones wait for a person, the rest are
+            voided, and the reason for each decision is on record.
           </p>
         </div>
 
-        <section aria-labelledby="checks-heading" className="mt-8 lg:mt-12">
+        <section aria-labelledby="checks-heading" className="mt-8 lg:mt-10">
           <h2
             id="checks-heading"
             className="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400"
           >
-            The four checks on every payment
+            How a payment is decided
           </h2>
-          <ol className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            {CHECKS.map(({ icon: Icon, title, text }, i) => (
-              <li key={title} className="flex gap-3">
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-neutral-200 text-primary-700 dark:border-neutral-700 dark:text-primary-300">
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                </span>
-                <div>
-                  <p className="text-sm font-medium">
-                    {i + 1}. {title}
-                  </p>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    {text}
-                  </p>
-                </div>
-              </li>
-            ))}
+          <ol className="relative mt-4 space-y-4">
+            {pipelineSteps.map((step, i) => {
+              const Icon = ICONS[step.key];
+              const last = i === pipelineSteps.length - 1;
+              return (
+                <li key={step.key} className="relative flex gap-3">
+                  {!last && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-4 top-9 h-[calc(100%-1.25rem)] w-px bg-neutral-200 dark:bg-neutral-700"
+                    />
+                  )}
+                  <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white text-primary-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-primary-300">
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{step.title}</p>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                      {step.line}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
           </ol>
           <p className="mt-6 text-xs text-neutral-500 dark:text-neutral-400">
             Demo deployment on the PayPal sandbox. No real money moves.
@@ -79,11 +84,20 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </section>
       </aside>
 
-      <main className="relative flex items-center justify-center px-4 py-10 sm:px-8">
+      <main className="relative order-first flex items-center justify-center px-4 py-10 sm:px-8 lg:order-none">
         <div className="absolute right-4 top-4">
           <ThemeToggle />
         </div>
-        <div className="w-full max-w-md">{children}</div>
+        <div className="w-full max-w-md">
+          <p className="mb-6 pr-10 text-sm text-neutral-600 dark:text-neutral-400 lg:hidden">
+            <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+              Sentrix
+            </span>{" "}
+            checks PayPal payments with rules, a model and an AI analyst
+            before the money moves. How it works is below the form.
+          </p>
+          {children}
+        </div>
       </main>
     </div>
   );

@@ -10,3 +10,4 @@ export {
 } from "./navigation.config";
 export { demoAccounts, type DemoAccount } from "./demoAccounts";
 export { roleGuides, type RoleGuide, type RoleTask } from "./roleGuide";
+export { pipelineSteps, type PipelineStep } from "./pipeline";

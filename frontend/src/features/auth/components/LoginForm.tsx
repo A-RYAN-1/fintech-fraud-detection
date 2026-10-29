@@ -75,17 +75,9 @@ export default function LoginForm() {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password" required>
-              Password
-            </Label>
-            <Link
-              to="/forgot-password"
-              className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-            >
-              Forgot password?
-            </Link>
-          </div>
+          <Label htmlFor="password" required>
+            Password
+          </Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
             <Input
