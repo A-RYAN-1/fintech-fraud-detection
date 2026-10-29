@@ -98,7 +98,7 @@ export default function AuditLogTable({
                 {log.entity_type} • {log.entity_id.slice(0, 8)}...
               </span>
             </div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1 [overflow-wrap:anywhere]">
               {log.description || "No description"}
             </p>
             {(log.actor || log.before || log.after) && (

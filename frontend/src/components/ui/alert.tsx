@@ -43,7 +43,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       <div ref={ref} role="alert" className={cn(alertVariants({ variant }), className)} {...props}>
         <Icon className="h-5 w-5" />
         <div className="flex-1">
-          {title && <h5 className="font-medium mb-1">{title}</h5>}
+          {title && <p className="font-medium mb-1">{title}</p>}
           <div className="text-sm opacity-90">{children}</div>
         </div>
       </div>
