@@ -2,7 +2,12 @@ import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { X } from "lucide-react";
 import { cn } from "@/utils";
-import { navigationFor, homePathFor, type NavItem } from "@/config";
+import {
+  navigationFor,
+  accountNavigationFor,
+  homePathFor,
+  type NavItem,
+} from "@/config";
 import { useAuth } from "@/features/auth/hooks";
 import { useTheme } from "@/hooks";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -75,6 +80,7 @@ export default function MobileSidebar() {
   }, [isOpen]);
 
   const filteredNavigation = navigationFor(user?.role);
+  const accountNavigation = accountNavigationFor(user?.role);
   const homePath = homePathFor(user?.role);
 
   const handleClose = () => dispatch(setSidebarOpen(false));
@@ -101,7 +107,7 @@ export default function MobileSidebar() {
             >
               <img
                 src={isDark ? "/logo_dark.png" : "/logo.png"}
-                alt="FraudGuard"
+                alt="Sentrix"
                 className="h-30 rounded-lg object-contain"
               />
             </Link>
@@ -112,7 +118,7 @@ export default function MobileSidebar() {
 
           {/* Navigation */}
           <ScrollArea className="flex-1 px-3 py-4">
-            <nav className="space-y-6">
+            <nav aria-label="Main" className="space-y-6">
               {filteredNavigation.map((section, index) => (
                 <div key={index}>
                   {section.title && (
@@ -133,6 +139,20 @@ export default function MobileSidebar() {
               ))}
             </nav>
           </ScrollArea>
+
+          {/* Shared group: the same for every role */}
+          <nav
+            aria-label="Account"
+            className="space-y-1 border-t border-neutral-200 px-3 py-3 dark:border-neutral-800"
+          >
+            {accountNavigation.map((item) => (
+              <NavItemComponent
+                key={item.href}
+                item={item}
+                onClose={handleClose}
+              />
+            ))}
+          </nav>
         </div>
       </aside>
     </>

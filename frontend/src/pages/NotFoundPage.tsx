@@ -21,9 +21,9 @@ export default function NotFoundPage() {
             Go back
           </Button>
           <Button asChild>
-            <Link to="/dashboard">
+            <Link to="/home">
               <Home className="h-4 w-4 mr-2" />
-              Dashboard
+              Home
             </Link>
           </Button>
         </div>

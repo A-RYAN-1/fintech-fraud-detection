@@ -92,7 +92,7 @@ export default function RecentTransactions({
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Recent Transactions</CardTitle>
         <Button variant="ghost" size="sm" asChild>
-          <Link to="/payments/history">
+          <Link to="/history">
             View all
             <ArrowRight className="ml-1 h-4 w-4" />
           </Link>

@@ -1,4 +1,7 @@
 import {
+  Home,
+  History,
+  HelpCircle,
   LayoutDashboard,
   Shield,
   CreditCard,
@@ -25,15 +28,15 @@ export interface NavSection {
   items: NavItem[];
 }
 
-const STAFF: UserRole[] = ["admin", "reviewer", "analyst"];
-
 const ITEMS = {
-  dashboard: {
-    title: "Dashboard",
+  home: { title: "Home", href: "/home", icon: Home },
+  pay: { title: "Pay", href: "/pay", icon: CreditCard },
+  history: { title: "History", href: "/history", icon: History },
+  spending: {
+    title: "My Spending",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
-  payments: { title: "Payments", href: "/payments", icon: CreditCard },
   review: {
     title: "Review Queue",
     href: "/admin/review",
@@ -45,54 +48,99 @@ const ITEMS = {
     icon: ShieldCheck,
   },
   feedback: { title: "Feedback", href: "/admin/feedback", icon: Scale },
+  dashboard: {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
   risk: { title: "Risk Analysis", href: "/risk-analysis", icon: Shield },
   users: { title: "Users", href: "/admin/users", icon: Users },
-  audit: { title: "Audit Logs", href: "/admin/audit-logs", icon: FileText },
+  audit: { title: "Audit Log", href: "/admin/audit-logs", icon: FileText },
+  help: { title: "Help", href: "/help", icon: HelpCircle },
 } satisfies Record<string, NavItem>;
 
-/** Where each role lands after login and when a hidden URL is refused. */
+/** Every role lands on Home after login and when a hidden URL is refused. */
 export function homePathFor(role: UserRole | undefined): string {
-  return role && STAFF.includes(role) ? "/admin/review" : "/payments";
+  return role ? "/home" : "/login";
 }
 
-/** Sidebar sections for a role. Help lives in the user menu, theme in the header. */
+/** The work group of the sidebar, in the order each role uses it. */
 export function navigationFor(role: UserRole | undefined): NavSection[] {
-  if (!role) return [];
-  if (role === "customer") {
-    return [{ items: [ITEMS.dashboard, ITEMS.payments] }];
+  switch (role) {
+    case "customer":
+      return [{ items: [ITEMS.home, ITEMS.pay, ITEMS.history, ITEMS.spending] }];
+    case "analyst":
+      return [
+        {
+          items: [
+            ITEMS.home,
+            ITEMS.review,
+            ITEMS.feedback,
+            ITEMS.dashboard,
+            ITEMS.risk,
+          ],
+        },
+      ];
+    case "reviewer":
+      return [
+        {
+          items: [
+            ITEMS.home,
+            ITEMS.review,
+            ITEMS.approvals,
+            ITEMS.feedback,
+            ITEMS.dashboard,
+            ITEMS.risk,
+          ],
+        },
+      ];
+    case "admin":
+      return [
+        {
+          items: [
+            ITEMS.home,
+            ITEMS.review,
+            ITEMS.approvals,
+            ITEMS.feedback,
+            ITEMS.dashboard,
+            ITEMS.risk,
+          ],
+        },
+        { title: "Administration", items: [ITEMS.users, ITEMS.audit] },
+      ];
+    default:
+      return [];
   }
-  const sections: NavSection[] = [
-    {
-      items: [
-        ITEMS.review,
-        ITEMS.approvals,
-        ITEMS.feedback,
-        ITEMS.dashboard,
-        ITEMS.risk,
-      ],
-    },
-  ];
-  if (role === "admin") {
-    sections.push({
-      title: "Administration",
-      items: [ITEMS.users, ITEMS.audit],
-    });
-  }
-  return sections;
+}
+
+/** The shared bottom group of the sidebar, the same for every role. */
+export function accountNavigationFor(role: UserRole | undefined): NavItem[] {
+  return role ? [ITEMS.help] : [];
 }
 
 export const breadcrumbNameMap: Record<string, string> = {
+  "/home": "Home",
+  "/pay": "Pay",
+  "/history": "History",
   "/dashboard": "Dashboard",
-  "/payments": "Payments",
-  "/payments/pay": "Pay",
-  "/payments/history": "History",
   "/admin/review": "Review Queue",
   "/admin/approvals": "Approvals",
   "/admin/feedback": "Feedback",
   "/risk-analysis": "Risk Analysis",
   "/admin": "Administration",
-  "/admin/users": "User Management",
-  "/admin/audit-logs": "Audit Logs",
-  "/settings": "Settings",
-  "/help": "Help & Support",
+  "/admin/users": "Users",
+  "/admin/audit-logs": "Audit Log",
+  "/help": "Help",
 };
+
+/** The name of a page for this role: the sidebar title first, then the shared map. */
+export function pageTitleFor(
+  path: string,
+  role: UserRole | undefined,
+): string | undefined {
+  const items = [
+    ...navigationFor(role).flatMap((section) => section.items),
+    ...accountNavigationFor(role),
+  ];
+  return items.find((item) => item.href === path)?.title ?? breadcrumbNameMap[path];
+}

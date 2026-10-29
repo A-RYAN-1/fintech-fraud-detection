@@ -2,6 +2,7 @@ import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "@/store";
 import { toggleSidebar, setTheme } from "@/store/slices/uiSlice";
+import { useAuth } from "@/features/auth/hooks";
 
 interface ShortcutAction {
   key: string;
@@ -15,8 +16,10 @@ interface ShortcutAction {
 export function useKeyboardShortcuts() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { user } = useAuth();
+  const isCustomer = user?.role === "customer";
 
-  const shortcuts: ShortcutAction[] = [
+  const all: (ShortcutAction | false)[] = [
     {
       key: "b",
       ctrlKey: true,
@@ -27,21 +30,21 @@ export function useKeyboardShortcuts() {
       key: "d",
       ctrlKey: true,
       shiftKey: true,
-      action: () => navigate("/dashboard"),
-      description: "Go to Dashboard",
+      action: () => navigate("/home"),
+      description: "Go to Home",
     },
-    {
+    isCustomer && {
       key: "x",
       ctrlKey: false,
       shiftKey: true,
-      action: () => navigate("/payments/history"),
-      description: "Go to Payment history",
+      action: () => navigate("/history"),
+      description: "Go to History",
     },
-    {
+    isCustomer && {
       key: "n",
       ctrlKey: true,
       shiftKey: true,
-      action: () => navigate("/payments/pay"),
+      action: () => navigate("/pay"),
       description: "New payment",
     },
     {
@@ -56,6 +59,7 @@ export function useKeyboardShortcuts() {
       description: "Toggle theme",
     },
   ];
+  const shortcuts = all.filter((s): s is ShortcutAction => Boolean(s));
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {

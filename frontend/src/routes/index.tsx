@@ -9,12 +9,11 @@ import { MainLayout } from "@/layouts";
 import {
   LoginPage,
   RegisterPage,
+  HomePage,
   DashboardPage,
-  PaymentsLayout,
-  PayTab,
-  HistoryTab,
+  PayPage,
+  HistoryPage,
   RiskAnalysisPage,
-  SettingsPage,
   HelpSupportPage,
   NotFoundPage,
   UsersPage,
@@ -57,35 +56,42 @@ export const routes: RouteObject[] = [
         element: <HomeRedirect />,
       },
       {
+        path: "home",
+        element: <HomePage />,
+      },
+      {
         path: "dashboard",
         element: <DashboardPage />,
       },
       {
-        path: "payments",
+        path: "pay",
         element: (
           <RoleGuard allowedRoles={["customer"]}>
-            <PaymentsLayout />
+            <PayPage />
           </RoleGuard>
         ),
-        children: [
-          { index: true, element: <Navigate to="pay" replace /> },
-          { path: "pay", element: <PayTab /> },
-          { path: "history", element: <HistoryTab /> },
-        ],
+      },
+      {
+        path: "history",
+        element: (
+          <RoleGuard allowedRoles={["customer"]}>
+            <HistoryPage />
+          </RoleGuard>
+        ),
       },
       // Old addresses keep working.
-      {
-        path: "transactions",
-        element: <Navigate to="/payments/history" replace />,
-      },
-      {
-        path: "transactions/new",
-        element: <Navigate to="/payments/pay" replace />,
-      },
-      {
-        path: "checkout",
-        element: <Navigate to="/payments/pay" replace />,
-      },
+      ...[
+        ["payments", "/pay"],
+        ["payments/pay", "/pay"],
+        ["payments/history", "/history"],
+        ["transactions", "/history"],
+        ["transactions/new", "/pay"],
+        ["checkout", "/pay"],
+        ["settings", "/home"],
+      ].map(([path, to]) => ({
+        path,
+        element: <Navigate to={to} replace />,
+      })),
       {
         path: "admin/review",
         element: (
@@ -97,7 +103,7 @@ export const routes: RouteObject[] = [
       {
         path: "admin/approvals",
         element: (
-          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
+          <RoleGuard allowedRoles={["admin", "reviewer"]}>
             <ApprovalsPage />
           </RoleGuard>
         ),
@@ -117,10 +123,6 @@ export const routes: RouteObject[] = [
             <RiskAnalysisPage />
           </RoleGuard>
         ),
-      },
-      {
-        path: "settings",
-        element: <SettingsPage />,
       },
       {
         path: "help",

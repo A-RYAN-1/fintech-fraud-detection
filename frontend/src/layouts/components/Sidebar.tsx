@@ -1,7 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/utils";
-import { navigationFor, homePathFor, type NavItem } from "@/config";
+import {
+  navigationFor,
+  accountNavigationFor,
+  homePathFor,
+  type NavItem,
+} from "@/config";
 import { useAuth } from "@/features/auth/hooks";
 import { useTheme } from "@/hooks";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -75,6 +80,7 @@ export default function Sidebar() {
   const collapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
 
   const filteredNavigation = navigationFor(user?.role);
+  const accountNavigation = accountNavigationFor(user?.role);
   const homePath = homePathFor(user?.role);
 
   return (
@@ -99,13 +105,13 @@ export default function Sidebar() {
             {collapsed ? (
               <img
                 src={isDark ? "/logo_s_dark.png" : "/logo_s.png"}
-                alt="FraudGuard"
+                alt="Sentrix"
                 className="h-20 rounded-lg object-contain"
               />
             ) : (
               <img
                 src={isDark ? "/logo_dark.png" : "/logo.png"}
-                alt="FraudGuard"
+                alt="Sentrix"
                 className="h-30 rounded-lg object-contain"
               />
             )}
@@ -114,7 +120,7 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <ScrollArea className="flex-1 px-3 py-4">
-          <nav className="space-y-6">
+          <nav aria-label="Main" className="space-y-6">
             {filteredNavigation.map((section, index) => (
               <div key={index}>
                 {section.title && !collapsed && (
@@ -135,6 +141,16 @@ export default function Sidebar() {
             ))}
           </nav>
         </ScrollArea>
+
+        {/* Shared group: the same for every role */}
+        <nav
+          aria-label="Account"
+          className="space-y-1 border-t border-neutral-200 px-3 py-3 dark:border-neutral-800"
+        >
+          {accountNavigation.map((item) => (
+            <NavItemComponent key={item.href} item={item} collapsed={collapsed} />
+          ))}
+        </nav>
 
         {/* Collapse Toggle */}
         <div className="border-t border-neutral-200 dark:border-neutral-800 p-3">

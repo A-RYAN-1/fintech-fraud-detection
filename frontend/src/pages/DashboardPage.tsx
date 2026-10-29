@@ -98,10 +98,12 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-              Welcome back, {user?.first_name}
+              {user?.role === "customer" ? "My Spending" : "Dashboard"}
             </h1>
             <p className="text-neutral-600 dark:text-neutral-400">
-              Here's what's happening with your transactions today.
+              {user?.role === "customer"
+                ? "Totals and charts over your own payments only."
+                : "Totals and charts over the payments made from this account."}
             </p>
           </div>
           <PeriodSelector value={period} onChange={setPeriod} />
