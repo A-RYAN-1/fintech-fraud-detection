@@ -11,3 +11,4 @@ export { default as AnimatedCard } from "./AnimatedCard";
 export { default as EmptyState } from "./EmptyState";
 export { default as SkipLink } from "./SkipLink";
 export { default as PageHeader } from "./PageHeader";
+export { default as BarList } from "./BarList";

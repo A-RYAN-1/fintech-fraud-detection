@@ -27,8 +27,7 @@ describe("navigationFor", () => {
       "Home",
       "Review Queue",
       "Feedback",
-      "Dashboard",
-      "Risk Analysis",
+      "Insights",
     ]);
   });
 
@@ -38,8 +37,7 @@ describe("navigationFor", () => {
       "Review Queue",
       "Approvals",
       "Feedback",
-      "Dashboard",
-      "Risk Analysis",
+      "Insights",
     ]);
   });
 
@@ -49,8 +47,7 @@ describe("navigationFor", () => {
       "Review Queue",
       "Approvals",
       "Feedback",
-      "Dashboard",
-      "Risk Analysis",
+      "Insights",
       "Users",
       "Audit Log",
     ]);
@@ -89,9 +86,9 @@ describe("homePathFor", () => {
 });
 
 describe("pageTitleFor", () => {
-  it("names the shared /dashboard by role", () => {
-    expect(pageTitleFor("/dashboard", "customer")).toBe("My Spending");
-    expect(pageTitleFor("/dashboard", "reviewer")).toBe("Dashboard");
+  it("names each role's analytics page", () => {
+    expect(pageTitleFor("/spending", "customer")).toBe("My Spending");
+    expect(pageTitleFor("/insights", "reviewer")).toBe("Insights");
   });
 
   it("falls back to the shared map for pages outside the sidebar", () => {

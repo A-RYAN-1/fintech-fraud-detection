@@ -4,16 +4,17 @@ import {
   type RouteObject,
 } from "react-router-dom";
 import HomeRedirect from "@/components/common/HomeRedirect";
+import DashboardRedirect from "@/components/common/DashboardRedirect";
 import { AuthGuard, GuestGuard, RoleGuard } from "@/components/common";
 import { MainLayout } from "@/layouts";
 import {
   LoginPage,
   RegisterPage,
   HomePage,
-  DashboardPage,
+  MySpendingPage,
+  InsightsPage,
   PayPage,
   HistoryPage,
-  RiskAnalysisPage,
   HelpSupportPage,
   ProfilePage,
   NotFoundPage,
@@ -61,9 +62,23 @@ export const routes: RouteObject[] = [
         element: <HomePage />,
       },
       {
-        path: "dashboard",
-        element: <DashboardPage />,
+        path: "spending",
+        element: (
+          <RoleGuard allowedRoles={["customer"]}>
+            <MySpendingPage />
+          </RoleGuard>
+        ),
       },
+      {
+        path: "insights",
+        element: (
+          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
+            <InsightsPage />
+          </RoleGuard>
+        ),
+      },
+      // The old shared Dashboard became My Spending for customers and Insights for staff.
+      { path: "dashboard", element: <DashboardRedirect /> },
       {
         path: "pay",
         element: (
@@ -89,6 +104,7 @@ export const routes: RouteObject[] = [
         ["transactions/new", "/pay"],
         ["checkout", "/pay"],
         ["settings", "/home"],
+        ["risk-analysis", "/insights"],
       ].map(([path, to]) => ({
         path,
         element: <Navigate to={to} replace />,
@@ -114,14 +130,6 @@ export const routes: RouteObject[] = [
         element: (
           <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
             <FeedbackPage />
-          </RoleGuard>
-        ),
-      },
-      {
-        path: "risk-analysis",
-        element: (
-          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
-            <RiskAnalysisPage />
           </RoleGuard>
         ),
       },

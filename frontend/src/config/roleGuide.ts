@@ -32,8 +32,8 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
       },
       {
         title: "My Spending",
-        href: "/dashboard",
-        body: "Your own totals and charts over your payments only.",
+        href: "/spending",
+        body: "What you were charged, what waits for a reviewer, what was voided, and which checks stopped your payments.",
       },
     ],
   },
@@ -51,6 +51,11 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
         title: "Feedback",
         href: "/admin/feedback",
         body: "See how often the rules, the model and the AI analyst agreed with the people who decided.",
+      },
+      {
+        title: "Insights",
+        href: "/insights",
+        body: "Every payment of the period as counts: outcomes, rules score ranges, the rules that fired, the model's flag rate, the AI analyst's verdicts and time to a decision.",
       },
     ],
   },
@@ -74,6 +79,11 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
         href: "/admin/feedback",
         body: "See how often the rules, the model and the AI analyst agreed with human decisions.",
       },
+      {
+        title: "Insights",
+        href: "/insights",
+        body: "Every payment of the period as counts: outcomes, rules score ranges, the rules that fired, the model's flag rate, the AI analyst's verdicts and time to a decision.",
+      },
     ],
   },
   admin: {
@@ -95,6 +105,11 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
         title: "Feedback",
         href: "/admin/feedback",
         body: "See how often the rules, the model and the AI analyst agreed with human decisions.",
+      },
+      {
+        title: "Insights",
+        href: "/insights",
+        body: "Every payment of the period as counts: outcomes, rules score ranges, the rules that fired, the model's flag rate, the AI analyst's verdicts and time to a decision.",
       },
       {
         title: "Users",

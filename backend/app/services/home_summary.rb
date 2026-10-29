@@ -4,6 +4,8 @@
 class HomeSummary
   WINDOW = 7.days
   CAPTURED = %w[CAPTURED PARTIALLY_REFUNDED].freeze
+  # A PayPal order the buyer never approved: no money was authorized, so it is not a payment yet.
+  NOT_AUTHORIZED = %w[CREATED].freeze
 
   def initialize(user, now: Time.current)
     @user = user
@@ -28,7 +30,7 @@ class HomeSummary
   # Payments that went through PayPal (live or simulated sandbox), not the legacy scored-only rows.
   def payments
     @payments ||= begin
-      scope = Transaction.where.not(paypal_status: nil)
+      scope = Transaction.where.not(paypal_status: [ nil, *NOT_AUTHORIZED ])
       customer? ? scope.where(user: @user) : scope.where(created_at: (@now - WINDOW)..)
     end
   end
@@ -64,7 +66,7 @@ class HomeSummary
 
   # A customer with a held payment is told it waits for a reviewer; otherwise the next step is to pay.
   def customer_step
-    own = @user.transactions.where.not(paypal_status: nil).order(created_at: :desc)
+    own = @user.transactions.where.not(paypal_status: [ nil, *NOT_AUTHORIZED ]).order(created_at: :desc)
     held = own.where(paypal_status: "HELD")
     shown = held.first || own.first
     return { kind: "pay", count: 0 } unless shown
