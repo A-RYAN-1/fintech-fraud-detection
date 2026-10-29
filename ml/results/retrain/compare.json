@@ -1,0 +1,53 @@
+{
+  "generated": "2026-10-29",
+  "data": "synthetic: scripted reviewer decisions from rake demo:traffic, not real fraud",
+  "rows": 936,
+  "train": {
+    "rows": 628,
+    "block": 48
+  },
+  "holdout": {
+    "rows": 308,
+    "block": 32
+  },
+  "v1_parity_max_abs_diff": 0.0,
+  "models": {
+    "v1": {
+      "holdout": {
+        "roc_auc": 1.0,
+        "pr_auc": 1.0,
+        "log_loss": 0.2189
+      },
+      "synthetic_test_pr_auc": 0.112
+    },
+    "demo_only": {
+      "holdout": {
+        "roc_auc": 1.0,
+        "pr_auc": 1.0,
+        "log_loss": 0.0082
+      },
+      "synthetic_test_pr_auc": 0.0508,
+      "gates": {
+        "holdout_pr_auc_gain": 0.0,
+        "holdout_roc_auc_gain_p5": -0.0,
+        "synthetic_pr_auc_loss": 0.0612,
+        "passes": false
+      }
+    },
+    "synthetic_plus_demo": {
+      "holdout": {
+        "roc_auc": 1.0,
+        "pr_auc": 1.0,
+        "log_loss": 0.1266
+      },
+      "synthetic_test_pr_auc": 0.0921,
+      "gates": {
+        "holdout_pr_auc_gain": 0.0,
+        "holdout_roc_auc_gain_p5": -0.0,
+        "synthetic_pr_auc_loss": 0.0199,
+        "passes": false
+      }
+    }
+  },
+  "decision": "keep v1: no candidate cleared every gate (hold-out PR-AUC gain >= 0.02, paired-bootstrap ROC-AUC gain above zero, synthetic PR-AUC loss <= 0.01)"
+}

@@ -7,23 +7,25 @@ require "securerandom"
 # Scenarios (device ids start with "demo-"; the reviewer's scripted decision is the ground truth the feedback loop reads):
 #   normal      steady small payments on the customer's own device: captured by the agent
 #   traveller   a legitimate customer on a new device with a larger amount: flagged, the reviewer approves (rules wrong)
-#   ring        several customers whose payments come from one shared device: flagged, the reviewer voids (rules right,
-#               but the shared device is a signal only a cross-customer view sees)
+#   ring        groups of four customers whose payments come from one shared device each: flagged, the reviewer voids
+#               (rules right, but the shared device is a signal only a cross-customer view sees); `rings` sets how many
 #   blocked     a much larger amount on a new device: blocked and voided by the rules
 #   leave_open  the last held payments of the run stay held for a live demo
 # Same seed gives the same plan.
 class DemoTraffic
   DOMAIN = "demo.sentrix.test".freeze
   RING_DEVICE = "demo-ring-1".freeze
+  RING_SIZE = 4
 
   Report = Struct.new(:created, :captured, :held, :voided, :decided, :left_open, :users, keyword_init: true)
 
-  def initialize(seed: 42, customers: 16, days: 14, leave_open: 3, ai_last: 0)
+  def initialize(seed: 42, customers: 16, days: 14, leave_open: 3, ai_last: 0, rings: 1)
     @rng = Random.new(seed)
     @customers = customers
     @days = days
     @leave_open = leave_open
     @ai_last = ai_last
+    @rings = rings
     @client = SimulatedPaypalClient.new
     @counts = Hash.new(0)
     @password = "Demo-#{SecureRandom.hex(8)}"
@@ -88,8 +90,12 @@ class DemoTraffic
     end
 
     later = []
-    ring = people.first([ 4, people.size ].min)
-    ring.each { |user| 2.times { later << { user: user, device: RING_DEVICE, amount: jitter(bases[user.id] * 5.5), scenario: :ring, ring: true } } }
+    ring = people.first([ RING_SIZE * @rings, people.size ].min)
+    ring.each_with_index do |user, i|
+      group = i / RING_SIZE
+      device = group.zero? ? RING_DEVICE : "demo-ring-#{group + 1}"
+      2.times { later << { user: user, device: device, amount: jitter(bases[user.id] * 5.5), scenario: :ring, ring: true, group: group } }
+    end
     people.drop(ring.size).each_with_index do |user, i|
       base = bases[user.id]
       home = "demo-home-#{people.index(user) + 1}"
@@ -122,7 +128,7 @@ class DemoTraffic
   end
 
   def ip_for(step)
-    step[:ring] ? "203.0.113.77" : "198.51.100.#{(step[:user].id % 200) + 1}"
+    step[:ring] ? "203.0.113.#{77 + step[:group]}" : "198.51.100.#{(step[:user].id % 200) + 1}"
   end
 
   # Old payments look old: the run covers the last `days` days.
