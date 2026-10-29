@@ -20,6 +20,9 @@ namespace :demo do
       user.save!
       puts "ready #{user.email} role=#{user.role} limit=#{user.effective_decision_limit&.to_s('F') || 'none'}"
     end
+
+    customer = User.find_by!(email: "john@example.com")
+    puts "history john@example.com payments_added=#{DemoTraffic.seed_customer!(customer)}"
   end
 
   desc "Remove everything demo:traffic created (users under demo.sentrix.test and their payments)"

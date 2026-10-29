@@ -43,6 +43,24 @@ class DemoTraffic
     ids.size
   end
 
+  # Gives one shared login (the sign-in page's customer) a PayPal history through the same simulated pipeline, so its
+  # My Spending and History are not empty: steady payments captured, a larger one on a new device held for a
+  # reviewer, a much larger one blocked. Skips a user who already has a history; returns how many payments it made.
+  def self.seed_customer!(user, seed: 11, days: 14)
+    new(seed: seed, customers: 0, days: days).seed_customer(user)
+  end
+
+  def seed_customer(user)
+    return 0 if user.transactions.where.not(paypal_status: [ nil, *HomeSummary::NOT_AUTHORIZED ]).count >= 5
+
+    home = user.devices.first&.device_id || "demo-home-#{user.id}"
+    steps = Array.new(6) { { user: user, device: home, amount: jitter(45), scenario: :normal } }
+    steps << { user: user, device: "demo-trip-#{user.id}", amount: jitter(110), scenario: :traveller }
+    steps << { user: user, device: "demo-new-#{user.id}", amount: jitter(900), scenario: :blocked }
+    steps.each { |step| pay(step, ai_on: false) }
+    steps.size
+  end
+
   def run
     reviewer = staff("reviewer", :reviewer)
     analyst = staff("analyst", :analyst)
