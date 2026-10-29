@@ -93,8 +93,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <span className="font-semibold text-neutral-900 dark:text-neutral-100">
               Sentrix
             </span>{" "}
-            checks PayPal payments with rules, a model and an AI analyst
-            before the money moves. How it works is below the form.
+            checks PayPal payments with rules, a model and an AI analyst before
+            the money moves. How it works is below the form.
           </p>
           {children}
         </div>

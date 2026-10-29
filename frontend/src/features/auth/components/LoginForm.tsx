@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
@@ -10,7 +10,6 @@ import { loginSchema, type LoginFormData } from "../schemas";
 import { useLogin } from "../hooks";
 
 export default function LoginForm() {
-  const emailInputRef = useRef<HTMLInputElement>(null);
   const { mutate: login, isPending } = useLogin();
 
   const {
@@ -26,26 +25,24 @@ export default function LoginForm() {
     },
   });
 
-  // Auto-focus email field on mount
-  useEffect(() => {
-    emailInputRef.current?.focus();
-  }, []);
-
   const onSubmit = (data: LoginFormData) => {
     login(data);
   };
 
+  const [picked, setPicked] = useState<string | null>(null);
+
   const fillDemo = (email: string, password: string) => {
+    setPicked(email);
     setValue("email", email, { shouldValidate: true });
     setValue("password", password, { shouldValidate: true });
   };
 
-  const { ref: emailRef, ...emailRegister } = register("email");
+  const emailRegister = register("email");
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <div className="space-y-2">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-1.5">
           <Label htmlFor="email" required>
             Email
           </Label>
@@ -59,12 +56,6 @@ export default function LoginForm() {
               error={!!errors.email}
               className="pl-10"
               {...emailRegister}
-              ref={(e) => {
-                emailRef(e);
-                (
-                  emailInputRef as React.MutableRefObject<HTMLInputElement | null>
-                ).current = e;
-              }}
             />
           </div>
           {errors.email && (
@@ -74,7 +65,7 @@ export default function LoginForm() {
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="password" required>
             Password
           </Label>
@@ -124,33 +115,27 @@ export default function LoginForm() {
           id="demo-logins"
           className="text-sm font-medium text-neutral-900 dark:text-neutral-100"
         >
-          Sandbox demo logins
+          Sandbox demo logins (fills the form)
         </h2>
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-          For judges and visitors. Fills the form; nothing is sent until you
-          sign in.
-        </p>
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-2 grid grid-cols-3 gap-2">
           {demoAccounts.map((account) => (
             <li key={account.email}>
               <button
                 type="button"
+                aria-pressed={picked === account.email}
                 onClick={() => fillDemo(account.email, account.password)}
-                className="w-full rounded-md border border-neutral-200 px-3 py-2 text-left transition-colors hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:border-neutral-700 dark:hover:bg-neutral-800 dark:focus-visible:ring-offset-neutral-900"
+                className="w-full rounded-md border border-neutral-200 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 aria-pressed:border-primary-500 aria-pressed:bg-primary-50 aria-pressed:text-primary-700 dark:border-neutral-700 dark:hover:bg-neutral-800 dark:focus-visible:ring-offset-neutral-900 dark:aria-pressed:bg-primary-950 dark:aria-pressed:text-primary-300"
               >
-                <span className="block text-sm font-medium">
-                  {account.label}
-                </span>
-                <span className="block text-xs text-neutral-600 dark:text-neutral-400">
-                  {account.description}
-                </span>
-                <span className="mt-1 block font-mono text-xs text-neutral-500 dark:text-neutral-400">
-                  {account.email} / {account.password}
-                </span>
+                {account.label}
               </button>
             </li>
           ))}
         </ul>
+        {picked && (
+          <p className="mt-2 break-all font-mono text-xs text-neutral-500 dark:text-neutral-400">
+            {picked} / {demoAccounts.find((a) => a.email === picked)?.password}
+          </p>
+        )}
       </section>
     </>
   );
