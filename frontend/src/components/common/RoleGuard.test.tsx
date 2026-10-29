@@ -80,14 +80,14 @@ describe("RoleGuard", () => {
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
     expect(screen.getByTestId("navigate")).toHaveAttribute(
       "data-to",
-      "/payments",
+      "/home",
     );
   });
 
   it.each([
-    ["analyst", "/admin/review"],
-    ["reviewer", "/admin/review"],
-    ["admin", "/admin/review"],
+    ["analyst", "/home"],
+    ["reviewer", "/home"],
+    ["admin", "/home"],
   ] as const)("sends a refused %s to %s", (role, path) => {
     mockUseAuth.mockReturnValue({
       user: {

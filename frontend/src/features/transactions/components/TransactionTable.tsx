@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { MoreHorizontal, Eye, MessageSquare, ArrowUpDown } from "lucide-react";
 import {
   Button,
@@ -110,7 +111,14 @@ export default function TransactionTable({
           No payments yet
         </p>
         <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          Make a payment on the Pay tab and it appears here with its verdict.
+          Make a payment on the{" "}
+          <Link
+            to="/pay"
+            className="font-medium text-primary-700 underline-offset-2 hover:underline dark:text-primary-300"
+          >
+            Pay page
+          </Link>{" "}
+          and it appears here with its verdict.
         </p>
       </div>
     );

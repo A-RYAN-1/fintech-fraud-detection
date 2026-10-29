@@ -11,12 +11,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui";
+import { useAuth } from "@/features/auth/hooks";
 import { useNotifications } from "../hooks";
 import NotificationItem from "./NotificationItem";
 import type { Notification } from "../types";
 
 export default function NotificationCenter() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const paymentsPath = user?.role === "customer" ? "/history" : "/admin/review";
   const {
     notifications,
     unreadCount,
@@ -30,7 +33,7 @@ export default function NotificationCenter() {
 
   const handleNotificationClick = (notification: Notification) => {
     if (notification.data?.transaction_id) {
-      navigate("/payments/history");
+      navigate(paymentsPath);
     }
   };
 
@@ -152,9 +155,11 @@ export default function NotificationCenter() {
               <Button
                 variant="ghost"
                 className="w-full text-sm"
-                onClick={() => navigate("/payments/history")}
+                onClick={() => navigate(paymentsPath)}
               >
-                View all transactions
+                {user?.role === "customer"
+                  ? "Open your payment history"
+                  : "Open the Review Queue"}
               </Button>
             </div>
           </>

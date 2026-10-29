@@ -1,5 +1,4 @@
-import { LogOut, Settings, User, HelpCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,27 +46,11 @@ export default function UserMenu() {
             <span className="text-xs font-normal text-neutral-500 dark:text-neutral-400">
               {user.email}
             </span>
+            <span className="mt-1 text-xs font-normal capitalize text-neutral-500 dark:text-neutral-400">
+              Role: {user.role}
+            </span>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to="/profile">
-            <User className="mr-2 h-4 w-4" />
-            Profile
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to="/settings">
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to="/help">
-            <HelpCircle className="mr-2 h-4 w-4" />
-            Help & Support
-          </Link>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={logout}

@@ -1,21 +1,23 @@
 import { Link, useLocation } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
-import { breadcrumbNameMap } from "@/config";
+import { pageTitleFor } from "@/config";
+import { useAuth } from "@/features/auth/hooks";
 import { cn } from "@/utils";
 
 export default function Breadcrumbs() {
   const location = useLocation();
+  const { user } = useAuth();
   const pathnames = location.pathname.split("/").filter((x) => x);
 
-  // Don't show breadcrumbs on dashboard
-  if (pathnames.length <= 1 && pathnames[0] === "dashboard") {
+  // Home is the root of the trail, so it needs no breadcrumb.
+  if (pathnames.length === 0 || (pathnames.length === 1 && pathnames[0] === "home")) {
     return null;
   }
 
   const breadcrumbs = pathnames.map((_, index) => {
     const href = `/${pathnames.slice(0, index + 1).join("/")}`;
     const isLast = index === pathnames.length - 1;
-    const name = breadcrumbNameMap[href] || pathnames[index];
+    const name = pageTitleFor(href, user?.role) ?? pathnames[index];
 
     return { href, name, isLast };
   });
@@ -26,7 +28,8 @@ export default function Breadcrumbs() {
       className="flex items-center space-x-1 text-sm"
     >
       <Link
-        to="/dashboard"
+        to="/home"
+        aria-label="Home"
         className="flex items-center text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors"
       >
         <Home className="h-4 w-4" />

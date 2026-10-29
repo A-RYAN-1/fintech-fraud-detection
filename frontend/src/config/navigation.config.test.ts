@@ -1,57 +1,97 @@
 import { describe, it, expect } from "vitest";
-import { navigationFor, homePathFor } from "./navigation.config";
+import {
+  navigationFor,
+  accountNavigationFor,
+  homePathFor,
+  pageTitleFor,
+} from "./navigation.config";
 import type { UserRole } from "@/types";
+
+const ROLES: UserRole[] = ["customer", "analyst", "reviewer", "admin"];
 
 const titles = (role: UserRole) =>
   navigationFor(role).flatMap((s) => s.items.map((i) => i.title));
 
 describe("navigationFor", () => {
-  it("gives a customer Dashboard and Payments only", () => {
-    expect(titles("customer")).toEqual(["Dashboard", "Payments"]);
+  it("gives a customer Home, Pay, History and My Spending", () => {
+    expect(titles("customer")).toEqual([
+      "Home",
+      "Pay",
+      "History",
+      "My Spending",
+    ]);
   });
 
-  it.each(["analyst", "reviewer"] as UserRole[])(
-    "gives %s the staff list without admin pages",
-    (role) => {
-      expect(titles(role)).toEqual([
-        "Review Queue",
-        "Approvals",
-        "Feedback",
-        "Dashboard",
-        "Risk Analysis",
-      ]);
-    },
-  );
+  it("gives an analyst no Approvals, since an analyst cannot decide", () => {
+    expect(titles("analyst")).toEqual([
+      "Home",
+      "Review Queue",
+      "Feedback",
+      "Dashboard",
+      "Risk Analysis",
+    ]);
+  });
 
-  it("adds Users and Audit Logs for an admin", () => {
+  it("gives a reviewer Approvals and no admin pages", () => {
+    expect(titles("reviewer")).toEqual([
+      "Home",
+      "Review Queue",
+      "Approvals",
+      "Feedback",
+      "Dashboard",
+      "Risk Analysis",
+    ]);
+  });
+
+  it("adds Users and Audit Log for an admin", () => {
     expect(titles("admin")).toEqual([
+      "Home",
       "Review Queue",
       "Approvals",
       "Feedback",
       "Dashboard",
       "Risk Analysis",
       "Users",
-      "Audit Logs",
+      "Audit Log",
     ]);
   });
 
-  it("never lists Preferences or Help in the sidebar", () => {
-    for (const role of ["customer", "analyst", "reviewer", "admin"] as const) {
+  it("never lists Settings or Preferences", () => {
+    for (const role of ROLES) {
+      expect(titles(role)).not.toContain("Settings");
       expect(titles(role)).not.toContain("Preferences");
-      expect(titles(role).join()).not.toMatch(/Help/);
     }
   });
 
   it("returns nothing without a role", () => {
     expect(navigationFor(undefined)).toEqual([]);
+    expect(accountNavigationFor(undefined)).toEqual([]);
+  });
+});
+
+describe("accountNavigationFor", () => {
+  it("puts Help in the shared bottom group for every role", () => {
+    for (const role of ROLES) {
+      expect(accountNavigationFor(role).map((i) => i.title)).toEqual(["Help"]);
+    }
   });
 });
 
 describe("homePathFor", () => {
-  it("lands customers on Payments and staff on the Review Queue", () => {
-    expect(homePathFor("customer")).toBe("/payments");
-    expect(homePathFor("analyst")).toBe("/admin/review");
-    expect(homePathFor("reviewer")).toBe("/admin/review");
-    expect(homePathFor("admin")).toBe("/admin/review");
+  it("lands every role on Home", () => {
+    for (const role of ROLES) {
+      expect(homePathFor(role)).toBe("/home");
+    }
+  });
+});
+
+describe("pageTitleFor", () => {
+  it("names the shared /dashboard by role", () => {
+    expect(pageTitleFor("/dashboard", "customer")).toBe("My Spending");
+    expect(pageTitleFor("/dashboard", "reviewer")).toBe("Dashboard");
+  });
+
+  it("falls back to the shared map for pages outside the sidebar", () => {
+    expect(pageTitleFor("/admin", "admin")).toBe("Administration");
   });
 });

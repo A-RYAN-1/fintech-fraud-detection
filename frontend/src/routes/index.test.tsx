@@ -25,17 +25,11 @@ vi.mock("@/pages", () => {
   return {
     LoginPage: page("login"),
     RegisterPage: page("register"),
+    HomePage: page("home"),
     DashboardPage: page("dashboard"),
-    PaymentsLayout: () => (
-      <div>
-        page:payments
-        <Outlet />
-      </div>
-    ),
-    PayTab: page("pay"),
-    HistoryTab: page("history"),
+    PayPage: page("pay"),
+    HistoryPage: page("history"),
     RiskAnalysisPage: page("risk"),
-    SettingsPage: page("settings"),
     HelpSupportPage: page("help"),
     NotFoundPage: page("notfound"),
     UsersPage: page("users"),
@@ -61,18 +55,12 @@ function visit(role: UserRole, path: string) {
 describe("route access per role", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("sends the root to each role's landing page", () => {
-    expect(visit("customer", "/").state.location.pathname).toBe(
-      "/payments/pay",
-    );
-  });
-
-  it.each(["analyst", "reviewer", "admin"] as UserRole[])(
-    "lands %s on the Review Queue",
+  it.each(["customer", "analyst", "reviewer", "admin"] as UserRole[])(
+    "lands %s on Home",
     (role) => {
       const router = visit(role, "/");
-      expect(router.state.location.pathname).toBe("/admin/review");
-      expect(screen.getByText("page:review")).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe("/home");
+      expect(screen.getByText("page:home")).toBeInTheDocument();
     },
   );
 
@@ -83,37 +71,45 @@ describe("route access per role", () => {
     "/risk-analysis",
     "/admin/users",
     "/admin/audit-logs",
-  ])("redirects a customer from %s to Payments", (path) => {
-    const router = visit("customer", path);
-    expect(router.state.location.pathname).toBe("/payments/pay");
+  ])("redirects a customer from %s to Home", (path) => {
+    expect(visit("customer", path).state.location.pathname).toBe("/home");
   });
 
   it.each(["analyst", "reviewer"] as UserRole[])(
-    "redirects %s away from admin-only pages and Payments",
+    "redirects %s away from admin-only pages, Pay and History",
     (role) => {
       for (const path of [
         "/admin/users",
         "/admin/audit-logs",
-        "/payments/pay",
+        "/pay",
+        "/history",
       ]) {
-        const router = visit(role, path);
-        expect(router.state.location.pathname).toBe("/admin/review");
+        expect(visit(role, path).state.location.pathname).toBe("/home");
       }
     },
   );
 
+  it("keeps an analyst out of Approvals, since an analyst cannot decide", () => {
+    expect(visit("analyst", "/admin/approvals").state.location.pathname).toBe(
+      "/home",
+    );
+  });
+
   it("lets staff open the pages in their sidebar", () => {
     for (const path of [
-      "/admin/approvals",
+      "/admin/review",
       "/admin/feedback",
       "/risk-analysis",
       "/dashboard",
     ]) {
       expect(visit("analyst", path).state.location.pathname).toBe(path);
     }
+    expect(visit("reviewer", "/admin/approvals").state.location.pathname).toBe(
+      "/admin/approvals",
+    );
   });
 
-  it("lets an admin open Users and Audit Logs", () => {
+  it("lets an admin open Users and Audit Log", () => {
     expect(visit("admin", "/admin/users").state.location.pathname).toBe(
       "/admin/users",
     );
@@ -122,9 +118,25 @@ describe("route access per role", () => {
     );
   });
 
-  it("lets a customer open Dashboard, Pay and History", () => {
-    for (const path of ["/dashboard", "/payments/pay", "/payments/history"]) {
+  it("lets a customer open Home, Pay, History and My Spending", () => {
+    for (const path of ["/home", "/pay", "/history", "/dashboard"]) {
       expect(visit("customer", path).state.location.pathname).toBe(path);
     }
+  });
+
+  it.each([
+    ["/payments", "/pay"],
+    ["/payments/pay", "/pay"],
+    ["/payments/history", "/history"],
+    ["/transactions", "/history"],
+    ["/checkout", "/pay"],
+  ])("sends the old address %s to %s", (from, to) => {
+    expect(visit("customer", from).state.location.pathname).toBe(to);
+  });
+
+  it("sends the removed Settings page to Home", () => {
+    expect(visit("reviewer", "/settings").state.location.pathname).toBe(
+      "/home",
+    );
   });
 });

@@ -10,3 +10,4 @@ export { default as PageTransition } from "./PageTransition";
 export { default as AnimatedCard } from "./AnimatedCard";
 export { default as EmptyState } from "./EmptyState";
 export { default as SkipLink } from "./SkipLink";
+export { default as PageHeader } from "./PageHeader";

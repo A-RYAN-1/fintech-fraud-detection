@@ -50,7 +50,7 @@ describe("GuestGuard", () => {
     expect(screen.queryByText("Login Form")).not.toBeInTheDocument();
   });
 
-  it("redirects to the role landing page when authenticated", () => {
+  it("redirects to Home when authenticated", () => {
     mockUseAuth.mockReturnValue({
       user: {
         id: "1",
@@ -75,7 +75,7 @@ describe("GuestGuard", () => {
 
     expect(screen.getByTestId("navigate")).toHaveAttribute(
       "data-to",
-      "/payments",
+      "/home",
     );
   });
 
