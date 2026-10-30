@@ -24,6 +24,12 @@ class ApplicationController < ActionController::API
     render_error("Account is suspended", :forbidden)
   end
 
+  # The signed-in user's id goes on the request log line (see lib/structured_logging.rb).
+  def append_info_to_payload(payload)
+    super
+    payload[:user_id] = session[:user_id]
+  end
+
   protected
 
   def render_success(data, message = "Success", status = :ok)

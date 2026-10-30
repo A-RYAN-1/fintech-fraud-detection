@@ -45,6 +45,7 @@ class AnalystGuard
     @refilled_at = clock.call
     @counters = Counters.new(calls: 0, successes: 0, failures: 0, retries: 0, skipped_open: 0, skipped_rate_limited: 0)
     @last_failure = nil
+    @last_call_at = nil
   end
 
   # :ok when the call may go ahead, otherwise the reason it is skipped (:circuit_open or :rate_limited).
@@ -69,6 +70,7 @@ class AnalystGuard
       @tokens -= 1
       @probe_in_flight = true if @state == HALF_OPEN
       @counters.calls += 1
+      @last_call_at = Time.current
       :ok
     end
   end
@@ -112,7 +114,7 @@ class AnalystGuard
       refill
       remaining = @state == OPEN ? [ @cooldown - (@clock.call - @opened_at), 0 ].max.round(1) : 0
       { state: @state.to_s, consecutive_failures: @consecutive_failures, retry_in_seconds: remaining,
-        tokens: @tokens.floor, capacity: @capacity, last_failure: @last_failure, **@counters.to_h }
+        tokens: @tokens.floor, capacity: @capacity, last_failure: @last_failure, last_call_at: @last_call_at, **@counters.to_h }
     end
   end
 

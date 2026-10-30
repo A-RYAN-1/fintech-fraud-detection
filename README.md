@@ -333,6 +333,9 @@ It is ready when this returns `"status":"ok"`:
 curl http://localhost:3000/api/v1/health
 ```
 
+The deep check (database, job queue, AI analyst) is `/api/v1/health/deep`; logs, request ids and the warm-up ping are in
+[`docs/health-and-logs.md`](docs/health-and-logs.md).
+
 The API is at `http://localhost:3000/api/v1`. Stop it with `docker compose down` (add `-v` to also
 drop the database and the gem cache).
 
