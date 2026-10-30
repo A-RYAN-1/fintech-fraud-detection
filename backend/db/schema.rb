@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_30_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_30_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -124,6 +124,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_030000) do
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_risk_rule_settings_on_key", unique: true
     t.index ["updated_by_id"], name: "index_risk_rule_settings_on_updated_by_id"
+  end
+
+  create_table "rule_proposals", force: :cascade do |t|
+    t.string "key", null: false
+    t.decimal "current_value", precision: 14, scale: 2, null: false
+    t.decimal "proposed_value", precision: 14, scale: 2, null: false
+    t.string "trigger_kind", null: false
+    t.uuid "source_payment_id"
+    t.text "rationale", null: false
+    t.jsonb "backtest", default: {}, null: false
+    t.string "status", default: "pending", null: false
+    t.bigint "decided_by_id"
+    t.datetime "decided_at"
+    t.string "decision_note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["decided_by_id"], name: "index_rule_proposals_on_decided_by_id"
+    t.index ["key", "proposed_value"], name: "index_rule_proposals_one_pending", unique: true, where: "((status)::text = 'pending'::text)"
+    t.index ["source_payment_id"], name: "index_rule_proposals_on_source_payment_id"
+    t.index ["status"], name: "index_rule_proposals_on_status"
   end
 
   create_table "solid_queue_blocked_executions", force: :cascade do |t|
@@ -313,6 +333,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_030000) do
   add_foreign_key "idempotency_keys", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "risk_rule_settings", "users", column: "updated_by_id", on_delete: :nullify
+  add_foreign_key "rule_proposals", "transactions", column: "source_payment_id", on_delete: :nullify
+  add_foreign_key "rule_proposals", "users", column: "decided_by_id", on_delete: :nullify
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

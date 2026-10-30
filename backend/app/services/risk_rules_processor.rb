@@ -4,11 +4,16 @@ class RiskRulesProcessor
   VELOCITY_COUNT_LARGE = 3
   VELOCITY_COUNT_VERY_LARGE = 2
 
-  def initialize(transaction, user, stats)
+  # History is set only by RuleBacktest: what the live path reads from the database (the recent payment count and the
+  # trusted device) as it stood when the payment was made.
+  History = Struct.new(:recent_count, :trusted_device_id, keyword_init: true)
+
+  def initialize(transaction, user, stats, config: RiskRuleConfig.values, history: nil)
     @transaction = transaction
     @user = user
     @stats = stats
-    @config = RiskRuleConfig.values
+    @config = config
+    @history = history
     @risk_score = 0
     @triggered_rules = []
   end
@@ -57,7 +62,7 @@ class RiskRulesProcessor
 
   def evaluate_velocity
     window = @config["velocity_window_seconds"].to_i.seconds
-    recent_txn_count = @user.transactions.where("created_at > ?", window.ago).count
+    recent_txn_count = @history ? @history.recent_count : @user.transactions.where("created_at > ?", window.ago).count
 
     if amount_between?("medium_amount_min", "large_amount_min") && recent_txn_count >= VELOCITY_COUNT_MEDIUM
       add_risk(@config["rapid_velocity_low"], "RAPID_MEDIUM_AMOUNT")
@@ -70,8 +75,8 @@ class RiskRulesProcessor
 
   def evaluate_device_security
     # Rule 4: Device mismatch check
-    trusted_device = @user.devices.first
-    if trusted_device.present? && trusted_device.device_id != @transaction.device_id
+    trusted_device_id = @history ? @history.trusted_device_id : @user.devices.first&.device_id
+    if trusted_device_id.present? && trusted_device_id != @transaction.device_id
       add_risk(@config["untrusted_device_risk"], "UNTRUSTED_DEVICE")
     end
 

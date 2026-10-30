@@ -22,6 +22,7 @@ import {
   AuditLogsPage,
   ReviewQueuePage,
   ApprovalsPage,
+  RuleProposalsPage,
   FeedbackPage,
 } from "@/pages";
 
@@ -130,6 +131,14 @@ export const routes: RouteObject[] = [
         element: (
           <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
             <FeedbackPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "admin/rules",
+        element: (
+          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
+            <RuleProposalsPage />
           </RoleGuard>
         ),
       },

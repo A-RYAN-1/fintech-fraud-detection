@@ -27,6 +27,7 @@ describe("navigationFor", () => {
       "Home",
       "Review Queue",
       "Feedback",
+      "Rule Changes",
       "Insights",
     ]);
   });
@@ -37,6 +38,7 @@ describe("navigationFor", () => {
       "Review Queue",
       "Approvals",
       "Feedback",
+      "Rule Changes",
       "Insights",
     ]);
   });
@@ -47,6 +49,7 @@ describe("navigationFor", () => {
       "Review Queue",
       "Approvals",
       "Feedback",
+      "Rule Changes",
       "Insights",
       "Users",
       "Audit Log",

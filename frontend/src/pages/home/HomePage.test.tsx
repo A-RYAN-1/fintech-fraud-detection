@@ -74,6 +74,7 @@ describe("HomePage", () => {
     expect(cardLinks()).toEqual([
       "/admin/review",
       "/admin/feedback",
+      "/admin/rules",
       "/insights",
     ]);
   });
@@ -89,6 +90,7 @@ describe("HomePage", () => {
       "/admin/review",
       "/admin/approvals",
       "/admin/feedback",
+      "/admin/rules",
       "/insights",
       "/admin/users",
       "/admin/audit-logs",
