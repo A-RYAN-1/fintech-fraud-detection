@@ -58,6 +58,11 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
         body: "Read the changes the agent drafted after a person overrode the rules, with the test on stored payments. An admin accepts or rejects.",
       },
       {
+        title: "Incidents",
+        href: "/admin/incidents",
+        body: "Read the failures grouped by what went wrong, with a drafted GitHub issue for each. An admin approves a report; nothing is filed for you.",
+      },
+      {
         title: "Insights",
         href: "/insights",
         body: "Every payment of the period as counts: outcomes, rules score ranges, the rules that fired, the model's flag rate, the AI analyst's verdicts and time to a decision.",
@@ -90,6 +95,11 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
         body: "Read the changes the agent drafted after a person overrode the rules, with the test on stored payments. An admin accepts or rejects.",
       },
       {
+        title: "Incidents",
+        href: "/admin/incidents",
+        body: "Read the failures grouped by what went wrong, with a drafted GitHub issue for each. An admin approves a report; nothing is filed for you.",
+      },
+      {
         title: "Insights",
         href: "/insights",
         body: "Every payment of the period as counts: outcomes, rules score ranges, the rules that fired, the model's flag rate, the AI analyst's verdicts and time to a decision.",
@@ -120,6 +130,11 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
         title: "Rule Changes",
         href: "/admin/rules",
         body: "Accept or reject the rule changes the agent drafted after an override. Each shows its test on stored payments; nothing changes until you accept.",
+      },
+      {
+        title: "Incidents",
+        href: "/admin/incidents",
+        body: "Approve or dismiss the incident reports the agent drafted from failed PayPal calls, failed jobs and AI analyst failures. You file the GitHub issue yourself; the agent never does.",
       },
       {
         title: "Insights",

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_30_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_30_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -97,6 +97,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_150000) do
     t.index ["created_at"], name: "index_idempotency_keys_on_created_at"
     t.index ["user_id", "key"], name: "index_idempotency_keys_on_user_id_and_key", unique: true
     t.index ["user_id"], name: "index_idempotency_keys_on_user_id"
+  end
+
+  create_table "incidents", force: :cascade do |t|
+    t.string "fingerprint", null: false
+    t.string "kind", null: false
+    t.string "title", null: false
+    t.text "detail"
+    t.jsonb "sample", default: {}, null: false
+    t.integer "occurrences", default: 1, null: false
+    t.integer "recurrences", default: 0, null: false
+    t.datetime "first_seen_at", null: false
+    t.datetime "last_seen_at", null: false
+    t.string "status", default: "open", null: false
+    t.text "ai_note"
+    t.bigint "decided_by_id"
+    t.datetime "decided_at"
+    t.string "decision_note"
+    t.string "issue_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["decided_by_id"], name: "index_incidents_on_decided_by_id"
+    t.index ["fingerprint"], name: "index_incidents_on_fingerprint", unique: true
+    t.index ["status", "last_seen_at"], name: "index_incidents_on_status_and_last_seen_at"
   end
 
   create_table "notifications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -343,6 +366,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_150000) do
   add_foreign_key "fraud_evaluations", "transactions"
   add_foreign_key "fraud_evaluations", "users", column: "labeled_by_id", on_delete: :nullify
   add_foreign_key "idempotency_keys", "users"
+  add_foreign_key "incidents", "users", column: "decided_by_id", on_delete: :nullify
   add_foreign_key "notifications", "users"
   add_foreign_key "risk_rule_settings", "users", column: "updated_by_id", on_delete: :nullify
   add_foreign_key "rule_proposals", "transactions", column: "source_payment_id", on_delete: :nullify

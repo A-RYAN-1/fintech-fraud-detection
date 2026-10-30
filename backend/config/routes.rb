@@ -51,6 +51,14 @@ Rails.application.routes.draw do
             post :propose
           end
         end
+        resources :incidents, only: [ :index ] do
+          collection { post :scan }
+          member do
+            post :approve
+            post :dismiss
+            post :suggest
+          end
+        end
         resources :rule_proposals, only: [ :index, :create ] do
           member do
             post :accept

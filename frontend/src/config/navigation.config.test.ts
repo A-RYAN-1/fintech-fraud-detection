@@ -28,6 +28,7 @@ describe("navigationFor", () => {
       "Review Queue",
       "Feedback",
       "Rule Changes",
+      "Incidents",
       "Insights",
     ]);
   });
@@ -39,6 +40,7 @@ describe("navigationFor", () => {
       "Approvals",
       "Feedback",
       "Rule Changes",
+      "Incidents",
       "Insights",
     ]);
   });
@@ -50,6 +52,7 @@ describe("navigationFor", () => {
       "Approvals",
       "Feedback",
       "Rule Changes",
+      "Incidents",
       "Insights",
       "Users",
       "Audit Log",

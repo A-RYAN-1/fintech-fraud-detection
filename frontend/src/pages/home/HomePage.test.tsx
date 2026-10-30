@@ -75,6 +75,7 @@ describe("HomePage", () => {
       "/admin/review",
       "/admin/feedback",
       "/admin/rules",
+      "/admin/incidents",
       "/insights",
     ]);
   });
@@ -91,6 +92,7 @@ describe("HomePage", () => {
       "/admin/approvals",
       "/admin/feedback",
       "/admin/rules",
+      "/admin/incidents",
       "/insights",
       "/admin/users",
       "/admin/audit-logs",

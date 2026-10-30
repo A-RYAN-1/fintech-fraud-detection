@@ -98,6 +98,7 @@ module Api
       end
 
       def paypal_failed(error)
+        IncidentLog.paypal_error(error, action: action_name == "create" ? "create_order" : action_name)
         Rails.logger.error("PayPal error status=#{error.status} debug_id=#{error.debug_id} #{error.message}")
         render_error("PayPal request failed", :bad_gateway, error.debug_id)
       end

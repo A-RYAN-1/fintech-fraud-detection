@@ -122,16 +122,24 @@ module Api
         rescue ActiveRecord::RecordNotFound
           render_error("Transaction not found", :not_found)
         rescue PaypalActions::InvalidState, PaypalActions::InsufficientFunds => e
+          IncidentLog.record(kind: "paypal_error", key: "#{incident_action}:insufficient_funds", title: "PayPal #{incident_action} failed, merchant balance too low",
+                             detail: e.message, sample: { action: incident_action, payment_id: params[:id].to_s }) if e.is_a?(PaypalActions::InsufficientFunds)
           render_error(e.message, :conflict)
         rescue PaypalActions::InvalidAmount, ArgumentError => e
           render_error(e.is_a?(ArgumentError) ? "Refund amount is not a number" : e.message, :unprocessable_entity)
         rescue PaypalClient::Error => e
+          IncidentLog.paypal_error(e, action: incident_action, payment_id: params[:id])
           Rails.logger.error("PayPal error status=#{e.status} debug_id=#{e.debug_id} #{e.message}")
           render_error("PayPal request failed", :bad_gateway, e.debug_id)
         end
 
         def actor
           current_user
+        end
+
+        # The PayPal call behind the endpoint, named for the incident digest.
+        def incident_action
+          action_name == "approve" ? "capture" : action_name
         end
 
         def reason(default)
