@@ -9,7 +9,7 @@ module Api
           period = params[:period].presence || "7d"
           return render_error("Period must be one of #{InsightsReport::PERIODS.keys.join(', ')}", :unprocessable_entity) unless InsightsReport::PERIODS.key?(period)
 
-          render_success(InsightsReport.new(period: period).to_h)
+          render_success(AnalyticsCache.fetch("insights", period) { InsightsReport.new(period: period).to_h })
         end
       end
     end

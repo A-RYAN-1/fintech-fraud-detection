@@ -4,6 +4,7 @@ export { transactionsApi, type TransactionFilters } from "./api";
 // Hooks
 export {
   useTransactions,
+  useInfiniteTransactions,
   useDashboardStats,
   TRANSACTIONS_QUERY_KEY,
   useSubmitFeedback,

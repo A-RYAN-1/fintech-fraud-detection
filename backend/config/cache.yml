@@ -1,0 +1,16 @@
+# solid_cache keeps entries in the primary database (table solid_cache_entries): shared by every process, kept across
+# restarts, no extra service. Used for the analytics numbers (app/services/analytics_cache.rb).
+default: &default
+  store_options:
+    max_age: <%= 1.week.to_i %>
+    max_size: <%= 64.megabytes %>
+    namespace: <%= Rails.env %>
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default

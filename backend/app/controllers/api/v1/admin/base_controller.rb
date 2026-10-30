@@ -29,6 +29,13 @@ module Api
           render_error("Not authorized", :forbidden, "pundit_unauthorized")
         end
 
+        # Newest first by keyset (lib/keyset.rb); meta carries next_cursor, which is nil on the last page.
+        def keyset_page(scope)
+          per_page = (params[:per_page] || DEFAULT_PER_PAGE).to_i.clamp(1, MAX_PER_PAGE)
+          records, next_cursor = Keyset.page(scope, cursor: params[:cursor], limit: per_page)
+          [ records, { total_count: scope.count, per_page: per_page, next_cursor: next_cursor, has_more: next_cursor.present? } ]
+        end
+
         def paginate(scope)
           page = [ (params[:page] || DEFAULT_PAGE).to_i, 1 ].max
           per_page = (params[:per_page] || DEFAULT_PER_PAGE).to_i.clamp(1, MAX_PER_PAGE)

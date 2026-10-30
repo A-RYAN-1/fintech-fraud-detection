@@ -11,12 +11,11 @@ import { PageTransition } from "@/components/common";
 import {
   TransactionFiltersComponent,
   TransactionTable,
-  Pagination,
   TransactionDetailsDialog,
   FeedbackDialog,
   exportToCSV,
   generatePDFReport,
-  useTransactions,
+  useInfiniteTransactions,
   type TransactionFilters,
 } from "@/features/transactions";
 import type { Transaction } from "@/types";
@@ -37,18 +36,19 @@ export default function HistoryTab() {
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
 
   // Fetch transactions from API with all filters (including search)
-  const { data, isLoading, isError } = useTransactions(filters);
+  const listFilters = { ...filters };
+  delete listFilters.page;
+  const {
+    data,
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteTransactions(listFilters);
 
-  const transactions = data?.transactions || [];
-  const pagination = data?.pagination;
-
-  const totalCount = pagination?.total_count || 0;
-  const totalPages = pagination?.total_pages || 1;
-  const currentPage = pagination?.current_page || 1;
-
-  const handlePageChange = (page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
-  };
+  const transactions = data?.pages.flatMap((page) => page.transactions) ?? [];
+  const totalCount = data?.pages[0]?.pagination.total_count ?? 0;
 
   const handleFilterChange = (newFilters: TransactionFilters) => {
     setFilters(newFilters);
@@ -145,14 +145,21 @@ export default function HistoryTab() {
                   onViewDetails={handleViewDetails}
                   onSubmitFeedback={handleSubmitFeedback}
                 />
-                {!isLoading && totalPages > 1 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalCount={totalCount}
-                    perPage={PER_PAGE}
-                    onPageChange={handlePageChange}
-                  />
+                {!isLoading && transactions.length > 0 && (
+                  <div className="mt-4 flex flex-col items-center gap-2">
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                      Showing {transactions.length} of {totalCount}
+                    </p>
+                    {hasNextPage && (
+                      <Button
+                        variant="outline"
+                        onClick={() => fetchNextPage()}
+                        disabled={isFetchingNextPage}
+                      >
+                        {isFetchingNextPage ? "Loading..." : "Show older"}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </>
             )}

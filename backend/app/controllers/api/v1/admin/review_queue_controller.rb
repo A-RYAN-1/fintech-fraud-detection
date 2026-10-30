@@ -19,8 +19,9 @@ module Api
         # GET /api/v1/admin/review_queue?scope=captured   captured payments, where a refund can be requested
         def index
           statuses = params[:scope] == "captured" ? %w[CAPTURED PARTIALLY_REFUNDED] : %w[HELD]
-          scope = Transaction.where(paypal_status: statuses).includes(:fraud_evaluation, :user).order(created_at: :desc)
-          records, meta = paginate(scope)
+          scope = Transaction.where(paypal_status: statuses).includes(:fraud_evaluation, :user)
+          # `cursor=` (empty for the first page) pages by keyset, see Keyset; without it the numbered pages stay.
+          records, meta = params.key?(:cursor) ? keyset_page(scope) : paginate(scope.order(created_at: :desc, id: :desc))
           notes = recent_notes(records.map { |t| t.id.to_s })
           @pending = ApprovalRequest.pending.where(payment_id: records.map(&:id)).includes(:requested_by).group_by(&:payment_id)
           render_success({ held: records.map { |t| serialize(t, notes[t.id.to_s] || []) }, meta: meta,
@@ -101,7 +102,8 @@ module Api
         end
 
         def pending_request_for(transaction)
-          request = (@pending || {})[transaction.id]&.first || ApprovalRequest.pending.find_by(payment_id: transaction.id)
+          # The list preloads every pending request; a payment with none must not fall back to one query per row.
+          request = @pending ? @pending[transaction.id]&.first : ApprovalRequest.pending.find_by(payment_id: transaction.id)
           request && ApprovalRequestsController.serialize(request)
         end
 

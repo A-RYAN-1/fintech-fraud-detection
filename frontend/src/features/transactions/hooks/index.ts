@@ -1,5 +1,6 @@
 export {
   useTransactions,
+  useInfiniteTransactions,
   useDashboardStats,
   TRANSACTIONS_QUERY_KEY,
 } from "./useTransactions";

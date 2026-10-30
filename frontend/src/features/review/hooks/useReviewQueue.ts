@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/types";
 import { createKeyStore } from "@/utils/idempotency";
@@ -87,10 +92,13 @@ export function useRequestRefund() {
   });
 }
 
-export function useReviewQueue(page = 1) {
-  return useQuery({
-    queryKey: [REVIEW_QUEUE_QUERY_KEY, page],
-    queryFn: () => reviewApi.list(page),
+// Held payments, ten at a time; "Show older" asks for the next cursor.
+export function useReviewQueue() {
+  return useInfiniteQuery({
+    queryKey: [REVIEW_QUEUE_QUERY_KEY, "held"],
+    initialPageParam: "",
+    queryFn: ({ pageParam }) => reviewApi.listHeld(pageParam),
+    getNextPageParam: (last) => last.meta.next_cursor ?? undefined,
     staleTime: 1000 * 15,
   });
 }

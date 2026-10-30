@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib";
 import { idempotencyHeaders } from "@/utils/idempotency";
-import type { ApiResponse, PaginationMeta } from "@/types";
+import type { ApiResponse, KeysetMeta, PaginationMeta } from "@/types";
 import type { AiVerdict } from "@/features/checkout";
 
 export type ReviewAction = "approve" | "void" | "refund";
@@ -56,7 +56,7 @@ export interface HeldPayment {
 
 export interface ReviewQueueResponse {
   held: HeldPayment[];
-  meta: PaginationMeta;
+  meta: PaginationMeta | KeysetMeta;
   // The most the signed-in person may decide alone; null means no limit.
   limit: number | null;
   role: string;
@@ -67,7 +67,19 @@ export type ActResult =
   | { payment: HeldPayment; requested?: undefined }
   | { requested: ApprovalRequest; payment?: undefined };
 
+export interface ReviewQueuePage extends ReviewQueueResponse {
+  meta: KeysetMeta;
+}
+
 export const reviewApi = {
+  // Held payments newest first by keyset: "" is the first page, then the meta's next_cursor.
+  listHeld: async (cursor = ""): Promise<ReviewQueuePage> => {
+    const response = await apiClient.get<ApiResponse<ReviewQueuePage>>(
+      `/admin/review_queue?cursor=${encodeURIComponent(cursor)}`,
+    );
+    return response.data.data;
+  },
+
   list: async (
     page = 1,
     scope: "held" | "captured" = "held",

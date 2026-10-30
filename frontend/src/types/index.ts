@@ -15,6 +15,14 @@ export interface PaginationMeta {
   total_count: number;
 }
 
+// Keyset (cursor) paging: ask with `cursor=` for the first page, then with next_cursor of the page before.
+export interface KeysetMeta {
+  total_count: number;
+  per_page: number;
+  next_cursor: string | null;
+  has_more: boolean;
+}
+
 // User Types
 export type UserRole = "customer" | "admin" | "reviewer" | "analyst";
 export type UserStatus = "active" | "suspended" | "pending";
@@ -121,7 +129,7 @@ export interface FeedbackPayload {
 // Transactions List Response
 export interface TransactionsListResponse {
   transactions: Transaction[];
-  pagination: PaginationMeta;
+  pagination: PaginationMeta | KeysetMeta;
   user_stats: UserStats | null;
 }
 

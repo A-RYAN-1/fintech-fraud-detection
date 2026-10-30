@@ -3,6 +3,8 @@ class FraudEvaluation < ApplicationRecord
 
   belongs_to :labeled_by, class_name: "User", optional: true
 
+  after_commit { AnalyticsCache.bump }
+
   LABELS = %w[approve block].freeze
   validates :human_label, inclusion: { in: LABELS }, allow_nil: true
   validates :risk_score, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
