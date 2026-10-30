@@ -15,3 +15,7 @@ production:
     class: ExpiringHoldsJob
     # Every 15 minutes: alert on holds close to lapsing, void the ones about to
     schedule: "*/15 * * * *"
+  incident_scan:
+    class: IncidentScanJob
+    # Every 30 minutes: group failed jobs and analyst failures into incidents for the digest
+    schedule: "*/30 * * * *"

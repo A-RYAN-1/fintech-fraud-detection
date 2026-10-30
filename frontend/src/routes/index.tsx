@@ -23,6 +23,7 @@ import {
   ReviewQueuePage,
   ApprovalsPage,
   RuleProposalsPage,
+  IncidentsPage,
   FeedbackPage,
 } from "@/pages";
 
@@ -139,6 +140,14 @@ export const routes: RouteObject[] = [
         element: (
           <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
             <RuleProposalsPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "admin/incidents",
+        element: (
+          <RoleGuard allowedRoles={["admin", "reviewer", "analyst"]}>
+            <IncidentsPage />
           </RoleGuard>
         ),
       },

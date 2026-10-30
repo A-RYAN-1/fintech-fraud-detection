@@ -68,6 +68,7 @@ module Api
         rescue PaypalActions::InvalidAmount => e
           render_error(e.message, :unprocessable_entity)
         rescue PaypalClient::Error => e
+          IncidentLog.paypal_error(e, action: "settle_approval", payment_id: request&.payment_id)
           Rails.logger.error("PayPal error status=#{e.status} debug_id=#{e.debug_id} #{e.message}")
           render_error("PayPal request failed", :bad_gateway, e.debug_id)
         end

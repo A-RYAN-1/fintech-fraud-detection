@@ -39,6 +39,7 @@ vi.mock("@/pages", () => {
     ApprovalsPage: page("approvals"),
     FeedbackPage: page("feedback"),
     RuleProposalsPage: page("rules"),
+    IncidentsPage: page("incidents"),
   };
 });
 
@@ -71,6 +72,7 @@ describe("route access per role", () => {
     "/admin/approvals",
     "/admin/feedback",
     "/admin/rules",
+    "/admin/incidents",
     "/insights",
     "/admin/users",
     "/admin/audit-logs",
@@ -103,6 +105,8 @@ describe("route access per role", () => {
       "/admin/review",
       "/admin/feedback",
       "/admin/rules",
+      "/admin/incidents",
+    "/admin/incidents",
       "/insights",
     ]) {
       expect(visit("analyst", path).state.location.pathname).toBe(path);

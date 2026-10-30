@@ -28,6 +28,7 @@ class ExpiringHoldsJob < ApplicationJob
     expires = transaction.paypal_authorization_expires_at.utc.strftime("%Y-%m-%d %H:%M UTC")
     PaypalActions.new(client: client).void(transaction, actor: ACTOR, reason: "Hold expires #{expires} and nobody decided; voided before it lapsed, nothing was charged")
   rescue PaypalActions::InvalidState, PaypalClient::Error => e
+    IncidentLog.paypal_error(e, action: "void_expiring_hold", payment_id: transaction.id) if e.is_a?(PaypalClient::Error)
     Rails.logger.error("ExpiringHoldsJob could not void #{transaction.id}: #{e.message}")
   end
 
