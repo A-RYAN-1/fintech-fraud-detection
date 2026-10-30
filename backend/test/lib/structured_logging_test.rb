@@ -48,4 +48,12 @@ class StructuredLoggingTest < ActiveSupport::TestCase
     assert_not line.key?(:params)
     assert_no_match(/secret/, line.to_s)
   end
+
+  # Production boots with eager loading and LOG_FORMAT=json; a constant that is not loaded yet there once
+  # stopped the deploy (the install ran, the app never started), so boot a real process the same way.
+  test "the app boots with JSON logging switched on" do
+    env = { "LOG_FORMAT" => "json", "RAILS_ENV" => "test", "CI" => "true" }
+    output = IO.popen(env, [ "bin/rails", "runner", "puts :booted" ], chdir: Rails.root.to_s, err: [ :child, :out ], &:read)
+    assert_match(/booted/, output)
+  end
 end

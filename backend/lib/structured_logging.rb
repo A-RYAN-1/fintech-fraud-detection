@@ -31,6 +31,7 @@ module StructuredLogging
 
   def self.install!(logger)
     logger.formatter = Formatter.new
+    require "action_controller/log_subscriber"
     ActionController::LogSubscriber.detach_from(:action_controller)
     ActiveSupport::Notifications.subscribe(EVENT) { |event| logger.info(request_line(event)) }
   end
