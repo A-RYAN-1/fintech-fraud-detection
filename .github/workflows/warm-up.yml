@@ -1,0 +1,53 @@
+name: Warm-up
+
+# The API runs on Render's free plan, which stops an idle service after 15 minutes; the next visitor then waits
+# about a minute for a cold start. This ping every 10 minutes keeps it awake and fails (so GitHub emails the
+# owner) when the database is down. GitHub runs scheduled workflows on a best-effort basis, so a run can be
+# a few minutes late; `workflow_dispatch` runs it by hand.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: warm-up
+  cancel-in-progress: true
+
+env:
+  API_URL: https://fintech-fraud-detection-api.onrender.com
+  APP_URL: https://fintech-fraud-detection-aryan.vercel.app
+
+jobs:
+  ping:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Deep health of the API
+        run: |
+          # A cold start can take a minute: allow three tries of up to 90 seconds each.
+          for attempt in 1 2 3; do
+            code=$(curl -sS -o health.json -w '%{http_code}' --max-time 90 "$API_URL/api/v1/health/deep" || echo 000)
+            echo "attempt $attempt: HTTP $code"
+            [ "$code" = "200" ] && break
+            sleep 10
+          done
+          cat health.json || true
+          echo
+          [ "$code" = "200" ]
+          {
+            echo "### API deep health"
+            echo '```json'
+            cat health.json
+            echo
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Front end reachable through the proxy
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 "$APP_URL/api/v1/health")
+          echo "HTTP $code"
+          [ "$code" = "200" ]
