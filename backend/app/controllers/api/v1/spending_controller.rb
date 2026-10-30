@@ -10,7 +10,7 @@ module Api
         period = params[:period].presence || "30d"
         return render_error("Period must be one of #{SpendingReport::PERIODS.keys.join(', ')}", :unprocessable_entity) unless SpendingReport::PERIODS.key?(period)
 
-        render_success(SpendingReport.new(current_user, period: period).to_h)
+        render_success(AnalyticsCache.fetch("spending", current_user.id, period) { SpendingReport.new(current_user, period: period).to_h })
       end
     end
   end

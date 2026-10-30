@@ -10,6 +10,8 @@ import type {
 
 export interface TransactionFilters {
   page?: number;
+  // Keyset paging, newest first: "" for the first page, then next_cursor of the previous one.
+  cursor?: string;
   per_page?: number;
   search?: string;
   status?: string;
@@ -31,6 +33,7 @@ export const transactionsApi = {
     const params = new URLSearchParams();
 
     if (filters.page) params.append("page", filters.page.toString());
+    if (filters.cursor !== undefined) params.append("cursor", filters.cursor);
     if (filters.per_page)
       params.append("per_page", filters.per_page.toString());
     if (filters.search) params.append("search", filters.search);

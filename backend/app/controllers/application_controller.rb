@@ -9,6 +9,7 @@ class ApplicationController < ActionController::API
   before_action :check_session_timeout
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+  rescue_from(Keyset::InvalidCursor) { |e| render_error(e.message, :bad_request) }
 
   def current_user
     @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]

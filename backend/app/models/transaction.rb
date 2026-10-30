@@ -3,6 +3,8 @@ class Transaction < ApplicationRecord
   AUTHORIZATION_TTL = 29.days
 
   belongs_to :user
+
+  after_commit { AnalyticsCache.bump }
   has_one :fraud_evaluation, dependent: :destroy, foreign_key: "transaction_id"
 
   validates :amount, presence: true, numericality: { greater_than: 0 }

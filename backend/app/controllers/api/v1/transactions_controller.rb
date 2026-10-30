@@ -58,28 +58,29 @@ module Api
           transactions = transactions.where("amount <= ?", params[:max_amount].to_f)
         end
 
-        # Sorting
-        sort_column = SORT_COLUMNS.fetch(params[:sort_by].to_s, :created_at)
-        sort_direction = params[:sort_order] == "asc" ? :asc : :desc
-        transactions = transactions.order(sort_column => sort_direction)
-
-        # Pagination
-        page = (params[:page] || DEFAULT_PAGE).to_i
-        per_page = [(params[:per_page] || DEFAULT_PER_PAGE).to_i, MAX_PER_PAGE].min
-
+        per_page = [ (params[:per_page] || DEFAULT_PER_PAGE).to_i, MAX_PER_PAGE ].min
         total_count = transactions.count
-        transactions = transactions.offset((page - 1) * per_page).limit(per_page)
+
+        if params.key?(:cursor)
+          # Keyset mode (newest first only): `cursor=` is the first page, then the next_cursor of the page before.
+          return render_error("A cursor needs the default order (newest first)", :unprocessable_entity) if params[:sort_by].present? || params[:sort_order] == "asc"
+
+          transactions, next_cursor = Keyset.page(transactions, cursor: params[:cursor], limit: per_page)
+          pagination = { total_count: total_count, per_page: per_page, next_cursor: next_cursor, has_more: next_cursor.present? }
+        else
+          sort_column = SORT_COLUMNS.fetch(params[:sort_by].to_s, :created_at)
+          sort_direction = params[:sort_order] == "asc" ? :asc : :desc
+          page = (params[:page] || DEFAULT_PAGE).to_i
+          transactions = transactions.order(sort_column => sort_direction, id: sort_direction).offset((page - 1) * per_page).limit(per_page)
+          pagination = { current_page: page, total_pages: (total_count.to_f / per_page).ceil, total_count: total_count }
+        end
 
         # User stats
         user_stats = current_user.user_transaction_stat
 
         render_success({
           transactions: transactions.map { |t| serialize_transaction(t) },
-          pagination: {
-            current_page: page,
-            total_pages: (total_count.to_f / per_page).ceil,
-            total_count: total_count
-          },
+          pagination: pagination,
           user_stats: user_stats ? {
             total_transactions: current_user.transactions.count,
             total_volume: current_user.transactions.where(status: %w[SUCCESS FLAGGED]).sum(:amount).to_f,

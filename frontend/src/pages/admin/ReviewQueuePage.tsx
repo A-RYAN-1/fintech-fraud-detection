@@ -1,7 +1,7 @@
 import { formatMoney } from "@/utils/money";
 import { ClipboardCheck } from "lucide-react";
 import { PageTransition, EmptyState, PageHeader } from "@/components/common";
-import { Skeleton } from "@/components/ui";
+import { Button, Skeleton } from "@/components/ui";
 import { useAppSelector } from "@/store";
 import {
   ReviewCard,
@@ -11,12 +11,20 @@ import {
 } from "@/features/review";
 
 export default function ReviewQueuePage() {
-  const { data, isLoading, isError } = useReviewQueue();
+  const {
+    data,
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useReviewQueue();
   const act = useReviewAction();
   const noteMutation = useReviewNote();
   const user = useAppSelector((state) => state.auth.user);
-  const held = data?.held ?? [];
-  const limit = data?.limit ?? null;
+  const held = data?.pages.flatMap((page) => page.held) ?? [];
+  const totalHeld = data?.pages[0]?.meta.total_count ?? 0;
+  const limit = data?.pages[0]?.limit ?? null;
 
   return (
     <PageTransition>
@@ -60,6 +68,20 @@ export default function ReviewQueuePage() {
                 }
               />
             ))}
+            <div className="flex flex-col items-center gap-2 pt-2">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                Showing {held.length} of {totalHeld} held
+              </p>
+              {hasNextPage && (
+                <Button
+                  variant="outline"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? "Loading..." : "Show older"}
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>

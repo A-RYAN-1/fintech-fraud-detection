@@ -5,5 +5,6 @@ export {
   type ApprovalRequest,
   type ActResult,
   type ReviewQueueResponse,
+  type ReviewQueuePage,
   type ReviewAction,
 } from "./review.api";
