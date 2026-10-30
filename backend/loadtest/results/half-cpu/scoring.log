@@ -1,0 +1,85 @@
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{scenario:r10}
+    ✓ 'max>=0' max=356.11ms
+
+    http_req_duration{scenario:r2}
+    ✓ 'max>=0' max=105.78ms
+
+    http_req_duration{scenario:r20}
+    ✓ 'max>=0' max=621.57ms
+
+    http_req_duration{scenario:r5}
+    ✓ 'max>=0' max=119.98ms
+
+    http_req_failed{scenario:r10}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r2}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r20}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r5}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_reqs{scenario:r10}
+    ✓ 'count>=0' count=300
+
+    http_reqs{scenario:r2}
+    ✓ 'count>=0' count=61
+
+    http_reqs{scenario:r20}
+    ✓ 'count>=0' count=600
+
+    http_reqs{scenario:r5}
+    ✓ 'count>=0' count=151
+
+    server_errors_5xx
+    ✓ 'count>=0' count=0
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 1112    7.22871/s
+    checks_succeeded...: 100.00% 1112 out of 1112
+    checks_failed......: 0.00%   0 out of 1112
+
+    ✓ simulate 201
+
+    CUSTOM
+    server_errors_5xx..............: 0      0/s
+
+    HTTP
+    http_req_duration..............: avg=125.09ms med=77.79ms p(95)=396.72ms p(99)=515.99ms max=621.57ms
+      { expected_response:true }...: avg=125.09ms med=77.79ms p(95)=396.72ms p(99)=515.99ms max=621.57ms
+      { scenario:r10 }.............: avg=83.33ms  med=77.89ms p(95)=132.32ms p(99)=218.8ms  max=356.11ms
+      { scenario:r2 }..............: avg=72.54ms  med=70.98ms p(95)=98.41ms  p(99)=104.86ms max=105.78ms
+      { scenario:r20 }.............: avg=148.37ms med=86.96ms p(95)=443.91ms p(99)=550.21ms max=621.57ms
+      { scenario:r5 }..............: avg=72.07ms  med=70.25ms p(95)=101.59ms p(99)=111.49ms max=119.98ms
+    http_req_failed................: 0.00%  0 out of 1152
+      { scenario:r10 }.............: 0.00%  0 out of 300
+      { scenario:r2 }..............: 0.00%  0 out of 61
+      { scenario:r20 }.............: 0.00%  0 out of 600
+      { scenario:r5 }..............: 0.00%  0 out of 151
+    http_reqs......................: 1152   7.488736/s
+      { scenario:r10 }.............: 300    1.950192/s
+      { scenario:r2 }..............: 61     0.396539/s
+      { scenario:r20 }.............: 600    3.900383/s
+      { scenario:r5 }..............: 151    0.981596/s
+
+    EXECUTION
+    iteration_duration.............: avg=116.61ms med=76.74ms p(95)=344.23ms p(99)=522.56ms max=621.77ms
+    iterations.....................: 1112   7.22871/s
+    vus............................: 1      min=0         max=11
+    vus_max........................: 60     min=60        max=60
+
+    NETWORK
+    data_received..................: 1.8 MB 12 kB/s
+    data_sent......................: 668 kB 4.3 kB/s
+
+
+
