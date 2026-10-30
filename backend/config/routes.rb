@@ -50,6 +50,12 @@ Rails.application.routes.draw do
             post :propose
           end
         end
+        resources :rule_proposals, only: [ :index, :create ] do
+          member do
+            post :accept
+            post :reject
+          end
+        end
         patch "risk_rules/:key", to: "risk_rules#update", as: :risk_rule
       end
 

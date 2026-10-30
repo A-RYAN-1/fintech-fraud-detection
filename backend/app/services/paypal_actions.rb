@@ -120,7 +120,11 @@ class PaypalActions
   def label!(transaction, actor, value, source)
     return unless actor.is_a?(User)
 
-    transaction.fraud_evaluation&.update!(human_label: value, label_source: source, labeled_by: actor, labeled_at: Time.current)
+    evaluation = transaction.fraud_evaluation
+    return unless evaluation
+
+    evaluation.update!(human_label: value, label_source: source, labeled_by: actor, labeled_at: Time.current)
+    RuleProposalJob.perform_later(evaluation.id)
   end
 
   def snapshot(transaction)

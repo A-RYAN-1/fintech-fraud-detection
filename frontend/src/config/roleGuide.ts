@@ -53,6 +53,11 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
         body: "See how often the rules, the model and the AI analyst agreed with the people who decided.",
       },
       {
+        title: "Rule Changes",
+        href: "/admin/rules",
+        body: "Read the changes the agent drafted after a person overrode the rules, with the test on stored payments. An admin accepts or rejects.",
+      },
+      {
         title: "Insights",
         href: "/insights",
         body: "Every payment of the period as counts: outcomes, rules score ranges, the rules that fired, the model's flag rate, the AI analyst's verdicts and time to a decision.",
@@ -80,6 +85,11 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
         body: "See how often the rules, the model and the AI analyst agreed with human decisions.",
       },
       {
+        title: "Rule Changes",
+        href: "/admin/rules",
+        body: "Read the changes the agent drafted after a person overrode the rules, with the test on stored payments. An admin accepts or rejects.",
+      },
+      {
         title: "Insights",
         href: "/insights",
         body: "Every payment of the period as counts: outcomes, rules score ranges, the rules that fired, the model's flag rate, the AI analyst's verdicts and time to a decision.",
@@ -105,6 +115,11 @@ export const roleGuides: Record<UserRole, RoleGuide> = {
         title: "Feedback",
         href: "/admin/feedback",
         body: "See how often the rules, the model and the AI analyst agreed with human decisions.",
+      },
+      {
+        title: "Rule Changes",
+        href: "/admin/rules",
+        body: "Accept or reject the rule changes the agent drafted after an override. Each shows its test on stored payments; nothing changes until you accept.",
       },
       {
         title: "Insights",
