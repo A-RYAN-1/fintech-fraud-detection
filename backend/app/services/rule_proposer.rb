@@ -101,7 +101,8 @@ class RuleProposer
   def legal?(key, value, config)
     return false if value == config[key]
 
-    RiskRuleSetting.new(key: key, value: value).valid?
+    # The same record the accept step saves: a key that already has a row is updated, not created.
+    RiskRuleSetting.find_or_initialize_by(key: key).tap { |setting| setting.value = value }.valid?
   end
 
   def evaluate(key, value, kind)

@@ -71,6 +71,15 @@ class RuleProposerTest < ActiveSupport::TestCase
     assert_equal 1, AuditLog.where(event_type: "RULE_PROPOSAL_DRAFTED").count
   end
 
+  test "a draft is made when every rule already has a stored value, as on production" do
+    RiskRuleConfig::DEFINITIONS.each { |key, definition| RiskRuleSetting.create!(key: key, value: definition.default) }
+    RiskRuleConfig.reset_cache!
+
+    proposal = RuleProposer.new(flagged_payment(label: "approve")).propose
+    assert_not_nil proposal
+    assert proposal.pending?
+  end
+
   test "a blocked false alarm is moved to flagged, never to approved" do
     payment = @user.transactions.create!(amount: 250, payment_method: "wallet", device_id: "other", status: "BLOCKED", risk_score: 75, paypal_status: "VOIDED", created_at: 1.minute.ago)
     evaluation = labelled(payment, 75, "AMOUNT_DEVIATION_LOW,UNTRUSTED_DEVICE", "approve")
