@@ -54,6 +54,7 @@ function thresholds() {
 export const options = {
   scenarios: scenarios(),
   thresholds: thresholds(),
+  setupTimeout: "10m", // logins are bcrypt: slow on a tenth of a CPU
   summaryTrendStats: ["avg", "med", "p(95)", "p(99)", "max"],
   insecureSkipTLSVerify: true,
 };

@@ -1,0 +1,77 @@
+time="2026-10-31T14:01:38Z" level=warning msg="Insufficient VUs, reached 200 active VUs and cannot initialize more" executor=constant-arrival-rate scenario=r30
+time="2026-10-31T14:01:52Z" level=warning msg="Insufficient VUs, reached 200 active VUs and cannot initialize more" executor=constant-arrival-rate scenario=r40
+time="2026-10-31T14:02:24Z" level=warning msg="Insufficient VUs, reached 200 active VUs and cannot initialize more" executor=constant-arrival-rate scenario=r60
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{scenario:r30}
+    ✓ 'max>=0' max=33.68s
+
+    http_req_duration{scenario:r40}
+    ✓ 'max>=0' max=54.16s
+
+    http_req_duration{scenario:r60}
+    ✓ 'max>=0' max=57.77s
+
+    http_req_failed{scenario:r30}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r40}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r60}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_reqs{scenario:r30}
+    ✓ 'count>=0' count=644
+
+    http_reqs{scenario:r40}
+    ✓ 'count>=0' count=40
+
+    http_reqs{scenario:r60}
+    ✓ 'count>=0' count=67
+
+    server_errors_5xx
+    ✓ 'count>=0' count=0
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 751     5.089374/s
+    checks_succeeded...: 100.00% 751 out of 751
+    checks_failed......: 0.00%   0 out of 751
+
+    ✓ simulate 201
+
+    CUSTOM
+    server_errors_5xx..............: 0      0/s
+
+    HTTP
+    http_req_duration..............: avg=10.94s med=5.47s p(95)=51.54s p(99)=54.33s max=57.77s
+      { expected_response:true }...: avg=10.94s med=5.47s p(95)=51.54s p(99)=54.33s max=57.77s
+      { scenario:r30 }.............: avg=5.91s  med=4.93s p(95)=13.61s p(99)=29.57s max=33.68s
+      { scenario:r40 }.............: avg=44.96s med=50.9s p(95)=53.88s p(99)=54.07s max=54.16s
+      { scenario:r60 }.............: avg=45.33s med=45.5s p(95)=56.19s p(99)=57.59s max=57.77s
+    http_req_failed................: 0.00%  0 out of 791
+      { scenario:r30 }.............: 0.00%  0 out of 644
+      { scenario:r40 }.............: 0.00%  0 out of 40
+      { scenario:r60 }.............: 0.00%  0 out of 67
+    http_reqs......................: 791    5.360445/s
+      { scenario:r30 }.............: 644    4.364256/s
+      { scenario:r40 }.............: 40     0.271072/s
+      { scenario:r60 }.............: 67     0.454045/s
+
+    EXECUTION
+    dropped_iterations.............: 2772   18.785278/s
+    iteration_duration.............: avg=11.51s med=5.69s p(95)=51.8s  p(99)=55.09s max=57.88s
+    iterations.....................: 751    5.089374/s
+    vus............................: 133    min=0        max=387
+    vus_max........................: 400    min=100      max=400
+
+    NETWORK
+    data_received..................: 1.2 MB 8.5 kB/s
+    data_sent......................: 679 kB 4.6 kB/s
+
+
+
