@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button, Card, CardContent, Label, Textarea } from "@/components/ui";
 import type { HeldPayment, ReviewAction } from "../api";
 import { CaseTimeline } from "./CaseTimeline";
+import { AccountRingPanel } from "./AccountRingPanel";
 import { holdExpiry } from "../utils/hold-expiry";
 import { ruleLabel } from "@/utils/ruleLabels";
 
@@ -123,6 +124,8 @@ export function ReviewCard({
         {payment.ai_verdict && (
           <CaseTimeline entries={payment.ai_verdict.timeline} />
         )}
+
+        <AccountRingPanel paymentId={payment.id} />
 
         {notes.length > 0 && (
           <ul className="space-y-1 text-sm">

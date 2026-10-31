@@ -53,6 +53,25 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
+  test "the ring endpoint is for staff and lists accounts sharing the payment's device" do
+    other = User.create!(email: "twin@rings.test", password: "password123", first_name: "Twin", last_name: "Ring", role: "customer", status: "active")
+    other.transactions.create!(amount: 20, payment_method: "wallet", device_id: "d")
+
+    login_as users(:one)
+    get "/api/v1/admin/review_queue/#{@held.id}/ring"
+    assert_response :forbidden
+    delete api_v1_auth_logout_url
+
+    login_as users(:analyst)
+    get "/api/v1/admin/review_queue/#{@held.id}/ring"
+    assert_response :success
+    assert_equal 2, body.dig("data", "size")
+    assert_equal [ "twin@rings.test" ], body.dig("data", "members").map { |m| m["email"] }
+
+    get "/api/v1/admin/review_queue/#{SecureRandom.uuid}/ring"
+    assert_response :not_found
+  end
+
   test "a customer can neither list nor act" do
     login_as users(:one)
     get "/api/v1/admin/review_queue"

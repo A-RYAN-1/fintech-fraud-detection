@@ -7,4 +7,6 @@ export {
   type ReviewQueueResponse,
   type ReviewQueuePage,
   type ReviewAction,
+  type AccountRing,
+  type RingMember,
 } from "./review.api";

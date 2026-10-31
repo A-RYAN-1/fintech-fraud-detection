@@ -15,7 +15,7 @@ class AiAnalyst
   ACTIONS = %w[approve review block].freeze
   STATUS_TO_ACTION = { success: "approve", flagged: "review", blocked: "block" }.freeze
   MAX_EXPLANATION = 400
-  SIGNALS = %w[amount device velocity time_of_day history rule_hit model_reason].freeze
+  SIGNALS = %w[amount device velocity time_of_day history rule_hit model_reason linked_accounts].freeze
   IMPACTS = %w[raises_risk lowers_risk neutral].freeze
   MAX_TIMELINE = 6
   MAX_DETAIL = 160
@@ -51,7 +51,9 @@ class AiAnalyst
     one or two plain sentences for a human reviewer that name the signals you relied on.
     timeline is the evidence behind the verdict, at most six entries ordered from the strongest signal to the
     weakest. Each entry names one signal from the facts (amount, device, velocity, time_of_day, history, rule_hit,
-    model_reason), says whether it raises risk, lowers risk or is neutral, and states the fact in one short phrase.
+    model_reason, linked_accounts), says whether it raises risk, lowers risk or is neutral, and states the fact in one short phrase.
+    linked_accounts counts other accounts that paid from the same device in the last 30 days, and how many of them had a
+    payment voided by a person. A link alone is weak (households share devices); links to accounts a person voided are strong.
   TEXT
 
   AMOUNT_BANDS = [ [ 50, "under 50" ], [ 250, "50 to 250" ], [ 1_000, "250 to 1,000" ], [ 5_000, "1,000 to 5,000" ] ].freeze

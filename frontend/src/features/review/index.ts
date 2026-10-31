@@ -5,6 +5,8 @@ export {
   type ApprovalRequest,
   type ReviewQueueResponse,
   type ReviewAction,
+  type AccountRing,
+  type RingMember,
 } from "./api";
 export {
   useReviewQueue,

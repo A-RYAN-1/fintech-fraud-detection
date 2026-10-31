@@ -18,6 +18,7 @@ class AiFactsBuilder
       amount_vs_user_average: ratio_band,
       transactions_by_user_last_hour: earlier.where("created_at > ?", 1.hour.ago).count.clamp(0, 10),
       device: device_state,
+      **AccountRings.new(@user).facts,
       rules_decision: AiAnalyst::STATUS_TO_ACTION.fetch(@rules[:status]),
       rules_risk_score: @rules[:risk_score],
       rules_triggered: @rules[:triggered_rules],
