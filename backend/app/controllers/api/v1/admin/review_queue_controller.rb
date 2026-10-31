@@ -7,7 +7,7 @@ module Api
       class ReviewQueueController < BaseController
         include Idempotent
 
-        before_action :require_staff!, only: [ :index, :note, :propose ]
+        before_action :require_staff!, only: [ :index, :ring, :note, :propose ]
         before_action :require_decider!, only: [ :approve, :void, :refund ]
         idempotent :approve, :void, :refund
 
@@ -26,6 +26,14 @@ module Api
           @pending = ApprovalRequest.pending.where(payment_id: records.map(&:id)).includes(:requested_by).group_by(&:payment_id)
           render_success({ held: records.map { |t| serialize(t, notes[t.id.to_s] || []) }, meta: meta,
                            limit: current_user.effective_decision_limit&.to_f, role: current_user.role })
+        end
+
+        # GET /api/v1/admin/review_queue/:id/ring   the accounts linked to this payment's customer through shared devices
+        def ring
+          transaction = Transaction.includes(:user).find(params[:id])
+          render_success(AccountRings.new(transaction.user).detail)
+        rescue ActiveRecord::RecordNotFound
+          render_error("Transaction not found", :not_found)
         end
 
         # POST /api/v1/admin/review_queue/:id/note  { note: "..." }  any staff member leaves a note on a payment

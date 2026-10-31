@@ -44,6 +44,7 @@ Rails.application.routes.draw do
         end
         resources :review_queue, only: [ :index ], controller: "review_queue" do
           member do
+            get :ring
             post :approve
             post :void
             post :refund

@@ -71,7 +71,32 @@ export interface ReviewQueuePage extends ReviewQueueResponse {
   meta: KeysetMeta;
 }
 
+export interface RingMember {
+  user_id: number;
+  email: string;
+  hops: number;
+  payments: number;
+  voided: number;
+  captured: number;
+}
+
+// Accounts linked to a payment's customer through shared devices (last window_days days, up to three hops).
+export interface AccountRing {
+  size: number;
+  depth: number;
+  devices_shared: number;
+  window_days: number;
+  members: RingMember[];
+}
+
 export const reviewApi = {
+  ring: async (id: string): Promise<AccountRing> => {
+    const response = await apiClient.get<ApiResponse<AccountRing>>(
+      `/admin/review_queue/${id}/ring`,
+    );
+    return response.data.data;
+  },
+
   // Held payments newest first by keyset: "" is the first page, then the meta's next_cursor.
   listHeld: async (cursor = ""): Promise<ReviewQueuePage> => {
     const response = await apiClient.get<ApiResponse<ReviewQueuePage>>(

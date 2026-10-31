@@ -48,6 +48,17 @@ class DemoTrafficTest < ActiveSupport::TestCase
     assert approved.exists?, "legitimate travellers are approved by the reviewer"
   end
 
+  test "the account ring graph finds the seeded ring and what the reviewer did with it" do
+    run_traffic(customers: 12, rings: 1)
+    ring_user = User.find(demo_payments.where(device_id: DemoTraffic::RING_DEVICE).pick(:user_id))
+    detail = AccountRings.new(ring_user).detail
+
+    assert_equal DemoTraffic::RING_SIZE, detail[:size]
+    assert_equal 1, detail[:depth]
+    assert detail[:members].all? { |m| m[:voided].positive? }
+    assert_match(/of #{DemoTraffic::RING_SIZE - 1}\z/, AccountRings.new(ring_user).facts[:linked_accounts_voided_by_a_person])
+  end
+
   test "rings scales the number of shared-device groups, each with its own device and IP" do
     run_traffic(customers: 12, rings: 2)
 

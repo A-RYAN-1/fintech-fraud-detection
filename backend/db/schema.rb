@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_30_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_31_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -323,6 +323,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_30_160000) do
     t.datetime "paypal_authorization_expires_at"
     t.decimal "refunded_amount", precision: 12, scale: 2, default: "0.0", null: false
     t.index ["created_at"], name: "index_transactions_on_created_at"
+    t.index ["device_id", "user_id"], name: "index_transactions_on_device_id_and_user_id", where: "((device_id IS NOT NULL) AND ((device_id)::text <> ''::text))"
     t.index ["payment_method"], name: "index_transactions_on_payment_method"
     t.index ["paypal_capture_mode", "paypal_captured_at"], name: "idx_on_paypal_capture_mode_paypal_captured_at_f007a0c7db"
     t.index ["paypal_order_id"], name: "index_transactions_on_paypal_order_id", unique: true

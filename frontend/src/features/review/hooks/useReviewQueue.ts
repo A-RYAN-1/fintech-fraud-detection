@@ -29,6 +29,15 @@ export function useApprovalRequests(
   });
 }
 
+export function useAccountRing(id: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [REVIEW_QUEUE_QUERY_KEY, "ring", id],
+    queryFn: () => reviewApi.ring(id),
+    enabled,
+    staleTime: 1000 * 60,
+  });
+}
+
 const settleKeys = createKeyStore();
 
 export function useSettleRequest() {

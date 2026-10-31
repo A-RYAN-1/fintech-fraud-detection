@@ -8,6 +8,7 @@ const SIGNAL_LABELS: Record<string, string> = {
   history: "History",
   rule_hit: "Rule hit",
   model_reason: "Model reason",
+  linked_accounts: "Linked accounts",
 };
 
 const IMPACT_LABELS: Record<TimelineImpact, string> = {
