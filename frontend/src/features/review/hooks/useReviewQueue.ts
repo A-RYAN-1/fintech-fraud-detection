@@ -7,7 +7,7 @@ import {
 import { toast } from "sonner";
 import { getErrorMessage } from "@/types";
 import { createKeyStore } from "@/utils/idempotency";
-import { reviewApi, type ReviewAction } from "../api";
+import { reviewApi, type AnalystQuestion, type ReviewAction } from "../api";
 
 export const REVIEW_QUEUE_QUERY_KEY = "admin-review-queue";
 
@@ -35,6 +35,16 @@ export function useAccountRing(id: string, enabled: boolean) {
     queryFn: () => reviewApi.ring(id),
     enabled,
     staleTime: 1000 * 60,
+  });
+}
+
+// A question to the analyst is a read (nothing is stored), so it is a query keyed by case and question.
+export function useAnalystAnswer(id: string, question: AnalystQuestion) {
+  return useQuery({
+    queryKey: [REVIEW_QUEUE_QUERY_KEY, "ask", id, question],
+    queryFn: () => reviewApi.ask(id, question),
+    staleTime: 1000 * 60 * 5,
+    retry: false,
   });
 }
 

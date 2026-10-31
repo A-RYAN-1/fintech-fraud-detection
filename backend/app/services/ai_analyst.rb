@@ -56,6 +56,19 @@ class AiAnalyst
     payment voided by a person. A link alone is weak (households share devices); links to accounts a person voided are strong.
   TEXT
 
+  # Ask the analyst (AskAnalyst): one turn about a stored case, from the same facts, with a closed set of questions.
+  QUESTIONS = %w[why change].freeze
+  MAX_ANSWER = 600
+  ASK_SCHEMA = { type: "OBJECT", properties: { answer: { type: "STRING" } }, required: %w[answer] }.freeze
+  ASK_SYSTEM = <<~TEXT.freeze
+    You are a payment risk analyst answering one question from a human reviewer about one payment. You receive the
+    same structured facts the verdict was based on. Use only those facts; do not invent data; do not give a new
+    decision and do not claim the decision changed. Answer in at most four plain sentences.
+    why: explain why the rules decision and the facts point the way they do, naming the strongest signals.
+    change: say which facts, if different, would move the case toward approve and which toward block, as conditions
+    a reviewer could check (for example a trusted device, a lower amount, no linked accounts a person voided).
+  TEXT
+
   AMOUNT_BANDS = [ [ 50, "under 50" ], [ 250, "50 to 250" ], [ 1_000, "250 to 1,000" ], [ 5_000, "1,000 to 5,000" ] ].freeze
 
   def self.enabled?
@@ -99,14 +112,33 @@ class AiAnalyst
     nil
   end
 
+  # One question about a case. Returns { answer:, model: } or nil on any skip or failure (the caller falls back).
+  def answer(facts, question)
+    return nil unless QUESTIONS.include?(question.to_s)
+    return nil unless @client || self.class.enabled?
+    return nil unless @guard.acquire == :ok
+
+    client = @client || GeminiClient.new
+    prompt = "Question: #{question}\nCase facts (JSON):\n#{facts.to_json}"
+    raw = generate_with_retry(client, prompt, system: ASK_SYSTEM, schema: ASK_SCHEMA)
+    text = raw.is_a?(Hash) ? raw["answer"].to_s.squish : ""
+    return nil if text.blank?
+
+    { answer: text.truncate(MAX_ANSWER), model: client.model }
+  rescue GeminiClient::Error => e
+    @guard.failure(e.message)
+    Rails.logger.warn("AI analyst answer skipped: #{e.message}")
+    nil
+  end
+
   private
 
   # One call, plus at most MAX_RETRIES more for a quick retryable refusal; the guard sees one success or one failure.
-  def generate_with_retry(client, prompt)
+  def generate_with_retry(client, prompt, system: SYSTEM, schema: SCHEMA)
     started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     attempts = 0
     begin
-      raw = client.generate_json(system: SYSTEM, prompt: prompt, schema: SCHEMA)
+      raw = client.generate_json(system: system, prompt: prompt, schema: schema)
       @guard.success
       raw
     rescue GeminiClient::Error => e

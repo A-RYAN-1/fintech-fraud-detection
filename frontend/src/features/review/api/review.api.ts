@@ -89,7 +89,27 @@ export interface AccountRing {
   members: RingMember[];
 }
 
+export type AnalystQuestion = "why" | "change";
+
+export interface AnalystAnswer {
+  question: AnalystQuestion;
+  answer: string;
+  source: "ai" | "rules";
+  model: string | null;
+}
+
 export const reviewApi = {
+  ask: async (
+    id: string,
+    question: AnalystQuestion,
+  ): Promise<AnalystAnswer> => {
+    const response = await apiClient.post<ApiResponse<AnalystAnswer>>(
+      `/admin/review_queue/${id}/ask`,
+      { question },
+    );
+    return response.data.data;
+  },
+
   ring: async (id: string): Promise<AccountRing> => {
     const response = await apiClient.get<ApiResponse<AccountRing>>(
       `/admin/review_queue/${id}/ring`,

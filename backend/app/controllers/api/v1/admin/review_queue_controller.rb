@@ -7,7 +7,7 @@ module Api
       class ReviewQueueController < BaseController
         include Idempotent
 
-        before_action :require_staff!, only: [ :index, :ring, :note, :propose ]
+        before_action :require_staff!, only: [ :index, :ring, :ask, :note, :propose ]
         before_action :require_decider!, only: [ :approve, :void, :refund ]
         idempotent :approve, :void, :refund
 
@@ -32,6 +32,18 @@ module Api
         def ring
           transaction = Transaction.includes(:user).find(params[:id])
           render_success(AccountRings.new(transaction.user).detail)
+        rescue ActiveRecord::RecordNotFound
+          render_error("Transaction not found", :not_found)
+        end
+
+        # POST /api/v1/admin/review_queue/:id/ask  { question: why|change }  one turn with the AI analyst about this case.
+        # Facts only, no tools, nothing stored, never changes the decision (AskAnalyst).
+        def ask
+          question = params[:question].to_s
+          return render_error("Question must be one of #{AiAnalyst::QUESTIONS.join(', ')}", :unprocessable_entity) unless AiAnalyst::QUESTIONS.include?(question)
+
+          transaction = Transaction.includes(:user, :fraud_evaluation).find(params[:id])
+          render_success(AskAnalyst.new(transaction).ask(question))
         rescue ActiveRecord::RecordNotFound
           render_error("Transaction not found", :not_found)
         end
