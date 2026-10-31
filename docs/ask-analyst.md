@@ -22,7 +22,7 @@ The same facts-only payload the verdict used (`AiFactsBuilder`), rebuilt from wh
 
 ## Same path, same guard
 
-`AiAnalyst#answer` goes through the same `AnalystGuard` token bucket and circuit breaker, the same single quick retry, and the same Gemini client as the verdict, with its own system prompt and a one-field schema (`answer`, at most 600 characters). The system prompt forbids giving a new decision.
+`AiAnalyst#answer` goes through the same `AnalystGuard` token bucket and circuit breaker, the same single quick retry, and the same Gemini client as the verdict, with its own system prompt and a one-field schema (`answer`, at most 500 characters, asked to stay under 400). The system prompt forbids giving a new decision.
 
 ## When the analyst cannot answer
 
