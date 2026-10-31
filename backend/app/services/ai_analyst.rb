@@ -58,13 +58,14 @@ class AiAnalyst
 
   # Ask the analyst (AskAnalyst): one turn about a stored case, from the same facts, with a closed set of questions.
   QUESTIONS = %w[why change].freeze
-  MAX_ANSWER = 600
+  MAX_ANSWER = 500
   ASK_SCHEMA = { type: "OBJECT", properties: { answer: { type: "STRING" } }, required: %w[answer] }.freeze
   ASK_SYSTEM = <<~TEXT.freeze
     You are a payment risk analyst answering one question from a human reviewer about one payment. You receive the
     same structured facts the verdict was based on. Use only those facts; do not invent data; do not give a new
-    decision and do not claim the decision changed. Answer in at most four plain sentences.
-    why: explain why the rules decision and the facts point the way they do, naming the strongest signals.
+    decision and do not claim the decision changed. Answer in at most three plain sentences, under 400 characters.
+    why: explain only why the rules decision and the facts point the way they do, naming the strongest signals;
+    do not say what would change the case.
     change: say which facts, if different, would move the case toward approve and which toward block, as conditions
     a reviewer could check (for example a trusted device, a lower amount, no linked accounts a person voided).
   TEXT
