@@ -1,0 +1,88 @@
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{scenario:r10}
+    ✓ 'max>=0' max=46.86ms
+
+    http_req_duration{scenario:r20}
+    ✓ 'max>=0' max=38.72ms
+
+    http_req_duration{scenario:r40}
+    ✓ 'max>=0' max=75.59ms
+
+    http_req_duration{scenario:r5}
+    ✓ 'max>=0' max=37.29ms
+
+    http_req_failed{scenario:r10}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r20}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r40}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r5}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_reqs{scenario:r10}
+    ✓ 'count>=0' count=301
+
+    http_reqs{scenario:r20}
+    ✓ 'count>=0' count=601
+
+    http_reqs{scenario:r40}
+    ✓ 'count>=0' count=1201
+
+    http_reqs{scenario:r5}
+    ✓ 'count>=0' count=151
+
+    server_errors_5xx
+    ✓ 'count>=0' count=0
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 2254    14.751962/s
+    checks_succeeded...: 100.00% 2254 out of 2254
+    checks_failed......: 0.00%   0 out of 2254
+
+    ✓ transactions 200
+    ✓ spending 200
+    ✓ home 200
+    ✓ health_deep 200
+
+    CUSTOM
+    server_errors_5xx..............: 0      0/s
+
+    HTTP
+    http_req_duration..............: avg=17.07ms med=10.24ms p(95)=24.45ms p(99)=323.2ms max=415.55ms
+      { expected_response:true }...: avg=17.07ms med=10.24ms p(95)=24.45ms p(99)=323.2ms max=415.55ms
+      { scenario:r10 }.............: avg=12.33ms med=11.44ms p(95)=24.04ms p(99)=39.92ms max=46.86ms 
+      { scenario:r20 }.............: avg=11.72ms med=10.46ms p(95)=22.63ms p(99)=28.02ms max=38.72ms 
+      { scenario:r40 }.............: avg=10.44ms med=9.48ms  p(95)=19.35ms p(99)=31.51ms max=75.59ms 
+      { scenario:r5 }..............: avg=14.01ms med=12.64ms p(95)=26.2ms  p(99)=34.44ms max=37.29ms 
+    http_req_failed................: 0.00%  0 out of 2294
+      { scenario:r10 }.............: 0.00%  0 out of 301
+      { scenario:r20 }.............: 0.00%  0 out of 601
+      { scenario:r40 }.............: 0.00%  0 out of 1201
+      { scenario:r5 }..............: 0.00%  0 out of 151
+    http_reqs......................: 2294   15.013754/s
+      { scenario:r10 }.............: 301    1.969983/s
+      { scenario:r20 }.............: 601    3.93342/s
+      { scenario:r40 }.............: 1201   7.860296/s
+      { scenario:r5 }..............: 151    0.988264/s
+
+    EXECUTION
+    iteration_duration.............: avg=11.57ms med=10.42ms p(95)=22.37ms p(99)=33.01ms max=75.83ms 
+    iterations.....................: 2254   14.751962/s
+    vus............................: 1      min=0         max=3  
+    vus_max........................: 120    min=120       max=120
+
+    NETWORK
+    data_received..................: 9.7 MB 64 kB/s
+    data_sent......................: 1.0 MB 6.8 kB/s
+
+
+

@@ -1,0 +1,76 @@
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{scenario:r10}
+    ✓ 'max>=0' max=1.19s
+
+    http_req_duration{scenario:r2}
+    ✓ 'max>=0' max=214.91ms
+
+    http_req_duration{scenario:r5}
+    ✓ 'max>=0' max=98ms
+
+    http_req_failed{scenario:r10}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r2}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r5}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_reqs{scenario:r10}
+    ✓ 'count>=0' count=301
+
+    http_reqs{scenario:r2}
+    ✓ 'count>=0' count=61
+
+    http_reqs{scenario:r5}
+    ✓ 'count>=0' count=151
+
+    server_errors_5xx
+    ✓ 'count>=0' count=0
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 513     4.9871/s
+    checks_succeeded...: 100.00% 513 out of 513
+    checks_failed......: 0.00%   0 out of 513
+
+    ✓ insights 200
+    ✓ review_queue 200
+    ✓ feedback 200
+    ✓ home 200
+
+    CUSTOM
+    server_errors_5xx..............: 0      0/s
+
+    HTTP
+    http_req_duration..............: avg=128.29ms med=10.42ms p(95)=695.85ms p(99)=899.06ms max=2.46s   
+      { expected_response:true }...: avg=128.29ms med=10.42ms p(95)=695.85ms p(99)=899.06ms max=2.46s   
+      { scenario:r10 }.............: avg=201.56ms med=94.79ms p(95)=794.62ms p(99)=899.94ms max=1.19s   
+      { scenario:r2 }..............: avg=15.09ms  med=9.4ms   p(95)=15.47ms  p(99)=143.89ms max=214.91ms
+      { scenario:r5 }..............: avg=12.48ms  med=8.77ms  p(95)=14.18ms  p(99)=96.64ms  max=98ms    
+    http_req_failed................: 0.00%  0 out of 514
+      { scenario:r10 }.............: 0.00%  0 out of 301
+      { scenario:r2 }..............: 0.00%  0 out of 61
+      { scenario:r5 }..............: 0.00%  0 out of 151
+    http_reqs......................: 514    4.996821/s
+      { scenario:r10 }.............: 301    2.926154/s
+      { scenario:r2 }..............: 61     0.593008/s
+      { scenario:r5 }..............: 151    1.467938/s
+
+    EXECUTION
+    iteration_duration.............: avg=124ms    med=10.76ms p(95)=694.84ms p(99)=898.67ms max=1.19s   
+    iterations.....................: 513    4.9871/s
+    vus............................: 6      min=0        max=10
+    vus_max........................: 20     min=20       max=20
+
+    NETWORK
+    data_received..................: 2.7 MB 26 kB/s
+    data_sent......................: 254 kB 2.5 kB/s
+
+
+

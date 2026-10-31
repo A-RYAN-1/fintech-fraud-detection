@@ -1,0 +1,36 @@
+time="2026-10-30T19:53:34Z" level=info msg="scoring_burst scored=20 refused=10 of 30" source=console
+time="2026-10-30T19:53:34Z" level=info msg="login_guess answered=19 refused=11 of 30" source=console
+time="2026-10-30T19:53:54Z" level=info msg="read_flood answered=539 refused=13939 in 20s" source=console
+
+
+  █ THRESHOLDS 
+
+    server_errors_5xx
+    ✓ 'count>=0' count=0
+
+
+  █ TOTAL RESULTS 
+
+    CUSTOM
+    limited_429....................: 13960  607.905094/s
+    server_errors_5xx..............: 0      0/s
+    well_formed_429................: 13960  607.905094/s
+
+    HTTP
+    http_req_duration..............: avg=1.45ms med=533.12µs p(95)=1.48ms  p(99)=47.43ms max=394.97ms
+      { expected_response:true }...: avg=6.07ms med=1.21ms   p(95)=48.66ms p(99)=63.54ms max=394.97ms
+    http_req_failed................: 96.14% 13979 out of 14539
+    http_reqs......................: 14539  633.118349/s
+
+    EXECUTION
+    iteration_duration.............: avg=22.96s med=22.96s   p(95)=22.96s  p(99)=22.96s  max=22.96s  
+    iterations.....................: 1      0.043546/s
+    vus............................: 1      min=1              max=1
+    vus_max........................: 1      min=1              max=1
+
+    NETWORK
+    data_received..................: 5.8 MB 253 kB/s
+    data_sent......................: 1.3 MB 58 kB/s
+
+
+

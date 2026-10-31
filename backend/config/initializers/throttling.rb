@@ -73,4 +73,11 @@ end
 # Tests turn it on only where they check a limit, so the rest of the suite is not throttled.
 Rack::Attack.enabled = false if Rails.env.test?
 
+# For the local load test only (docs/performance.md): RATE_LIMITS=off measures the app itself instead of the limits,
+# which allow about 2 requests a second from one address. Never set it on a deployed service; the boot log says so.
+if ENV["RATE_LIMITS"] == "off"
+  Rack::Attack.enabled = false
+  Rails.logger.warn("RATE_LIMITS=off: rate limits are disabled (load test only)")
+end
+
 Rails.application.config.middleware.move_after ActionDispatch::Session::CookieStore, Rack::Attack

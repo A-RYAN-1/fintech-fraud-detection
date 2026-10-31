@@ -1,0 +1,67 @@
+time="2026-10-31T13:59:50Z" level=warning msg="Insufficient VUs, reached 240 active VUs and cannot initialize more" executor=constant-arrival-rate scenario=r80
+time="2026-10-31T14:00:22Z" level=warning msg="Insufficient VUs, reached 360 active VUs and cannot initialize more" executor=constant-arrival-rate scenario=r120
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{scenario:r120}
+    ✓ 'max>=0' max=7.49s
+
+    http_req_duration{scenario:r80}
+    ✓ 'max>=0' max=4.93s
+
+    http_req_failed{scenario:r120}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_req_failed{scenario:r80}
+    ✓ 'rate>=0' rate=0.00%
+
+    http_reqs{scenario:r120}
+    ✓ 'count>=0' count=1879
+
+    http_reqs{scenario:r80}
+    ✓ 'count>=0' count=1770
+
+    server_errors_5xx
+    ✓ 'count>=0' count=0
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 3649    50.962292/s
+    checks_succeeded...: 100.00% 3649 out of 3649
+    checks_failed......: 0.00%   0 out of 3649
+
+    ✓ feedback 200
+    ✓ review_queue 200
+    ✓ insights 200
+    ✓ home 200
+
+    CUSTOM
+    server_errors_5xx..............: 0      0/s
+
+    HTTP
+    http_req_duration..............: avg=4.66s med=4.43s p(95)=7.28s p(99)=7.4s  max=7.49s
+      { expected_response:true }...: avg=4.66s med=4.43s p(95)=7.28s p(99)=7.4s  max=7.49s
+      { scenario:r120 }............: avg=5.62s med=6.73s p(95)=7.37s p(99)=7.43s max=7.49s
+      { scenario:r80 }.............: avg=3.64s med=4.16s p(95)=4.69s p(99)=4.85s max=4.93s
+    http_req_failed................: 0.00%  0 out of 3650
+      { scenario:r120 }............: 0.00%  0 out of 1879
+      { scenario:r80 }.............: 0.00%  0 out of 1770
+    http_reqs......................: 3650   50.976259/s
+      { scenario:r120 }............: 1879   26.242299/s
+      { scenario:r80 }.............: 1770   24.719994/s
+
+    EXECUTION
+    dropped_iterations.............: 2353   32.862229/s
+    iteration_duration.............: avg=4.66s med=4.43s p(95)=7.28s p(99)=7.4s  max=7.49s
+    iterations.....................: 3649   50.962292/s
+    vus............................: 45     min=0         max=360
+    vus_max........................: 600    min=200       max=600
+
+    NETWORK
+    data_received..................: 20 MB  279 kB/s
+    data_sent......................: 1.8 MB 25 kB/s
+
+
+
