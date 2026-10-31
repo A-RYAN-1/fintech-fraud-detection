@@ -72,6 +72,25 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "ask is for staff, takes one of two questions and answers rules-only when the analyst is off" do
+    login_as users(:one)
+    post "/api/v1/admin/review_queue/#{@held.id}/ask", params: { question: "why" }
+    assert_response :forbidden
+    delete api_v1_auth_logout_url
+
+    login_as users(:analyst)
+    post "/api/v1/admin/review_queue/#{@held.id}/ask", params: { question: "why" }
+    assert_response :success
+    assert_equal "rules", body.dig("data", "source")
+    assert_includes body.dig("data", "answer"), "UNTRUSTED_DEVICE"
+    assert_equal "HELD", @held.reload.paypal_status
+
+    post "/api/v1/admin/review_queue/#{@held.id}/ask", params: { question: "anything you like" }
+    assert_response :unprocessable_entity
+    post "/api/v1/admin/review_queue/#{SecureRandom.uuid}/ask", params: { question: "change" }
+    assert_response :not_found
+  end
+
   test "a customer can neither list nor act" do
     login_as users(:one)
     get "/api/v1/admin/review_queue"

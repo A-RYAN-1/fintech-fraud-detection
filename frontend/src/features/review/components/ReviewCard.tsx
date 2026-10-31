@@ -4,6 +4,7 @@ import { Button, Card, CardContent, Label, Textarea } from "@/components/ui";
 import type { HeldPayment, ReviewAction } from "../api";
 import { CaseTimeline } from "./CaseTimeline";
 import { AccountRingPanel } from "./AccountRingPanel";
+import { AskAnalystPanel } from "./AskAnalystPanel";
 import { holdExpiry } from "../utils/hold-expiry";
 import { ruleLabel } from "@/utils/ruleLabels";
 
@@ -125,7 +126,10 @@ export function ReviewCard({
           <CaseTimeline entries={payment.ai_verdict.timeline} />
         )}
 
-        <AccountRingPanel paymentId={payment.id} />
+        <div className="flex flex-wrap items-start gap-2">
+          <AccountRingPanel paymentId={payment.id} />
+          <AskAnalystPanel paymentId={payment.id} />
+        </div>
 
         {notes.length > 0 && (
           <ul className="space-y-1 text-sm">
