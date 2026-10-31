@@ -10,7 +10,10 @@ export default function Breadcrumbs() {
   const pathnames = location.pathname.split("/").filter((x) => x);
 
   // Home is the root of the trail, so it needs no breadcrumb.
-  if (pathnames.length === 0 || (pathnames.length === 1 && pathnames[0] === "home")) {
+  if (
+    pathnames.length === 0 ||
+    (pathnames.length === 1 && pathnames[0] === "home")
+  ) {
     return null;
   }
 
@@ -46,7 +49,7 @@ export default function Breadcrumbs() {
             <Link
               to={href}
               className={cn(
-                "text-neutral-500 hover:text-neutral-700",
+                "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700",
                 "dark:text-neutral-400 dark:hover:text-neutral-200",
                 "transition-colors",
               )}

@@ -62,7 +62,7 @@ export default function PayTab() {
                   id="amount-help"
                   className={
                     valid
-                      ? "text-xs text-neutral-500"
+                      ? "text-xs text-neutral-500 dark:text-neutral-400"
                       : "text-xs text-red-600 dark:text-red-400"
                   }
                 >
@@ -76,7 +76,7 @@ export default function PayTab() {
                 <div className="space-y-5">
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Pay with PayPal</p>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
                       Sandbox money only. Use the sandbox buyer account.
                     </p>
                     <PayPalCheckout
@@ -85,7 +85,7 @@ export default function PayTab() {
                       onSettled={setPayment}
                     />
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-neutral-500">
+                  <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
                     <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
                     or
                     <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
@@ -97,7 +97,7 @@ export default function PayTab() {
                   />
                 </div>
               ) : (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
                   Enter a valid amount to pay.
                 </p>
               )}
@@ -113,7 +113,7 @@ export default function PayTab() {
               {payment ? (
                 <PaymentOutcome payment={payment} />
               ) : (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
                   Complete a payment to see the decision here.
                 </p>
               )}

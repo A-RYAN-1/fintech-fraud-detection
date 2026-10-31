@@ -55,18 +55,22 @@ export function PaymentOutcome({ payment }: { payment: SettledPayment }) {
 
       <dl className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <dt className="text-neutral-500">Risk score</dt>
+          <dt className="text-neutral-500 dark:text-neutral-400">Risk score</dt>
           <dd className="font-medium">{payment.risk_score}</dd>
         </div>
         <div>
-          <dt className="text-neutral-500">Payment status</dt>
-          <dd className="font-medium">{PAYMENT_STATUS[payment.paypal_status] ?? payment.paypal_status}</dd>
+          <dt className="text-neutral-500 dark:text-neutral-400">
+            Payment status
+          </dt>
+          <dd className="font-medium">
+            {PAYMENT_STATUS[payment.paypal_status] ?? payment.paypal_status}
+          </dd>
         </div>
       </dl>
 
       {payment.action_reason && (
         <p className="text-sm">
-          <span className="text-neutral-500">Why: </span>
+          <span className="text-neutral-500 dark:text-neutral-400">Why: </span>
           {payment.action_reason}
         </p>
       )}
@@ -85,7 +89,7 @@ export function PaymentOutcome({ payment }: { payment: SettledPayment }) {
         <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
           <div className="mb-1 flex items-center gap-2 font-medium">
             AI analyst: {payment.ai_verdict.action}
-            <span className="text-neutral-500">
+            <span className="text-neutral-500 dark:text-neutral-400">
               {Math.round(payment.ai_verdict.confidence * 100)}% confident
             </span>
           </div>

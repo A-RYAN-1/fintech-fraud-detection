@@ -46,7 +46,7 @@ export function ReviewCard({
             <div className="text-lg font-semibold">
               {formatMoney(payment.amount)}
             </div>
-            <div className="text-sm text-neutral-500">
+            <div className="text-sm text-neutral-500 dark:text-neutral-400">
               {payment.user_email} on{" "}
               {new Date(payment.created_at).toLocaleString()}
             </div>
@@ -55,7 +55,9 @@ export function ReviewCard({
 
         {payment.action_reason && (
           <p className="text-sm">
-            <span className="text-neutral-500">Held because: </span>
+            <span className="text-neutral-500 dark:text-neutral-400">
+              Held because:{" "}
+            </span>
             {payment.action_reason}
           </p>
         )}
@@ -65,7 +67,7 @@ export function ReviewCard({
             className={
               expiry.urgent
                 ? "text-sm font-medium text-red-600 dark:text-red-400"
-                : "text-sm text-neutral-500"
+                : "text-sm text-neutral-500 dark:text-neutral-400"
             }
           >
             {expiry.label}
@@ -86,7 +88,9 @@ export function ReviewCard({
                 ))}
               </ul>
             ) : (
-              <p className="text-neutral-500">No rule fired.</p>
+              <p className="text-neutral-500 dark:text-neutral-400">
+                No rule fired.
+              </p>
             )}
           </div>
           <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
@@ -116,7 +120,9 @@ export function ReviewCard({
             ) : (
               <>
                 <div className="mb-1 font-medium">AI analyst</div>
-                <p className="text-neutral-500">Did not read this payment.</p>
+                <p className="text-neutral-500 dark:text-neutral-400">
+                  Did not read this payment.
+                </p>
               </>
             )}
           </div>
@@ -200,7 +206,7 @@ export function ReviewCard({
             </div>
           </div>
         ) : (
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Only an admin or reviewer can capture or void.
           </p>
         )}

@@ -176,7 +176,7 @@ export default function UserTable({
                     {user.role}
                   </Badge>
                   {user.role === "reviewer" && user.decision_limit != null && (
-                    <span className="ml-2 text-xs text-neutral-500">
+                    <span className="ml-2 text-xs text-neutral-500 dark:text-neutral-400">
                       up to {formatMoney(user.decision_limit)}
                     </span>
                   )}

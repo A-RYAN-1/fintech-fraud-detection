@@ -42,7 +42,9 @@ function getStatusIcon(status: TransactionStatus) {
     case "BLOCKED":
       return <XCircle className="h-5 w-5 text-danger-500" />;
     default:
-      return <Shield className="h-5 w-5 text-neutral-500" />;
+      return (
+        <Shield className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
+      );
   }
 }
 

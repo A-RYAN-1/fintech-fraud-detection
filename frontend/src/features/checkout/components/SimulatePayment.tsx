@@ -28,7 +28,9 @@ export function SimulatePayment({
       checkoutApi.simulate(amount, deviceId, keys.current.keyFor(intent)),
     onSuccess: (payment) => {
       keys.current.release(intent);
-      void queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_QUERY_KEY] });
+      void queryClient.invalidateQueries({
+        queryKey: [TRANSACTIONS_QUERY_KEY],
+      });
       onSettled(payment);
     },
     onError: (error) =>
@@ -49,7 +51,7 @@ export function SimulatePayment({
         <FlaskConical className="mr-2 h-4 w-4" aria-hidden="true" />
         {mutation.isPending ? "Judging the payment..." : "Simulate payment"}
       </Button>
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-neutral-500 dark:text-neutral-400">
         Test payment: no money moves. It goes through the same rules, risk
         model, AI analyst and admin limits as a PayPal payment.
       </p>

@@ -215,12 +215,14 @@ export default function TransactionTable({
                 {transaction.ai_verdict ? (
                   <span>
                     {transaction.ai_verdict.action}{" "}
-                    <span className="text-neutral-500">
+                    <span className="text-neutral-500 dark:text-neutral-400">
                       {Math.round(transaction.ai_verdict.confidence * 100)}%
                     </span>
                   </span>
                 ) : (
-                  <span className="text-neutral-500">-</span>
+                  <span className="text-neutral-500 dark:text-neutral-400">
+                    -
+                  </span>
                 )}
               </td>
               <td className="py-3 px-4">
@@ -228,7 +230,7 @@ export default function TransactionTable({
                   {actionTaken(transaction)}
                 </Badge>
                 {transaction.simulated && (
-                  <span className="ml-2 text-xs text-neutral-500">
+                  <span className="ml-2 text-xs text-neutral-500 dark:text-neutral-400">
                     simulated
                   </span>
                 )}

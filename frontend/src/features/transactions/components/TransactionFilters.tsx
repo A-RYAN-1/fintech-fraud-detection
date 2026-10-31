@@ -269,7 +269,9 @@ export default function TransactionFilters({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800">
           {/* Date Range */}
           <div className="space-y-2">
-            <Label className="text-xs text-neutral-500">Start Date</Label>
+            <Label className="text-xs text-neutral-500 dark:text-neutral-400">
+              Start Date
+            </Label>
             <DatePicker
               value={filters.start_date}
               onChange={handleStartDateChange}
@@ -277,7 +279,9 @@ export default function TransactionFilters({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs text-neutral-500">End Date</Label>
+            <Label className="text-xs text-neutral-500 dark:text-neutral-400">
+              End Date
+            </Label>
             <DatePicker
               value={filters.end_date}
               onChange={handleEndDateChange}
@@ -287,7 +291,9 @@ export default function TransactionFilters({
 
           {/* Amount Range */}
           <div className="space-y-2">
-            <Label className="text-xs text-neutral-500">Min Amount (USD)</Label>
+            <Label className="text-xs text-neutral-500 dark:text-neutral-400">
+              Min Amount (USD)
+            </Label>
             <Input
               type="number"
               placeholder="0"
@@ -296,7 +302,9 @@ export default function TransactionFilters({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs text-neutral-500">Max Amount (USD)</Label>
+            <Label className="text-xs text-neutral-500 dark:text-neutral-400">
+              Max Amount (USD)
+            </Label>
             <Input
               type="number"
               placeholder="Any"
@@ -307,7 +315,9 @@ export default function TransactionFilters({
 
           {/* Risk Score Range */}
           <div className="space-y-2">
-            <Label className="text-xs text-neutral-500">Min Risk Score</Label>
+            <Label className="text-xs text-neutral-500 dark:text-neutral-400">
+              Min Risk Score
+            </Label>
             <Input
               type="number"
               min={0}
@@ -318,7 +328,9 @@ export default function TransactionFilters({
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs text-neutral-500">Max Risk Score</Label>
+            <Label className="text-xs text-neutral-500 dark:text-neutral-400">
+              Max Risk Score
+            </Label>
             <Input
               type="number"
               min={0}
