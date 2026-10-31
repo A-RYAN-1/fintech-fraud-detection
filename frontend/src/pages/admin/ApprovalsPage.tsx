@@ -55,7 +55,7 @@ function RequestRow({
               request.amount < request.payment.amount &&
               ` of ${formatMoney(request.payment.amount)}`}
           </div>
-          <div className="text-sm text-neutral-500">
+          <div className="text-sm text-neutral-500 dark:text-neutral-400">
             {request.payment.user_email}, asked by {request.requested_by} on{" "}
             {new Date(request.created_at).toLocaleString()}
           </div>
@@ -75,12 +75,14 @@ function RequestRow({
       </div>
       {request.reason && (
         <p className="text-sm">
-          <span className="text-neutral-500">Reason: </span>
+          <span className="text-neutral-500 dark:text-neutral-400">
+            Reason:{" "}
+          </span>
           {request.reason}
         </p>
       )}
       {request.status !== "pending" && (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {request.status === "approved" ? "Approved" : "Rejected"} by{" "}
           {request.decided_by}
           {request.decided_at
@@ -145,7 +147,7 @@ function RefundRow({
     <div className="flex flex-col gap-3 rounded-md border border-neutral-200 p-4 sm:flex-row sm:items-end dark:border-neutral-800">
       <div className="flex-1">
         <div className="font-medium">{formatMoney(amount)}</div>
-        <div className="text-sm text-neutral-500">
+        <div className="text-sm text-neutral-500 dark:text-neutral-400">
           {userEmail}, {formatMoney(left)} left to refund
         </div>
       </div>
@@ -248,7 +250,7 @@ export default function ApprovalsPage() {
               {captured.isLoading ? (
                 <Skeleton className="h-24 w-full" />
               ) : (captured.data?.held ?? []).length === 0 ? (
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
                   No captured payments to refund.
                 </p>
               ) : (

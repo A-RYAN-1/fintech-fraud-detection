@@ -55,7 +55,11 @@ function Answer({
 
   return (
     <div className="mt-2" aria-live="polite">
-      {isLoading && <p className="text-neutral-500">Asking the analyst...</p>}
+      {isLoading && (
+        <p className="text-neutral-500 dark:text-neutral-400">
+          Asking the analyst...
+        </p>
+      )}
       {isError && (
         <p className="text-red-700 dark:text-red-400">
           Could not get an answer. Try again in a minute.

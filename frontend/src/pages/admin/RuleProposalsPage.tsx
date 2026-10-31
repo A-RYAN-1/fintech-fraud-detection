@@ -42,7 +42,10 @@ const ROWS: {
 ];
 
 function change(value: number, good: "down" | "none") {
-  if (value === 0) return <span className="text-neutral-500">no change</span>;
+  if (value === 0)
+    return (
+      <span className="text-neutral-500 dark:text-neutral-400">no change</span>
+    );
   const sign = value > 0 ? "+" : "";
   const tone =
     good === "down"
@@ -62,7 +65,7 @@ function BacktestTable({ proposal }: { proposal: RuleProposal }) {
           Backtest of the proposed change over stored payments
         </caption>
         <thead>
-          <tr className="text-left text-neutral-500">
+          <tr className="text-left text-neutral-500 dark:text-neutral-400">
             <th scope="col" className="py-1 pr-2 font-normal">
               Over {backtest.replayed} stored payments
             </th>
@@ -99,7 +102,7 @@ function BacktestTable({ proposal }: { proposal: RuleProposal }) {
           ))}
         </tbody>
       </table>
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-neutral-500 dark:text-neutral-400">
         {backtest.labelled} of these payments have a human decision.
         {backtest.fidelity.rate !== null &&
           ` Replaying the current rules reproduces ${Math.round(backtest.fidelity.rate * 100)}% of the stored outcomes.`}{" "}
@@ -144,7 +147,7 @@ function ProposalCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="font-medium">{proposal.description}</div>
-          <div className="text-sm text-neutral-500">
+          <div className="text-sm text-neutral-500 dark:text-neutral-400">
             <code>{proposal.key}</code>: {proposal.current_value} to{" "}
             <strong className="text-neutral-900 dark:text-neutral-100">
               {proposal.proposed_value}
@@ -167,7 +170,7 @@ function ProposalCard({
       <p className="text-sm">{proposal.rationale}</p>
       <BacktestTable proposal={proposal} />
       {proposal.status !== "pending" && (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {proposal.status === "superseded"
             ? "Not applied: the rule changed after this was drafted."
             : `${proposal.status === "accepted" ? "Accepted" : "Rejected"} by ${proposal.decided_by}`}

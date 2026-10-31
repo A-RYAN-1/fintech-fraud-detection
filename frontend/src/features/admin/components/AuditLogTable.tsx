@@ -26,7 +26,9 @@ function getEventIcon(eventType: string) {
     return <LogIn className="h-4 w-4 text-primary-500" />;
   if (eventType.includes("USER"))
     return <User className="h-4 w-4 text-primary-500" />;
-  return <FileText className="h-4 w-4 text-neutral-500" />;
+  return (
+    <FileText className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+  );
 }
 
 function getEventBadgeVariant(eventType: string) {

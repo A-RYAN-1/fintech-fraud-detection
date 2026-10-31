@@ -28,7 +28,7 @@ function DisagreementRow({ row }: { row: Disagreement }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="font-medium">{formatMoney(row.amount)}</div>
-          <div className="text-sm text-neutral-500">
+          <div className="text-sm text-neutral-500 dark:text-neutral-400">
             Human decision: {row.human_label}
             {row.label_source === "refund"
               ? " (after a full refund)"
@@ -46,15 +46,19 @@ function DisagreementRow({ row }: { row: Disagreement }) {
       </div>
       <dl className="grid gap-1 text-sm sm:grid-cols-3">
         <div>
-          <dt className="text-neutral-500">Rules and model</dt>
+          <dt className="text-neutral-500 dark:text-neutral-400">
+            Rules and model
+          </dt>
           <dd className="capitalize">{row.rules_status.toLowerCase()}</dd>
         </div>
         <div>
-          <dt className="text-neutral-500">Model score</dt>
+          <dt className="text-neutral-500 dark:text-neutral-400">
+            Model score
+          </dt>
           <dd>{row.ml_score === null ? "n/a" : row.ml_score.toFixed(2)}</dd>
         </div>
         <div>
-          <dt className="text-neutral-500">AI analyst</dt>
+          <dt className="text-neutral-500 dark:text-neutral-400">AI analyst</dt>
           <dd className="capitalize">
             {row.ai_action ?? "no verdict"}
             {row.ai_confidence !== null &&
@@ -107,14 +111,14 @@ export default function FeedbackPage() {
                       <div className="text-3xl font-bold">
                         {formatRate(stats.agreement_rate)}
                       </div>
-                      <div className="text-sm text-neutral-500">
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">
                         agrees with the human ({stats.agree} of {stats.answered}
                         )
                       </div>
-                      <div className="text-sm text-neutral-500">
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">
                         {stats.false_alarms} false alarms, {stats.misses} misses
                       </div>
-                      <p className="pt-1 text-xs text-neutral-500">
+                      <p className="pt-1 text-xs text-neutral-500 dark:text-neutral-400">
                         {SIGNAL_HELP[key]}
                       </p>
                     </>
@@ -133,7 +137,7 @@ export default function FeedbackPage() {
             {isLoading ? (
               <Skeleton className="h-32 w-full" />
             ) : !data || data.daily.length === 0 ? (
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
                 No decisions yet. Approve or void a held payment and it shows
                 here.
               </p>
@@ -150,7 +154,7 @@ export default function FeedbackPage() {
                     with
                   </caption>
                   <thead>
-                    <tr className="text-left text-neutral-500">
+                    <tr className="text-left text-neutral-500 dark:text-neutral-400">
                       <th className="py-1 pr-4 font-medium">Day</th>
                       <th className="py-1 pr-4 font-medium">Decisions</th>
                       {SIGNALS.map((key) => (
@@ -235,7 +239,7 @@ export default function FeedbackPage() {
                 >
                   Previous
                 </Button>
-                <span className="text-sm text-neutral-500">
+                <span className="text-sm text-neutral-500 dark:text-neutral-400">
                   Page {data.meta.current_page} of {data.meta.total_pages}
                 </span>
                 <Button

@@ -34,7 +34,9 @@ function RingList({ paymentId }: AccountRingPanelProps) {
   return (
     <>
       {isLoading && (
-        <p className="mt-2 text-neutral-500">Following shared devices...</p>
+        <p className="mt-2 text-neutral-500 dark:text-neutral-400">
+          Following shared devices...
+        </p>
       )}
       {isError && (
         <p className="mt-2 text-red-700 dark:text-red-400">

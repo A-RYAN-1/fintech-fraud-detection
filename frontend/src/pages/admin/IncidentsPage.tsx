@@ -62,7 +62,7 @@ function IncidentCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="font-medium">{incident.title}</div>
-          <div className="text-sm text-neutral-500">
+          <div className="text-sm text-neutral-500 dark:text-neutral-400">
             {KIND_LABEL[incident.kind]}: {incident.occurrences} time
             {incident.occurrences === 1 ? "" : "s"}, first{" "}
             {when(incident.first_seen_at)}, last {when(incident.last_seen_at)}
@@ -87,7 +87,9 @@ function IncidentCard({
       <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
         {Object.entries(incident.sample).map(([key, value]) => (
           <div key={key} className="flex gap-2">
-            <dt className="text-neutral-500">{key.replace(/_/g, " ")}</dt>
+            <dt className="text-neutral-500 dark:text-neutral-400">
+              {key.replace(/_/g, " ")}
+            </dt>
             <dd className="break-all">{String(value)}</dd>
           </div>
         ))}
@@ -138,7 +140,7 @@ function IncidentCard({
       </details>
 
       {!isOpen && (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
           {incident.status === "reported" ? "Approved" : "Dismissed"} by{" "}
           {incident.decided_by}
           {incident.decided_at ? ` on ${when(incident.decided_at)}` : ""}
@@ -262,7 +264,7 @@ export default function IncidentsPage() {
                 Copy digest
               </Button>
             </div>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
               A scan also runs every 30 minutes. Failed PayPal calls are
               recorded the moment they happen.
             </p>
