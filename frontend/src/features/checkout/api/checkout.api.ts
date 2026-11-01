@@ -10,6 +10,15 @@ export interface TimelineEntry {
   detail: string;
 }
 
+// Result of the check that the analyst's wording cites nothing outside the case facts (see docs/analyst-grounding.md).
+export interface VerdictGrounding {
+  status: "passed" | "rejected" | "not_applicable";
+  issues: {
+    kind: "unknown_number" | "unknown_rule" | "identifier";
+    detail: string | null;
+  }[];
+}
+
 export interface AiVerdict {
   action: "approve" | "review" | "block";
   confidence: number;
@@ -17,6 +26,7 @@ export interface AiVerdict {
   model?: string;
   timeline?: TimelineEntry[];
   payload_bytes?: number;
+  grounding?: VerdictGrounding;
 }
 
 export interface CreatedOrder {

@@ -8,6 +8,7 @@ import { AskAnalystPanel } from "./AskAnalystPanel";
 import { CaseNarrativePanel } from "./CaseNarrativePanel";
 import { SimilarCasesPanel } from "./SimilarCasesPanel";
 import { AgentContextPanel } from "./AgentContextPanel";
+import { GroundingNote } from "./GroundingNote";
 import { holdExpiry } from "../utils/hold-expiry";
 import { ruleLabel } from "@/utils/ruleLabels";
 
@@ -121,6 +122,7 @@ export function ReviewCard({
                 <p className="text-neutral-600 dark:text-neutral-400">
                   {payment.ai_verdict.explanation}
                 </p>
+                <GroundingNote grounding={payment.ai_verdict.grounding} />
               </>
             ) : (
               <>

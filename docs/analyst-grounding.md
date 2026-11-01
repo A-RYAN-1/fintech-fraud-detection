@@ -1,6 +1,6 @@
 # Analyst grounding check
 
-The AI analyst writes three kinds of text about a case: the verdict explanation, the case narrative and the answers to "why this verdict" and "what would change it". The analyst sees only a facts-only payload (bands, flags, rule names, model labels), so anything it writes that is not in that payload was made up. This check finds the made-up parts mechanically, with no second model call.
+The AI analyst writes three kinds of text about a case: the verdict explanation and timeline, the case narrative and the answers to "why this verdict" and "what would change it". All of them are checked. The analyst sees only a facts-only payload (bands, flags, rule names, model labels), so anything it writes that is not in that payload was made up. This check finds the made-up parts mechanically, with no second model call.
 
 ## What it checks
 
@@ -15,6 +15,7 @@ The AI analyst writes three kinds of text about a case: the verdict explanation,
 ## What happens on a failure
 
 - **Case narrative** and **Ask the analyst**: the AI text is replaced by the fixed rules-only text, `source` becomes `rules`, and the response carries `grounding: { status: "rejected", issues: [...] }`. The panel says the AI draft was replaced and what it cited. The narrative audit row records the rejection.
+- **Verdict** (explanation and timeline details): the action and confidence stay, because the AI can only escalate a payment to a person and never lifts a hold, so a wrong action costs a human look at worst. The explanation is replaced by a sentence built from the facts (rules decision, risk score, rules fired), the timeline is dropped, and the stored verdict carries `grounding: { status: "rejected", issues: [...] }`. The review card shows the same one-line note.
 - A text that passes carries `grounding: { status: "passed" }` and the panel says it was checked.
 - When no AI text was produced (analyst off, circuit open, failed call) the status is `not_applicable` and the panel shows nothing extra.
 
@@ -33,6 +34,5 @@ What this does and does not show: the corpus is ours and synthetic. It shows the
 
 ## Not covered
 
-- The verdict explanation of the first analyst call is not checked yet.
 - Wording that is false without a number or rule name ("the customer is a fraudster") passes; the prompts forbid it but the check does not.
 - A number that happens to equal one in the facts passes even if it means something else.

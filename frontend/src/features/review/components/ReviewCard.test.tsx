@@ -45,6 +45,32 @@ describe("ReviewCard evidence", () => {
     expect(screen.getByText(/AI analyst: review \(70%\)/)).toBeInTheDocument();
   });
 
+  it("says when the analyst's wording was replaced because it cited something outside the facts", () => {
+    render(
+      <ReviewCard
+        payment={{
+          ...payment,
+          ai_verdict: {
+            action: "review",
+            confidence: 0.7,
+            explanation: "The analyst's wording was replaced.",
+            grounding: {
+              status: "rejected",
+              issues: [{ kind: "unknown_number", detail: "7" }],
+            },
+          },
+        }}
+        busy={false}
+        canAct
+        onAct={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/The AI draft was replaced/)).toHaveTextContent(
+      "number 7",
+    );
+  });
+
   it("says plainly when the model and the AI analyst did not read it", () => {
     render(
       <ReviewCard
