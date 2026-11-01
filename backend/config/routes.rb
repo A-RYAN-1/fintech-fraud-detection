@@ -84,6 +84,7 @@ Rails.application.routes.draw do
 
       resources :transactions, only: [ :index, :create ] do
         post "feedback", to: "fraud_feedbacks#create"
+        post "appeal", to: "appeals#create"
       end
 
       post "support_messages", to: "support_messages#create"

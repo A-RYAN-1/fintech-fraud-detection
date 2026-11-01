@@ -72,6 +72,10 @@ export interface Transaction {
   authorization_expires_at?: string | null;
   refunded_amount?: number;
   feedback_submitted: boolean;
+  // What the customer is told about a held or voided payment, whether a note can still be sent, and the note sent.
+  customer_message?: string | null;
+  can_appeal?: boolean;
+  appeal?: { note: string; submitted_at: string } | null;
 }
 
 // One reason the second-score model gave, largest contribution first.

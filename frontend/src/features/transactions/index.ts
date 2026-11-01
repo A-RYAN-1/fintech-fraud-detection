@@ -17,6 +17,7 @@ export {
   Pagination,
   TransactionDetailsDialog,
   FeedbackDialog,
+  AppealDialog,
 } from "./components";
 
 // Schemas

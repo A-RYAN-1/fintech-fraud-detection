@@ -137,6 +137,18 @@ export default function TransactionDetailsDialog({
               {transaction.action_reason}
             </p>
           )}
+          {transaction.customer_message && (
+            <p className="text-sm text-neutral-700 dark:text-neutral-300">
+              {transaction.customer_message}
+            </p>
+          )}
+          {transaction.appeal && (
+            <p className="rounded-md bg-neutral-50 p-3 text-sm text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+              Your note to the reviewer (
+              {formatDateTime(transaction.appeal.submitted_at)}):{" "}
+              {transaction.appeal.note}
+            </p>
+          )}
 
           <Separator />
 

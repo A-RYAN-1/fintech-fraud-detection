@@ -71,6 +71,16 @@ export const transactionsApi = {
     return response.data.data;
   },
 
+  sendAppeal: async (
+    transactionId: string,
+    note: string,
+  ): Promise<{ submitted_at: string; note: string }> => {
+    const response = await apiClient.post<
+      ApiResponse<{ submitted_at: string; note: string }>
+    >(`/transactions/${transactionId}/appeal`, { note });
+    return response.data.data;
+  },
+
   submitFeedback: async (
     transactionId: string,
     payload: FeedbackPayload,

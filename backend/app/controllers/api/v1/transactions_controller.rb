@@ -78,8 +78,9 @@ module Api
         # User stats
         user_stats = current_user.user_transaction_stat
 
+        appeals = Appeal.for_all(transactions.map(&:id))
         render_success({
-          transactions: transactions.map { |t| serialize_transaction(t) },
+          transactions: transactions.map { |t| serialize_transaction(t, appeals) },
           pagination: pagination,
           user_stats: user_stats ? {
             total_transactions: current_user.transactions.count,
@@ -123,7 +124,8 @@ module Api
         Date.current
       end
 
-      def serialize_transaction(transaction)
+      def serialize_transaction(transaction, appeals = {})
+        appeal = appeals[transaction.id.to_s]
         {
           id: transaction.id,
           amount: transaction.amount.to_s,
@@ -143,7 +145,10 @@ module Api
           simulated: transaction.simulated?,
           authorization_expires_at: transaction.paypal_authorization_expires_at,
           refunded_amount: transaction.refunded_amount.to_f,
-          feedback_submitted: transaction.fraud_evaluation&.is_accurate != nil
+          feedback_submitted: transaction.fraud_evaluation&.is_accurate != nil,
+          customer_message: Appeal.customer_message(transaction),
+          can_appeal: Appeal.can_appeal?(transaction, appeals),
+          appeal: appeal && { note: appeal.reason, submitted_at: appeal.created_at }
         }
       end
     end
