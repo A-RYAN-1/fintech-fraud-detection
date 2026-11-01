@@ -12,8 +12,8 @@ class PaypalCheckout
   end
 
   # Creates the pending transaction and the PayPal order; the browser then asks the buyer to approve it.
-  def create_order(amount:, device_id:, ip_address: nil, request_id: SecureRandom.uuid)
-    transaction = @user.transactions.new(amount: amount, payment_method: "wallet", device_id: device_id, ip_address: ip_address)
+  def create_order(amount:, device_id:, ip_address: nil, request_id: SecureRandom.uuid, mandate: nil)
+    transaction = @user.transactions.new(amount: amount, payment_method: "wallet", device_id: device_id, ip_address: ip_address, agent_mandate: mandate)
     transaction.save!
     order = @client.create_order(amount: transaction.amount, currency: CURRENCY, reference: transaction.id, request_id: request_id)
     transaction.update!(paypal_order_id: order.fetch("id"), paypal_status: "CREATED")

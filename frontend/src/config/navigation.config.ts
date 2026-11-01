@@ -13,6 +13,7 @@ import {
   Siren,
   Users,
   FileText,
+  Bot,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types";
@@ -35,6 +36,7 @@ const ITEMS = {
   home: { title: "Home", href: "/home", icon: Home },
   pay: { title: "Pay", href: "/pay", icon: CreditCard },
   history: { title: "History", href: "/history", icon: History },
+  agents: { title: "Agents", href: "/agents", icon: Bot },
   spending: {
     title: "My Spending",
     href: "/spending",
@@ -70,7 +72,15 @@ export function navigationFor(role: UserRole | undefined): NavSection[] {
   switch (role) {
     case "customer":
       return [
-        { items: [ITEMS.home, ITEMS.pay, ITEMS.history, ITEMS.spending] },
+        {
+          items: [
+            ITEMS.home,
+            ITEMS.pay,
+            ITEMS.history,
+            ITEMS.agents,
+            ITEMS.spending,
+          ],
+        },
       ];
     case "analyst":
       return [
@@ -112,7 +122,10 @@ export function navigationFor(role: UserRole | undefined): NavSection[] {
             ITEMS.insights,
           ],
         },
-        { title: "Administration", items: [ITEMS.users, ITEMS.audit] },
+        {
+          title: "Administration",
+          items: [ITEMS.agents, ITEMS.users, ITEMS.audit],
+        },
       ];
     default:
       return [];
@@ -128,6 +141,7 @@ export const breadcrumbNameMap: Record<string, string> = {
   "/home": "Home",
   "/pay": "Pay",
   "/history": "History",
+  "/agents": "Agents",
   "/spending": "My Spending",
   "/insights": "Insights",
   "/admin/review": "Review Queue",

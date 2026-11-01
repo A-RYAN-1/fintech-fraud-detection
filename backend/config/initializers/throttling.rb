@@ -16,7 +16,8 @@ class Rack::Attack
     scoring: { limit: 20, period: 1.minute },
     admin_action: { limit: 30, period: 1.minute },
     support: { limit: 5, period: 1.hour },
-    ask_analyst: { limit: 6, period: 1.minute }
+    ask_analyst: { limit: 6, period: 1.minute },
+    agent_payment: { limit: 10, period: 1.minute }
   }.freeze
 
   WEBHOOK_PATH = "/api/v1/paypal/webhooks".freeze
@@ -59,6 +60,13 @@ class Rack::Attack
   throttle_rule(:scoring) { |req| actor(req) if req.post? && SCORING_PATHS.include?(req.path) }
   throttle_rule(:admin_action) { |req| actor(req) if req.post? && req.path.match?(ADMIN_ACTION_PATH) }
   throttle_rule(:ask_analyst) { |req| actor(req) if (req.post? || req.get?) && req.path.match?(ASK_PATH) }
+  # The agent has no session: count per mandate token (hashed), falling back to the address.
+  throttle_rule(:agent_payment) do |req|
+    if req.post? && req.path == "/api/v1/agent/payments"
+      token = req.get_header("HTTP_AUTHORIZATION").to_s[/\ABearer (\S+)\z/, 1] || req.get_header("HTTP_X_MANDATE_TOKEN").to_s
+      token.present? ? "mandate:#{Digest::SHA256.hexdigest(token)}" : "ip:#{client_ip(req)}"
+    end
+  end
   throttle_rule(:support) { |req| actor(req) if req.post? && req.path == "/api/v1/support_messages" }
 
   self.throttled_responder = lambda do |req|

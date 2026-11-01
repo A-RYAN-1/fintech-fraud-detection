@@ -25,6 +25,7 @@ import {
   RuleProposalsPage,
   IncidentsPage,
   FeedbackPage,
+  AgentsPage,
 } from "@/pages";
 
 export const routes: RouteObject[] = [
@@ -94,6 +95,14 @@ export const routes: RouteObject[] = [
         element: (
           <RoleGuard allowedRoles={["customer"]}>
             <HistoryPage />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "agents",
+        element: (
+          <RoleGuard allowedRoles={["customer", "admin"]}>
+            <AgentsPage />
           </RoleGuard>
         ),
       },

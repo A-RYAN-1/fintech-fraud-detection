@@ -13,11 +13,12 @@ const titles = (role: UserRole) =>
   navigationFor(role).flatMap((s) => s.items.map((i) => i.title));
 
 describe("navigationFor", () => {
-  it("gives a customer Home, Pay, History and My Spending", () => {
+  it("gives a customer Home, Pay, History, Agents and My Spending", () => {
     expect(titles("customer")).toEqual([
       "Home",
       "Pay",
       "History",
+      "Agents",
       "My Spending",
     ]);
   });
@@ -54,6 +55,7 @@ describe("navigationFor", () => {
       "Rule Changes",
       "Incidents",
       "Insights",
+      "Agents",
       "Users",
       "Audit Log",
     ]);

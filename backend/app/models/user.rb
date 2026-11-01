@@ -6,6 +6,7 @@ class User < ApplicationRecord
   has_many :devices, dependent: :destroy
   has_many :notifications, dependent: :destroy
   has_many :idempotency_keys, dependent: :delete_all
+  has_many :agent_mandates, dependent: :destroy
   has_one :user_transaction_stat, dependent: :destroy
 
   # Enums
