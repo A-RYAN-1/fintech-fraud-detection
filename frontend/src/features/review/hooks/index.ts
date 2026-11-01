@@ -9,5 +9,6 @@ export {
   useAccountRing,
   useAnalystAnswer,
   useCaseNarrative,
+  useSimilarCases,
   REVIEW_QUEUE_QUERY_KEY,
 } from "./useReviewQueue";

@@ -7,7 +7,7 @@ module Api
       class ReviewQueueController < BaseController
         include Idempotent
 
-        before_action :require_staff!, only: [ :index, :ring, :ask, :narrative, :note, :propose ]
+        before_action :require_staff!, only: [ :index, :ring, :ask, :narrative, :similar, :note, :propose ]
         before_action :require_decider!, only: [ :approve, :void, :refund ]
         idempotent :approve, :void, :refund
 
@@ -53,6 +53,15 @@ module Api
         def narrative
           transaction = Transaction.includes(:user, :fraud_evaluation).find(params[:id])
           render_success(CaseNarrative.new(transaction).draft!(actor: current_user))
+        rescue ActiveRecord::RecordNotFound
+          render_error("Transaction not found", :not_found)
+        end
+
+        # GET /api/v1/admin/review_queue/:id/similar  the 3 nearest decided cases and what a person decided on each.
+        # Embedding match, or a rules-based match marked as such (SimilarCases). Evidence only, nothing is stored.
+        def similar
+          transaction = Transaction.includes(:user, :fraud_evaluation).find(params[:id])
+          render_success(SimilarCases.new(transaction).nearest)
         rescue ActiveRecord::RecordNotFound
           render_error("Transaction not found", :not_found)
         end

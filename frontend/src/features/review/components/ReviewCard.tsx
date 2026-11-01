@@ -6,6 +6,7 @@ import { CaseTimeline } from "./CaseTimeline";
 import { AccountRingPanel } from "./AccountRingPanel";
 import { AskAnalystPanel } from "./AskAnalystPanel";
 import { CaseNarrativePanel } from "./CaseNarrativePanel";
+import { SimilarCasesPanel } from "./SimilarCasesPanel";
 import { holdExpiry } from "../utils/hold-expiry";
 import { ruleLabel } from "@/utils/ruleLabels";
 
@@ -136,6 +137,7 @@ export function ReviewCard({
         <div className="flex flex-wrap items-start gap-2">
           <AccountRingPanel paymentId={payment.id} />
           <AskAnalystPanel paymentId={payment.id} />
+          <SimilarCasesPanel paymentId={payment.id} />
           <CaseNarrativePanel paymentId={payment.id} />
         </div>
 

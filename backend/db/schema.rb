@@ -10,10 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_050000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+  enable_extension "vector"
 
   create_table "approval_requests", force: :cascade do |t|
     t.uuid "payment_id", null: false
@@ -49,6 +50,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_030000) do
     t.index ["actor_id"], name: "index_audit_logs_on_actor_id"
     t.index ["entity_type", "entity_id"], name: "index_audit_logs_on_entity_type_and_entity_id"
     t.index ["event_type"], name: "index_audit_logs_on_event_type"
+  end
+
+  create_table "case_embeddings", force: :cascade do |t|
+    t.uuid "financial_transaction_id", null: false
+    t.vector "embedding", limit: 768, null: false
+    t.text "facts_text", null: false
+    t.string "model", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["embedding"], name: "index_case_embeddings_on_embedding", opclass: :vector_cosine_ops, using: :hnsw
+    t.index ["financial_transaction_id"], name: "index_case_embeddings_on_financial_transaction_id", unique: true
   end
 
   create_table "devices", force: :cascade do |t|
@@ -376,6 +388,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_030000) do
   add_foreign_key "approval_requests", "users", column: "decided_by_id"
   add_foreign_key "approval_requests", "users", column: "requested_by_id"
   add_foreign_key "audit_logs", "users", column: "actor_id", on_delete: :nullify
+  add_foreign_key "case_embeddings", "transactions", column: "financial_transaction_id", on_delete: :cascade
   add_foreign_key "devices", "users"
   add_foreign_key "fraud_evaluations", "transactions"
   add_foreign_key "fraud_evaluations", "users", column: "labeled_by_id", on_delete: :nullify

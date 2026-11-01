@@ -22,7 +22,7 @@ class Rack::Attack
   WEBHOOK_PATH = "/api/v1/paypal/webhooks".freeze
   PAYMENT_PATH = %r{\A/api/v1/paypal/orders(/[^/]+/authorize)?\z}
   SCORING_PATHS = %w[/api/v1/transactions /api/v1/payments/simulate].freeze
-  ASK_PATH = %r{\A/api/v1/admin/review_queue/[^/]+/(ask|narrative)\z}
+  ASK_PATH = %r{\A/api/v1/admin/review_queue/[^/]+/(ask|narrative|similar)\z}
   ADMIN_ACTION_PATH = %r{\A/api/v1/admin/review_queue/[^/]+/(approve|void|refund)\z}
 
   self.cache.store = ActiveSupport::Cache::MemoryStore.new(size: 4.megabytes)
@@ -58,7 +58,7 @@ class Rack::Attack
   throttle_rule(:payment) { |req| actor(req) if req.post? && req.path.match?(PAYMENT_PATH) }
   throttle_rule(:scoring) { |req| actor(req) if req.post? && SCORING_PATHS.include?(req.path) }
   throttle_rule(:admin_action) { |req| actor(req) if req.post? && req.path.match?(ADMIN_ACTION_PATH) }
-  throttle_rule(:ask_analyst) { |req| actor(req) if req.post? && req.path.match?(ASK_PATH) }
+  throttle_rule(:ask_analyst) { |req| actor(req) if (req.post? || req.get?) && req.path.match?(ASK_PATH) }
   throttle_rule(:support) { |req| actor(req) if req.post? && req.path == "/api/v1/support_messages" }
 
   self.throttled_responder = lambda do |req|

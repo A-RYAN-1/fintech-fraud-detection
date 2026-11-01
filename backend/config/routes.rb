@@ -47,6 +47,7 @@ Rails.application.routes.draw do
             get :ring
             post :ask
             post :narrative
+            get :similar
             post :approve
             post :void
             post :refund
