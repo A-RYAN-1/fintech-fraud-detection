@@ -79,4 +79,23 @@ class AskAnalystTest < ActiveSupport::TestCase
     assert_equal "HELD", @transaction.reload.paypal_status
     assert_equal "flagged", @transaction.status
   end
+
+  test "an answer that cites something outside the facts is replaced by the rules-only answer" do
+    [ "The customer has 5 earlier chargebacks.", "STOLEN_CARD_LIST matched.", "Reach the buyer at #{@user.email}." ].each do |text|
+      result = ask("why", client: FakeClient.new(response: { "answer" => text }))
+      assert_equal "rules", result[:source], text
+      assert_nil result[:model], text
+      assert_equal "rejected", result[:grounding][:status], text
+      assert_includes result[:answer], "rules-only", text
+    end
+  end
+
+  test "a grounded answer carries a passed check and the rules answer is not applicable" do
+    passed = ask("why", client: FakeClient.new(response: { "answer" => "UNTRUSTED_DEVICE fired and the model risk is 70%." }))
+    assert_equal "ai", passed[:source]
+    assert_equal "passed", passed[:grounding][:status]
+
+    fallback = ask("why", client: FakeClient.new(error: GeminiClient::Error.new("boom")))
+    assert_equal "not_applicable", fallback[:grounding][:status]
+  end
 end

@@ -86,4 +86,25 @@ describe("CaseNarrativePanel", () => {
       await screen.findByText(/Could not draft the narrative/),
     ).toBeInTheDocument();
   });
+
+  it("tells the reviewer when the AI draft was replaced for citing something outside the facts", async () => {
+    vi.spyOn(reviewApi, "narrative").mockResolvedValue({
+      ...draft,
+      source: "rules",
+      model: null,
+      grounding: {
+        status: "rejected",
+        issues: [{ kind: "unknown_rule", detail: "CHARGEBACK_HISTORY" }],
+      },
+    });
+    renderPanel();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Draft case narrative" }),
+    );
+
+    expect(
+      await screen.findByText(/The AI draft was replaced/),
+    ).toHaveTextContent("CHARGEBACK_HISTORY");
+    expect(screen.queryByText(/was not available/)).not.toBeInTheDocument();
+  });
 });

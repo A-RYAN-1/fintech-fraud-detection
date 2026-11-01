@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui";
 import { useCaseNarrative } from "../hooks";
+import { GroundingNote } from "./GroundingNote";
 
 interface CaseNarrativePanelProps {
   paymentId: string;
@@ -56,8 +57,11 @@ function Draft({ paymentId }: { paymentId: string }) {
           <p className="text-xs text-neutral-600 dark:text-neutral-400">
             {data.source === "ai"
               ? "Drafted by the AI analyst from the same facts as the verdict and saved to the audit trail. It does not change the decision."
-              : "Rules-only narrative: the AI analyst was not available. Saved to the audit trail."}
+              : data.grounding?.status === "rejected"
+                ? "Rules-only narrative, saved to the audit trail."
+                : "Rules-only narrative: the AI analyst was not available. Saved to the audit trail."}
           </p>
+          <GroundingNote grounding={data.grounding} />
         </div>
       )}
     </div>

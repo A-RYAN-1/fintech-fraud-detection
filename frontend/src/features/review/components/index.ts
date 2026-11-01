@@ -4,3 +4,4 @@ export { AccountRingPanel } from "./AccountRingPanel";
 export { AskAnalystPanel } from "./AskAnalystPanel";
 export { CaseNarrativePanel } from "./CaseNarrativePanel";
 export { SimilarCasesPanel } from "./SimilarCasesPanel";
+export { GroundingNote } from "./GroundingNote";
