@@ -73,6 +73,11 @@ Rails.application.routes.draw do
       end
 
       post "payments/simulate", to: "paypal_orders#simulate"
+      resources :agent_mandates, only: [ :index, :create ] do
+        member { post :revoke }
+      end
+      post "agent/payments", to: "agent_payments#create"
+      get "agent/mandate", to: "agent_payments#show"
       post "paypal/orders", to: "paypal_orders#create"
       post "paypal/webhooks", to: "paypal_webhooks#create"
       post "paypal/orders/:order_id/authorize", to: "paypal_orders#authorize"

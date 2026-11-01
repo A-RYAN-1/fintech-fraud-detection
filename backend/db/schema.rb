@@ -10,11 +10,30 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_050000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
   enable_extension "vector"
+
+  create_table "agent_mandates", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "label", null: false
+    t.string "merchant", null: false
+    t.decimal "per_payment_cap", precision: 12, scale: 2, null: false
+    t.decimal "total_cap", precision: 12, scale: 2, null: false
+    t.decimal "spent_amount", precision: 12, scale: 2, default: "0.0", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "revoked_at"
+    t.bigint "revoked_by_id"
+    t.datetime "last_used_at"
+    t.string "token_digest", null: false
+    t.string "token_hint", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token_digest"], name: "index_agent_mandates_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_agent_mandates_on_user_id"
+  end
 
   create_table "approval_requests", force: :cascade do |t|
     t.uuid "payment_id", null: false
@@ -334,6 +353,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_050000) do
     t.datetime "paypal_authorized_at"
     t.datetime "paypal_authorization_expires_at"
     t.decimal "refunded_amount", precision: 12, scale: 2, default: "0.0", null: false
+    t.bigint "agent_mandate_id"
+    t.index ["agent_mandate_id"], name: "index_transactions_on_agent_mandate_id"
     t.index ["created_at"], name: "index_transactions_on_created_at"
     t.index ["device_id", "user_id"], name: "index_transactions_on_device_id_and_user_id", where: "((device_id IS NOT NULL) AND ((device_id)::text <> ''::text))"
     t.index ["payment_method"], name: "index_transactions_on_payment_method"
@@ -384,6 +405,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_050000) do
     t.index ["event_id"], name: "index_webhook_events_on_event_id", unique: true
   end
 
+  add_foreign_key "agent_mandates", "users"
   add_foreign_key "approval_requests", "transactions", column: "payment_id"
   add_foreign_key "approval_requests", "users", column: "decided_by_id"
   add_foreign_key "approval_requests", "users", column: "requested_by_id"
@@ -404,6 +426,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_050000) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "transactions", "agent_mandates"
   add_foreign_key "transactions", "users"
   add_foreign_key "user_transaction_stats", "users"
 end

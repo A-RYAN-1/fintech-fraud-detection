@@ -40,6 +40,7 @@ vi.mock("@/pages", () => {
     FeedbackPage: page("feedback"),
     RuleProposalsPage: page("rules"),
     IncidentsPage: page("incidents"),
+    AgentsPage: page("agents"),
   };
 });
 
@@ -88,6 +89,7 @@ describe("route access per role", () => {
         "/admin/audit-logs",
         "/pay",
         "/history",
+        "/agents",
       ]) {
         expect(visit(role, path).state.location.pathname).toBe("/home");
       }
@@ -114,6 +116,12 @@ describe("route access per role", () => {
     expect(visit("reviewer", "/admin/approvals").state.location.pathname).toBe(
       "/admin/approvals",
     );
+  });
+
+  it("lets a customer and an admin open Agents", () => {
+    for (const role of ["customer", "admin"] as UserRole[]) {
+      expect(visit(role, "/agents").state.location.pathname).toBe("/agents");
+    }
   });
 
   it("lets an admin open Users and Audit Log", () => {

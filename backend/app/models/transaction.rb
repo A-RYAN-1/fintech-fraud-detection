@@ -3,6 +3,7 @@ class Transaction < ApplicationRecord
   AUTHORIZATION_TTL = 29.days
 
   belongs_to :user
+  belongs_to :agent_mandate, optional: true
 
   after_commit { AnalyticsCache.bump }
   has_one :fraud_evaluation, dependent: :destroy, foreign_key: "transaction_id"
