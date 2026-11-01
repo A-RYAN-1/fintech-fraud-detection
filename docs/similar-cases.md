@@ -24,7 +24,7 @@ For a held payment, a reviewer can ask for the three nearest cases that a person
 
 `rake similar_cases:check` (no Gemini calls) takes each decided case that has a vector, finds its three nearest other decided cases, and compares their majority outcome with the person's outcome. It prints the sample size, how many agreed, and the baseline of always guessing the majority outcome. With fewer than 30 cases it prints that the sample is too small to claim any accuracy.
 
-Result on production: not measured yet. The backfill has not been run there, so no vectors exist and the endpoint answers with the rules-based match until new decisions are embedded by the job. Until the sample is at least 30 decided cases, the only honest claim is that the feature retrieves nearby decided cases, not that it predicts the outcome.
+Result on production (2026-11-01, after `rake similar_cases:backfill` embedded all 9 decided cases): sample 9 (6 voided, 3 approved); the majority outcome of the 3 nearest agreed with the person in 6 of 9 (0.667), and always guessing "voided" also scores 6 of 9 (0.667). So there is no measured lift over the baseline, and 9 cases is below the 30 needed to say anything about accuracy. The honest claim is that the feature retrieves nearby decided cases with their human outcome; it is not claimed to predict the outcome. Live, `/similar` on held cases now answers with `source: embedding` and distances of about 0.015 to 0.04.
 
 ## Tests
 
