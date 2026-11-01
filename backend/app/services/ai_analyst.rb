@@ -128,6 +128,7 @@ class AiAnalyst
     return nil unless result
 
     result[:payload_bytes] = payload.bytesize
+    ground(result, facts)
     Rails.logger.info("AI analyst verdict action=#{result[:action]} payload_bytes=#{payload.bytesize} timeline=#{result[:timeline].size}")
     result
   rescue GeminiClient::Error => e
@@ -171,6 +172,24 @@ class AiAnalyst
   end
 
   private
+
+  # The explanation and the timeline details must cite nothing outside the facts (AnalystGrounding). The action stays:
+  # it can only escalate a payment to a person, never lift a hold. When the wording fails the check it is replaced by
+  # a sentence built from the facts and the timeline is dropped, so no invented claim reaches a reviewer.
+  def ground(result, facts)
+    check = AnalystGrounding.check([ result[:explanation], *result[:timeline].map { |entry| entry[:detail] } ], facts)
+    result[:grounding] = check.to_h
+    return if check.passed
+
+    result[:explanation] = replacement_explanation(facts)
+    result[:timeline] = []
+  end
+
+  def replacement_explanation(facts)
+    rules = Array(facts[:rules_triggered])
+    fired = rules.empty? ? "no rule fired" : "rules fired: #{rules.join(', ')}"
+    "The analyst's wording was replaced because it cited something that is not in the case facts. "       "Rules decision: #{facts[:rules_decision]}, risk score #{facts[:rules_risk_score]}; #{fired}."
+  end
 
   def parse_narrative(raw)
     return nil unless raw.is_a?(Hash)

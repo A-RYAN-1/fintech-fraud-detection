@@ -90,7 +90,7 @@ class AiAnalystTest < ActiveSupport::TestCase
       "junk",
       { "signal" => "amount", "impact" => "raises_risk", "detail" => "3 to 10 times the average" }
     ] })
-    verdict = AiAnalyst.new(client: client).verdict(FACTS)
+    verdict = AiAnalyst.new(client: client).verdict(FACTS.merge(amount_vs_user_average: "3 to 10 times the average"))
 
     assert_equal %w[device amount], verdict[:timeline].map { |e| e[:signal] }
   end
@@ -114,6 +114,32 @@ class AiAnalystTest < ActiveSupport::TestCase
     verdict = AiAnalyst.new(client: FakeClient.new({ "action" => "approve", "confidence" => 0.9, "explanation" => "ok" })).verdict(FACTS)
 
     assert_equal FACTS.to_json.bytesize, verdict[:payload_bytes]
+  end
+
+  test "a verdict whose wording cites something outside the facts keeps its action and loses its explanation and timeline" do
+    facts = FACTS.merge(rules_risk_score: 45, rules_triggered: [ "UNTRUSTED_DEVICE" ])
+    client = FakeClient.new({ "action" => "review", "confidence" => 0.8, "explanation" => "Three earlier chargebacks and CHARGEBACK_HISTORY fired.",
+                              "timeline" => [ { "signal" => "device", "impact" => "raises_risk", "detail" => "Seen on 7 accounts." } ] })
+    verdict = AiAnalyst.new(client: client).verdict(facts)
+
+    assert_equal "review", verdict[:action], "the action can only escalate, so it stays"
+    assert_equal 0.8, verdict[:confidence]
+    assert_equal "rejected", verdict[:grounding][:status]
+    assert_includes verdict[:grounding][:issues].map { |i| i[:kind] }, :unknown_rule
+    assert_includes verdict[:explanation], "replaced because it cited something that is not in the case facts"
+    assert_includes verdict[:explanation], "UNTRUSTED_DEVICE"
+    assert_empty verdict[:timeline]
+  end
+
+  test "a verdict that cites only the facts passes the check and is kept as written" do
+    facts = FACTS.merge(rules_risk_score: 45, rules_triggered: [ "UNTRUSTED_DEVICE" ])
+    client = FakeClient.new({ "action" => "review", "confidence" => 0.8, "explanation" => "UNTRUSTED_DEVICE fired with a risk score of 45.",
+                              "timeline" => [ { "signal" => "device", "impact" => "raises_risk", "detail" => "Device differs from the trusted one." } ] })
+    verdict = AiAnalyst.new(client: client).verdict(facts)
+
+    assert_equal "passed", verdict[:grounding][:status]
+    assert_equal "UNTRUSTED_DEVICE fired with a risk score of 45.", verdict[:explanation]
+    assert_equal 1, verdict[:timeline].size
   end
 
   GOOD = { "action" => "approve", "confidence" => 0.9, "explanation" => "ok" }.freeze
