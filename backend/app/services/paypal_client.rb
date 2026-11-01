@@ -69,6 +69,17 @@ class PaypalClient
     post("/v2/payments/captures/#{escape(capture_id)}/refund", body, request_id: request_id)
   end
 
+  # Asks PayPal whether a webhook delivery is genuine. headers are the five PAYPAL-* transmission headers; event is the
+  # parsed body. True only for SUCCESS; anything else, including a mock event from the simulator, is false.
+  def verify_webhook(headers:, event:, webhook_id:)
+    body = post("/v1/notifications/verify-webhook-signature", {
+      auth_algo: headers["PAYPAL-AUTH-ALGO"], cert_url: headers["PAYPAL-CERT-URL"], transmission_id: headers["PAYPAL-TRANSMISSION-ID"],
+      transmission_sig: headers["PAYPAL-TRANSMISSION-SIG"], transmission_time: headers["PAYPAL-TRANSMISSION-TIME"],
+      webhook_id: webhook_id, webhook_event: event
+    }, request_id: SecureRandom.uuid)
+    body["verification_status"] == "SUCCESS"
+  end
+
   private
 
   def escape(id)
