@@ -19,7 +19,8 @@ class FeedbackReport
       human_approve: labels.count("approve"),
       human_block: labels.count("block"),
       signals: SIGNALS.to_h { |signal| [ signal, signal_stats(signal, @evaluations) ] },
-      daily: daily
+      daily: daily,
+      rule_precision: rule_precision
     }
   end
 
@@ -34,7 +35,36 @@ class FeedbackReport
     rows
   end
 
+  # Per rule, over the labelled payments it fired on: how often a person approved anyway (a false alarm). Recent is the
+  # last RECENT_DAYS days of decisions, earlier is everything before; a rule is noisy once it has fired on at least
+  # NOISY_MIN_FIRED labelled payments and a person approved at least NOISY_RATE of them. Counts only, evidence for a
+  # rule-change proposal, never a change by itself.
+  RECENT_DAYS = 7
+  NOISY_MIN_FIRED = 5
+  NOISY_RATE = 0.5
+
+  def rule_precision(now: Time.current)
+    cutoff = now - RECENT_DAYS.days
+    by_rule = Hash.new { |hash, key| hash[key] = [] }
+    @evaluations.each { |e| e.rules_triggered.to_s.split(",").map(&:strip).reject(&:empty?).uniq.each { |rule| by_rule[rule] << e } }
+    by_rule.map { |rule, rows| rule_row(rule, rows, cutoff) }.sort_by { |row| [ -row[:fired], row[:rule] ] }
+  end
+
   private
+
+  def rule_row(rule, rows, cutoff)
+    recent, earlier = rows.partition { |e| e.labeled_at && e.labeled_at >= cutoff }
+    fired = rows.size
+    approved = rows.count { |e| e.human_label == "approve" }
+    { rule: rule, fired: fired, human_approved: approved, false_alarm_rate: rate(approved, fired),
+      recent: window(recent), earlier: window(earlier),
+      noisy: fired >= NOISY_MIN_FIRED && approved.to_f / fired >= NOISY_RATE }
+  end
+
+  def window(rows)
+    approved = rows.count { |e| e.human_label == "approve" }
+    { fired: rows.size, human_approved: approved, false_alarm_rate: rate(approved, rows.size) }
+  end
 
   def human_vote(evaluation)
     evaluation.human_label == "approve" ? :safe : :risky

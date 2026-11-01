@@ -32,6 +32,17 @@ const response: FeedbackResponse = {
     },
   },
   daily: [{ date: "2026-10-28", labelled: 4, rules: 0.75, ml: 0.5, ai: null }],
+  rule_precision: [
+    {
+      rule: "UNTRUSTED_DEVICE",
+      fired: 6,
+      human_approved: 4,
+      false_alarm_rate: 0.667,
+      recent: { fired: 2, human_approved: 2, false_alarm_rate: 1 },
+      earlier: { fired: 4, human_approved: 2, false_alarm_rate: 0.5 },
+      noisy: true,
+    },
+  ],
   disagreements: [
     {
       transaction_id: "t1",
@@ -70,6 +81,18 @@ describe("FeedbackPage", () => {
     expect(screen.getAllByText("n/a").length).toBeGreaterThan(0);
     expect(screen.getByText("New device.")).toBeInTheDocument();
     expect(screen.getByText("Rules and model disagreed")).toBeInTheDocument();
+  });
+
+  it("lists each rule with its false alarms and flags a noisy one", async () => {
+    vi.spyOn(feedbackApi, "get").mockResolvedValue(response);
+    renderWithProviders(<FeedbackPage />);
+
+    expect(
+      await screen.findByText(/New or untrusted device/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Noisy")).toBeInTheDocument();
+    expect(screen.getByText("4 (67%)")).toBeInTheDocument();
+    expect(screen.getByText("100% of 2")).toBeInTheDocument();
   });
 
   it("asks the API for one signal when a filter is picked", async () => {

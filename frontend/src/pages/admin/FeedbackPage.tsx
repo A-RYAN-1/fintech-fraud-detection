@@ -1,4 +1,5 @@
 import { formatMoney } from "@/utils/money";
+import { ruleLabel } from "@/utils/ruleLabels";
 import { useState } from "react";
 import { MessageSquareWarning } from "lucide-react";
 import { PageTransition, EmptyState, PageHeader } from "@/components/common";
@@ -181,6 +182,75 @@ export default function FeedbackPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Rule false alarms</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : !data || data.rule_precision.length === 0 ? (
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                No rule has fired on a decided payment yet.
+              </p>
+            ) : (
+              <div
+                className="relative overflow-x-auto"
+                tabIndex={0}
+                role="region"
+                aria-label="Rule false alarms"
+              >
+                <table className="w-full text-sm">
+                  <caption className="sr-only">
+                    For each rule, how often a person approved a payment it
+                    fired on, over all decisions and over the last seven days
+                  </caption>
+                  <thead>
+                    <tr className="text-left text-neutral-500 dark:text-neutral-400">
+                      <th className="py-1 pr-4 font-medium">Rule</th>
+                      <th className="py-1 pr-4 font-medium">Fired</th>
+                      <th className="py-1 pr-4 font-medium">Approved anyway</th>
+                      <th className="py-1 pr-4 font-medium">Last 7 days</th>
+                      <th className="py-1 pr-4 font-medium">Earlier</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.rule_precision.map((row) => (
+                      <tr
+                        key={row.rule}
+                        className="border-t border-neutral-200 dark:border-neutral-800"
+                      >
+                        <td className="py-1 pr-4">
+                          {ruleLabel(row.rule)}{" "}
+                          {row.noisy && <Badge variant="warning">Noisy</Badge>}
+                        </td>
+                        <td className="py-1 pr-4">{row.fired}</td>
+                        <td className="py-1 pr-4">
+                          {row.human_approved} (
+                          {formatRate(row.false_alarm_rate)})
+                        </td>
+                        <td className="py-1 pr-4">
+                          {formatRate(row.recent.false_alarm_rate)} of{" "}
+                          {row.recent.fired}
+                        </td>
+                        <td className="py-1 pr-4">
+                          {formatRate(row.earlier.false_alarm_rate)} of{" "}
+                          {row.earlier.fired}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
+                  Noisy means the rule fired on at least 5 decided payments and
+                  a person approved half or more of them. Counts from decided
+                  payments only; a rule change still goes through a proposal.
+                </p>
               </div>
             )}
           </CardContent>
