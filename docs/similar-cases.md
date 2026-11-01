@@ -24,7 +24,7 @@ For a held payment, a reviewer can ask for the three nearest cases that a person
 
 `rake similar_cases:check` (no Gemini calls) takes each decided case that has a vector, finds its three nearest other decided cases, and compares their majority outcome with the person's outcome. It prints the sample size, how many agreed, and the baseline of always guessing the majority outcome. With fewer than 30 cases it prints that the sample is too small to claim any accuracy.
 
-Result on production: see the section below once recorded. Until the sample is at least 30 decided cases, the only honest claim is that the feature retrieves nearby decided cases, not that it predicts the outcome.
+Result on production: not measured yet. The backfill has not been run there, so no vectors exist and the endpoint answers with the rules-based match until new decisions are embedded by the job. Until the sample is at least 30 decided cases, the only honest claim is that the feature retrieves nearby decided cases, not that it predicts the outcome.
 
 ## Tests
 
