@@ -9,6 +9,7 @@ export {
   type ReviewAction,
   type AccountRing,
   type AnalystAnswer,
+  type Grounding,
   type CaseNarrative,
   type AnalystQuestion,
   type RingMember,

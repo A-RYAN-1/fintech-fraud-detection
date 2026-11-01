@@ -13,13 +13,17 @@ class CaseNarrative
   def draft!(actor:)
     facts = AskAnalyst.new(@transaction).facts
     ai = @analyst.narrative(facts)
-    body = ai ? ai.slice(:summary, :indicators, :reviewer_checks) : RulesNarrative.new(facts).to_h
-    source = ai ? "ai" : "rules"
-    model = ai&.dig(:model)
+    # A draft that cites anything outside the facts is replaced by the fixed template (AnalystGrounding).
+    check = ai && AnalystGrounding.check([ ai[:summary], *ai[:indicators], *ai[:reviewer_checks] ], facts)
+    grounded = ai && check.passed
+    body = grounded ? ai.slice(:summary, :indicators, :reviewer_checks) : RulesNarrative.new(facts).to_h
+    source = grounded ? "ai" : "rules"
+    model = grounded ? ai[:model] : nil
+    grounding = ai ? check.to_h : AnalystGrounding::NOT_APPLICABLE
     log = AuditLog.record!(event_type: EVENT, entity_type: "Transaction", entity_id: @transaction.id,
-                           description: "#{actor.email} drafted a case narrative (#{source})", actor: actor,
-                           after: body.merge(source: source, model: model))
-    body.merge(source: source, model: model, created_at: log.created_at)
+                           description: "#{actor.email} drafted a case narrative (#{source}#{', AI draft rejected' if ai && !grounded})", actor: actor,
+                           after: body.merge(source: source, model: model, grounding: grounding))
+    body.merge(source: source, model: model, grounding: grounding, created_at: log.created_at)
   end
 
   # The fixed template used when the analyst is off, skipped by its guard, or fails.

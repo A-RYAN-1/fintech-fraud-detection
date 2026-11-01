@@ -80,7 +80,7 @@ class CaseNarrativeTest < ActiveSupport::TestCase
   end
 
   test "long output is cut to the caps and drafting changes nothing about the payment" do
-    items = Array.new(9) { |i| "indicator #{i} " + "x" * 400 }
+    items = Array.new(9) { |i| "indicator #{(97 + i).chr} " + "x" * 400 }
     client = FakeClient.new(response: { "summary" => "s" * 900, "indicators" => items, "reviewer_checks" => items })
     result = draft(client: client)
 
@@ -89,5 +89,36 @@ class CaseNarrativeTest < ActiveSupport::TestCase
     assert(result[:indicators].all? { |i| i.length <= AiAnalyst::MAX_NARRATIVE_ITEM })
     assert_equal "HELD", @transaction.reload.paypal_status
     assert_equal "flagged", @transaction.status.to_s.downcase
+  end
+
+  test "a draft that cites a rule, number or identifier outside the facts is replaced by the template" do
+    bad = {
+      "unknown rule" => { "summary" => "Held because CHARGEBACK_HISTORY fired.", "indicators" => [ "a" ], "reviewer_checks" => [ "b" ] },
+      "unknown number" => { "summary" => "The customer had 4 prior chargebacks.", "indicators" => [ "a" ], "reviewer_checks" => [ "b" ] },
+      "identifier" => { "summary" => "Contact #{@user.email} about it.", "indicators" => [ "a" ], "reviewer_checks" => [ "b" ] }
+    }
+    bad.each do |name, response|
+      result = draft(client: FakeClient.new(response: response))
+      assert_equal "rules", result[:source], name
+      assert_nil result[:model], name
+      assert_equal "rejected", result[:grounding][:status], name
+      assert_includes result[:summary], "rules-only", name
+    end
+    log = AuditLog.where(event_type: "CASE_NARRATIVE").order(:id).last
+    assert_equal "rejected", log.after_state.dig("grounding", "status")
+    assert_includes log.description, "AI draft rejected"
+  end
+
+  test "a faithful draft passes and says so" do
+    client = FakeClient.new(response: { "summary" => "UNTRUSTED_DEVICE fired on a payment held for review.", "indicators" => [ "Untrusted device" ],
+                                        "reviewer_checks" => [ "Confirm the device with the customer" ] })
+    result = draft(client: client)
+    assert_equal "ai", result[:source]
+    assert_equal "passed", result[:grounding][:status]
+  end
+
+  test "the template reports grounding as not applicable" do
+    result = draft(client: FakeClient.new(error: GeminiClient::Error.new("boom")))
+    assert_equal "not_applicable", result[:grounding][:status]
   end
 end

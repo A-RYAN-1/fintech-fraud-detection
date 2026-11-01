@@ -91,11 +91,19 @@ export interface AccountRing {
 
 export type AnalystQuestion = "why" | "change";
 
+// Result of the deterministic check that AI text cites nothing outside the case facts. "rejected" means the AI text was
+// replaced by the fixed rules-only text; "not_applicable" means no AI text was produced.
+export interface Grounding {
+  status: "passed" | "rejected" | "not_applicable";
+  issues: { kind: "unknown_number" | "unknown_rule" | "identifier"; detail: string | null }[];
+}
+
 export interface AnalystAnswer {
   question: AnalystQuestion;
   answer: string;
   source: "ai" | "rules";
   model: string | null;
+  grounding?: Grounding;
 }
 
 export interface CaseNarrative {
@@ -104,6 +112,7 @@ export interface CaseNarrative {
   reviewer_checks: string[];
   source: "ai" | "rules";
   model: string | null;
+  grounding?: Grounding;
   created_at: string;
 }
 

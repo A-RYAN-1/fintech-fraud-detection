@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui";
 import { useAnalystAnswer } from "../hooks";
 import type { AnalystQuestion } from "../api";
+import { GroundingNote } from "./GroundingNote";
 
 interface AskAnalystPanelProps {
   paymentId: string;
@@ -73,8 +74,11 @@ function Answer({
           <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
             {data.source === "ai"
               ? "AI analyst, from the same facts as the verdict. Advice only: it does not change the decision."
-              : "Rules-only answer: the AI analyst was not available."}
+              : data.grounding?.status === "rejected"
+                ? "Rules-only answer."
+                : "Rules-only answer: the AI analyst was not available."}
           </p>
+          <GroundingNote grounding={data.grounding} />
         </>
       )}
     </div>

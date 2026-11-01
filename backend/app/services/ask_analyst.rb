@@ -13,9 +13,12 @@ class AskAnalyst
   def ask(question)
     facts = self.facts
     result = @analyst.answer(facts, question)
-    return { question: question, answer: result[:answer], source: "ai", model: result[:model] } if result
+    check = result && AnalystGrounding.check(result[:answer], facts)
+    return { question: question, answer: result[:answer], source: "ai", model: result[:model], grounding: check.to_h } if result && check.passed
 
-    { question: question, answer: RulesAnswer.new(facts).for(question), source: "rules", model: nil }
+    # Analyst off or failed: the fixed answer. Analyst answered but cited something outside the facts: also the fixed answer.
+    { question: question, answer: RulesAnswer.new(facts).for(question), source: "rules", model: nil,
+      grounding: result ? check.to_h : AnalystGrounding::NOT_APPLICABLE }
   end
 
   def facts
