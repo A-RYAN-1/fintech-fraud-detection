@@ -152,9 +152,11 @@ export function ReviewCard({
                   {n.actor ?? "Someone"}
                   {n.role ? ` (${n.role})` : ""}
                 </span>{" "}
-                {n.proposal
-                  ? `proposes to ${VERB[n.proposal as ReviewAction] ?? n.proposal}`
-                  : "noted"}
+                {n.event_type === "CUSTOMER_APPEAL"
+                  ? "wrote"
+                  : n.proposal
+                    ? `proposes to ${VERB[n.proposal as ReviewAction] ?? n.proposal}`
+                    : "noted"}
                 {n.text ? `: ${n.text}` : ""}
               </li>
             ))}

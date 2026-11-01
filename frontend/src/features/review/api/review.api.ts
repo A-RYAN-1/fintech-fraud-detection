@@ -26,7 +26,7 @@ export interface ApprovalRequest {
 }
 
 export interface ReviewNote {
-  event_type: "REVIEW_NOTE" | "DECISION_PROPOSED";
+  event_type: "REVIEW_NOTE" | "DECISION_PROPOSED" | "CUSTOMER_APPEAL";
   actor: string | null;
   role: string | null;
   text: string | null;

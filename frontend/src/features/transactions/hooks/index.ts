@@ -5,3 +5,4 @@ export {
   TRANSACTIONS_QUERY_KEY,
 } from "./useTransactions";
 export { useSubmitFeedback } from "./useSubmitFeedback";
+export { useSendAppeal } from "./useSendAppeal";

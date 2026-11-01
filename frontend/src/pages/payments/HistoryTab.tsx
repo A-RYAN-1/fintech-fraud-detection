@@ -13,6 +13,7 @@ import {
   TransactionTable,
   TransactionDetailsDialog,
   FeedbackDialog,
+  AppealDialog,
   exportToCSV,
   generatePDFReport,
   useInfiniteTransactions,
@@ -34,6 +35,7 @@ export default function HistoryTab() {
     useState<Transaction | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const [appealDialogOpen, setAppealDialogOpen] = useState(false);
 
   // Fetch transactions from API with all filters (including search)
   const listFilters = { ...filters };
@@ -62,6 +64,11 @@ export default function HistoryTab() {
   const handleSubmitFeedback = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setFeedbackDialogOpen(true);
+  };
+
+  const handleSendNote = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setAppealDialogOpen(true);
   };
 
   const handleExportCSV = () => {
@@ -144,6 +151,7 @@ export default function HistoryTab() {
                   isLoading={isLoading}
                   onViewDetails={handleViewDetails}
                   onSubmitFeedback={handleSubmitFeedback}
+                  onSendNote={handleSendNote}
                 />
                 {!isLoading && transactions.length > 0 && (
                   <div className="mt-4 flex flex-col items-center gap-2">
@@ -176,6 +184,11 @@ export default function HistoryTab() {
           transaction={selectedTransaction}
           open={feedbackDialogOpen}
           onOpenChange={setFeedbackDialogOpen}
+        />
+        <AppealDialog
+          transaction={selectedTransaction}
+          open={appealDialogOpen}
+          onOpenChange={setAppealDialogOpen}
         />
       </div>
     </PageTransition>

@@ -20,6 +20,7 @@ interface TransactionTableProps {
   isLoading?: boolean;
   onViewDetails: (transaction: Transaction) => void;
   onSubmitFeedback: (transaction: Transaction) => void;
+  onSendNote?: (transaction: Transaction) => void;
 }
 
 type SortField = "created_at" | "amount" | "risk_score";
@@ -56,6 +57,7 @@ export default function TransactionTable({
   isLoading = false,
   onViewDetails,
   onSubmitFeedback,
+  onSendNote,
 }: TransactionTableProps) {
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
@@ -234,6 +236,12 @@ export default function TransactionTable({
                     simulated
                   </span>
                 )}
+                {transaction.customer_message && (
+                  <p className="mt-1 max-w-xs text-xs text-neutral-600 dark:text-neutral-400">
+                    {transaction.customer_message}
+                    {transaction.appeal ? " Your note was sent." : ""}
+                  </p>
+                )}
               </td>
               <td className="py-3 px-4">
                 <span className="text-sm text-neutral-600 dark:text-neutral-400">
@@ -255,6 +263,12 @@ export default function TransactionTable({
                       <Eye className="mr-2 h-4 w-4" />
                       View Details
                     </DropdownMenuItem>
+                    {transaction.can_appeal && onSendNote && (
+                      <DropdownMenuItem onClick={() => onSendNote(transaction)}>
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Send a note to the reviewer
+                      </DropdownMenuItem>
+                    )}
                     {!transaction.feedback_submitted && (
                       <DropdownMenuItem
                         onClick={() => onSubmitFeedback(transaction)}

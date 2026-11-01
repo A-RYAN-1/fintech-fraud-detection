@@ -130,11 +130,14 @@ class AgentPaymentsTest < ActionDispatch::IntegrationTest
   test "agent payments are throttled per mandate token" do
     Rack::Attack.enabled = true
     Rack::Attack.cache.store.clear
-    10.times { pay("1") }
-    assert_response :created
-    pay("1")
-    assert_response :too_many_requests
-    assert_equal "rate_limited", body["error"]
+    # Frozen five seconds into a minute, so the rate-limit window cannot roll over between the eleven requests.
+    travel_to(Time.current.beginning_of_minute + 5.seconds) do
+      10.times { pay("1") }
+      assert_response :created
+      pay("1")
+      assert_response :too_many_requests
+      assert_equal "rate_limited", body["error"]
+    end
   ensure
     Rack::Attack.enabled = false
     Rack::Attack.cache.store.clear

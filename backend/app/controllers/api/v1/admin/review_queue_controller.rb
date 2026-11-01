@@ -13,7 +13,7 @@ module Api
 
         MAX_NOTE = 200
         PROPOSABLE = %w[approve void refund].freeze
-        NOTE_EVENTS = %w[REVIEW_NOTE DECISION_PROPOSED].freeze
+        NOTE_EVENTS = %w[REVIEW_NOTE DECISION_PROPOSED CUSTOMER_APPEAL].freeze
 
         # GET /api/v1/admin/review_queue            payments waiting for a decision
         # GET /api/v1/admin/review_queue?scope=captured   captured payments, where a refund can be requested
