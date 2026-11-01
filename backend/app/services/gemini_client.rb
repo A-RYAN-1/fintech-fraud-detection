@@ -8,6 +8,9 @@ require "json"
 class GeminiClient
   BASE_URL = "https://generativelanguage.googleapis.com/v1beta".freeze
   DEFAULT_MODEL = "gemini-3.1-flash-lite".freeze
+  # Free-tier embedding model; 768 dimensions match the vector column of case_embeddings.
+  EMBEDDING_MODEL = "gemini-embedding-001".freeze
+  EMBEDDING_DIMENSIONS = 768
 
   class Error < StandardError
     RETRYABLE_STATUSES = [ 429, 500, 502, 503, 504 ].freeze
@@ -40,28 +43,47 @@ class GeminiClient
 
   # Returns the parsed JSON object the model produced for the given schema.
   def generate_json(system:, prompt:, schema:)
-    uri = URI("#{BASE_URL}/models/#{@model}:generateContent")
-    req = Net::HTTP::Post.new(uri)
-    req["x-goog-api-key"] = @api_key
-    req["Content-Type"] = "application/json"
-    req.body = {
+    response = post("#{BASE_URL}/models/#{@model}:generateContent", {
       systemInstruction: { parts: [ { text: system } ] },
       contents: [ { parts: [ { text: prompt } ] } ],
       generationConfig: { responseMimeType: "application/json", responseSchema: schema, temperature: 0 }
-    }.to_json
+    })
+    text = JSON.parse(response.body).dig("candidates", 0, "content", "parts")&.map { |p| p["text"] }&.compact&.join
+    raise Error, "Gemini returned no text" if text.blank?
+
+    JSON.parse(text)
+  rescue JSON::ParserError
+    raise Error, "Gemini returned unreadable JSON"
+  end
+
+  # The embedding of one text, as an array of EMBEDDING_DIMENSIONS floats.
+  def embed(text)
+    response = post("#{BASE_URL}/models/#{EMBEDDING_MODEL}:embedContent",
+                    { content: { parts: [ { text: text } ] }, taskType: "SEMANTIC_SIMILARITY", outputDimensionality: EMBEDDING_DIMENSIONS })
+    values = JSON.parse(response.body).dig("embedding", "values")
+    raise Error, "Gemini returned a vector of the wrong size" unless values.is_a?(Array) && values.size == EMBEDDING_DIMENSIONS
+
+    values
+  rescue JSON::ParserError
+    raise Error, "Gemini returned unreadable JSON"
+  end
+
+  private
+
+  def post(url, body)
+    uri = URI(url)
+    req = Net::HTTP::Post.new(uri)
+    req["x-goog-api-key"] = @api_key
+    req["Content-Type"] = "application/json"
+    req.body = body.to_json
 
     response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 3, read_timeout: @timeout) { |http| http.request(req) }
     unless response.is_a?(Net::HTTPSuccess)
       raise Error.new("Gemini returned #{response.code}", status: response.code.to_i, retry_after: response["Retry-After"]&.to_f)
     end
 
-    text = JSON.parse(response.body).dig("candidates", 0, "content", "parts")&.map { |p| p["text"] }&.compact&.join
-    raise Error, "Gemini returned no text" if text.blank?
-
-    JSON.parse(text)
+    response
   rescue Net::OpenTimeout, Net::ReadTimeout, SocketError, SystemCallError => e
     raise Error, "Gemini request failed: #{e.class}"
-  rescue JSON::ParserError
-    raise Error, "Gemini returned unreadable JSON"
   end
 end

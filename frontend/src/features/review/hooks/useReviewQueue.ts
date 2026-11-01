@@ -59,6 +59,16 @@ export function useCaseNarrative(id: string) {
   });
 }
 
+// A read: the nearest decided cases are searched when the panel opens and kept for a few minutes.
+export function useSimilarCases(id: string) {
+  return useQuery({
+    queryKey: [REVIEW_QUEUE_QUERY_KEY, "similar", id],
+    queryFn: () => reviewApi.similar(id),
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+}
+
 const settleKeys = createKeyStore();
 
 export function useSettleRequest() {

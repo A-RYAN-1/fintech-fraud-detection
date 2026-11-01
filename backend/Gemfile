@@ -47,6 +47,9 @@ gem "dotenv-rails", "~> 2.8"
 # Pagination
 gem "kaminari", "~> 1.2"
 
+# pgvector support (vector column type, schema dump, HNSW index) for the similar-cases feature.
+gem "neighbor", "~> 0.6"
+
 # Serialization
 gem "active_model_serializers", "~> 0.10"
 

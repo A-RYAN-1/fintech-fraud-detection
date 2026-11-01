@@ -110,6 +110,27 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "similar cases are for staff, read only, and fall back to the rules match when the analyst is off" do
+    login_as users(:one)
+    get "/api/v1/admin/review_queue/#{@held.id}/similar"
+    assert_response :forbidden
+    delete api_v1_auth_logout_url
+
+    decided = held_payment("CAPTURED")
+    decided.fraud_evaluation.update!(human_label: "approve", labeled_at: Time.current)
+
+    login_as users(:analyst)
+    get "/api/v1/admin/review_queue/#{@held.id}/similar"
+    assert_response :success
+    assert_equal "rules", body.dig("data", "source")
+    assert_equal [ decided.id ], body.dig("data", "matches").map { |m| m["payment_id"] }
+    assert_equal "approve", body.dig("data", "matches", 0, "human_outcome")
+    assert_equal "HELD", @held.reload.paypal_status
+
+    get "/api/v1/admin/review_queue/#{SecureRandom.uuid}/similar"
+    assert_response :not_found
+  end
+
   test "a customer can neither list nor act" do
     login_as users(:one)
     get "/api/v1/admin/review_queue"

@@ -125,6 +125,7 @@ class PaypalActions
 
     evaluation.update!(human_label: value, label_source: source, labeled_by: actor, labeled_at: Time.current)
     RuleProposalJob.perform_later(evaluation.id)
+    CaseEmbeddingJob.perform_later(evaluation.id)
   end
 
   def snapshot(transaction)

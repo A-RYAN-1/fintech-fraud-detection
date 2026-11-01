@@ -107,7 +107,28 @@ export interface CaseNarrative {
   created_at: string;
 }
 
+export interface SimilarCase {
+  payment_id: string;
+  amount_band_usd: string;
+  rules_triggered: string[];
+  human_outcome: "approve" | "block";
+  decided_at: string | null;
+  distance: number | null;
+}
+
+export interface SimilarCases {
+  source: "embedding" | "rules";
+  matches: SimilarCase[];
+}
+
 export const reviewApi = {
+  similar: async (id: string): Promise<SimilarCases> => {
+    const response = await apiClient.get<ApiResponse<SimilarCases>>(
+      `/admin/review_queue/${id}/similar`,
+    );
+    return response.data.data;
+  },
+
   narrative: async (id: string): Promise<CaseNarrative> => {
     const response = await apiClient.post<ApiResponse<CaseNarrative>>(
       `/admin/review_queue/${id}/narrative`,
