@@ -21,6 +21,7 @@ class AgentPayment
     result = checkout.settle(transaction.paypal_order_id)
     @mandate.release!(amount) if result.decision == "voided"
     audit_payment(result.transaction, result.decision, purpose)
+    notify_owner(result.transaction, result.decision)
     Result.new(transaction: result.transaction, decision: result.decision, mandate: @mandate.reload)
   rescue AgentMandate::Refused
     raise
@@ -47,6 +48,20 @@ class AgentPayment
                      description: "#{@mandate.label} paid #{format('%.2f', transaction.amount)} to #{@mandate.merchant} under its mandate: #{decision}",
                      after: { transaction_id: transaction.id, decision: decision, spent: @mandate.reload.spent_amount.to_s, total_cap: @mandate.total_cap.to_s },
                      reason: purpose)
+  end
+
+  # The owner hears what their agent did, in the app, in one line: what, to whom, the outcome and what is left.
+  def notify_owner(transaction, decision)
+    outcome = { "captured" => "paid", "held" => "held for review", "voided" => "not completed" }.fetch(decision, decision)
+    @mandate.user.notifications.create!(
+      notification_type: "transaction", priority: decision == "captured" ? "low" : "medium",
+      title: "Your agent #{@mandate.label.first(60)} made a payment",
+      message: "#{ActiveSupport::NumberHelper.number_to_currency(transaction.amount, unit: '$')} to #{@mandate.merchant.first(80)}: #{outcome}. "                "#{ActiveSupport::NumberHelper.number_to_currency(@mandate.reload.remaining, unit: '$')} left on its mandate.",
+      data: { transaction_id: transaction.id, agent_mandate_id: @mandate.id, decision: decision }
+    )
+  rescue StandardError => e
+    # A failed notice must never undo or hide a payment that was already decided.
+    Rails.logger.warn("Agent payment notice skipped: #{e.class}: #{e.message}")
   end
 
   def actor_name

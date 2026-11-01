@@ -34,6 +34,19 @@ export interface ReviewNote {
   created_at: string;
 }
 
+// The mandate an agent paid under, when the payment was made by an agent.
+export interface AgentContext {
+  mandate_id: number;
+  label: string;
+  merchant: string;
+  status: "active" | "expired" | "revoked" | "exhausted";
+  per_payment_cap: number;
+  total_cap: number;
+  spent_amount: number;
+  remaining: number;
+  expires_at: string;
+}
+
 export interface HeldPayment {
   id: string;
   user_email: string;
@@ -52,6 +65,7 @@ export interface HeldPayment {
   ai_verdict: AiVerdict | null;
   notes: ReviewNote[];
   pending_request: ApprovalRequest | null;
+  agent?: AgentContext | null;
 }
 
 export interface ReviewQueueResponse {
@@ -95,7 +109,10 @@ export type AnalystQuestion = "why" | "change";
 // replaced by the fixed rules-only text; "not_applicable" means no AI text was produced.
 export interface Grounding {
   status: "passed" | "rejected" | "not_applicable";
-  issues: { kind: "unknown_number" | "unknown_rule" | "identifier"; detail: string | null }[];
+  issues: {
+    kind: "unknown_number" | "unknown_rule" | "identifier";
+    detail: string | null;
+  }[];
 }
 
 export interface AnalystAnswer {

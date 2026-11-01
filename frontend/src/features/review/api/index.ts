@@ -1,6 +1,7 @@
 export {
   reviewApi,
   type HeldPayment,
+  type AgentContext,
   type ReviewNote,
   type ApprovalRequest,
   type ActResult,

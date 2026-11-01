@@ -19,7 +19,7 @@ module Api
         # GET /api/v1/admin/review_queue?scope=captured   captured payments, where a refund can be requested
         def index
           statuses = params[:scope] == "captured" ? %w[CAPTURED PARTIALLY_REFUNDED] : %w[HELD]
-          scope = Transaction.where(paypal_status: statuses).includes(:fraud_evaluation, :user)
+          scope = Transaction.where(paypal_status: statuses).includes(:fraud_evaluation, :user, :agent_mandate)
           # `cursor=` (empty for the first page) pages by keyset, see Keyset; without it the numbered pages stay.
           records, meta = params.key?(:cursor) ? keyset_page(scope) : paginate(scope.order(created_at: :desc, id: :desc))
           notes = recent_notes(records.map { |t| t.id.to_s })
@@ -210,8 +210,19 @@ module Api
             ml_explanation: evaluation&.ml_explanation || [],
             ai_verdict: evaluation&.ai_verdict,
             pending_request: pending_request_for(transaction),
+            agent: agent_context(transaction),
             notes: notes
           }
+        end
+
+        # When an agent paid under a mandate, the reviewer sees the permission the payment was made under.
+        def agent_context(transaction)
+          mandate = transaction.agent_mandate
+          return nil unless mandate
+
+          { mandate_id: mandate.id, label: mandate.label, merchant: mandate.merchant, status: mandate.status,
+            per_payment_cap: mandate.per_payment_cap.to_f, total_cap: mandate.total_cap.to_f, spent_amount: mandate.spent_amount.to_f,
+            remaining: mandate.remaining.to_f, expires_at: mandate.expires_at }
         end
       end
     end

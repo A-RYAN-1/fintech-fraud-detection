@@ -127,6 +127,58 @@ class AgentPaymentsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "the owner gets one notice with what the agent did and what is left" do
+    assert_difference(-> { users(:one).notifications.where("title LIKE ?", "Your agent%").count }, 1) { pay("40") }
+    notice = users(:one).notifications.recent.first
+    assert_equal "Your agent Shopper made a payment", notice.title
+    assert_match(/\$40\.00 to Sentrix Demo Store/, notice.message)
+    assert_match(/left on its mandate/, notice.message)
+    assert_equal @mandate.id, notice.data["agent_mandate_id"]
+  end
+
+  test "a refused payment sends no payment notice" do
+    assert_no_difference(-> { users(:one).notifications.where("title LIKE ?", "Your agent%").count }) { pay("500") }
+    assert_response :forbidden
+  end
+
+  test "a failed notice never undoes the payment" do
+    original = Notification.instance_method(:save!)
+    # Only the agent notice fails; the ordinary flagged-payment notice must still work.
+    Notification.send(:define_method, :save!) do |*args, **kwargs|
+      raise ActiveRecord::RecordInvalid, self if title.to_s.start_with?("Your agent")
+
+      original.bind(self).call(*args, **kwargs)
+    end
+    begin
+      assert_difference("Transaction.count", 1) { pay("20") }
+      assert_response :created
+    ensure
+      Notification.send(:define_method, :save!, original)
+    end
+  end
+
+  test "the review queue shows the mandate a held agent payment was made under" do
+    pay("30")
+    transaction = @mandate.transactions.last
+    transaction.update!(paypal_status: "HELD", status: "FLAGGED") unless transaction.paypal_status == "HELD"
+    delete api_v1_auth_logout_url
+    post api_v1_auth_login_url, params: { email: users(:reviewer).email, password: "password123" }
+    get "/api/v1/admin/review_queue"
+    held = body.dig("data", "held").find { |h| h["id"] == transaction.id }
+    assert_equal "Shopper", held.dig("agent", "label")
+    assert_equal @mandate.id, held.dig("agent", "mandate_id")
+    assert_equal "active", held.dig("agent", "status")
+    assert_equal 150.0, held.dig("agent", "total_cap")
+  end
+
+  test "a payment that is not an agent payment has no agent context" do
+    plain = users(:one).transactions.create!(amount: 300, payment_method: "wallet", device_id: "d", status: "FLAGGED", paypal_status: "HELD")
+    post api_v1_auth_login_url, params: { email: users(:reviewer).email, password: "password123" }
+    get "/api/v1/admin/review_queue"
+    held = body.dig("data", "held").find { |h| h["id"] == plain.id }
+    assert_nil held["agent"]
+  end
+
   test "agent payments are throttled per mandate token" do
     Rack::Attack.enabled = true
     Rack::Attack.cache.store.clear

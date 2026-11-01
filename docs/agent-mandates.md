@@ -16,6 +16,11 @@ An agent that holds a card number can spend without limit. A mandate gives the o
 
 Other endpoints: `GET /api/v1/agent/mandate` (what the agent may still do), `GET /api/v1/agent_mandates`, `POST /api/v1/agent_mandates` and `POST /api/v1/agent_mandates/:id/revoke` for the owner (staff see and can revoke all). The agent endpoint accepts an `Idempotency-Key`, so a retried call settles once and uses the cap once. It is rate limited to 10 a minute per token.
 
+## Who sees what
+
+- **The owner** gets one in-app notice per agent payment: the amount, the merchant, the outcome (paid, held for review, not completed) and what is left on the mandate. A failed notice is logged and never undoes or hides the payment.
+- **The reviewer** sees, on a held agent payment, which agent paid and the mandate it paid under (merchant, caps, used, left, status), and can revoke the mandate from the case. Revoking never touches the payment; the reviewer still decides it. The mandate is context for the reviewer only: it is not part of the facts the AI analyst sees.
+
 ## What is simulated
 
 An agent cannot click through the PayPal approval popup, so agent payments use the simulated PayPal client: authorization, capture, hold and void are local state and no money moves. The decision path (rules, model, analyst, limits, hold or capture) is the real one. The merchant is a label the mandate enforces; Sentrix has one demo store.
