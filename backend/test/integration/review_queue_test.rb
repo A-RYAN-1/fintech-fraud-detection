@@ -91,6 +91,25 @@ class ReviewQueueTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "narrative is for staff, saves an audit row and leaves the payment held" do
+    login_as users(:one)
+    post "/api/v1/admin/review_queue/#{@held.id}/narrative"
+    assert_response :forbidden
+    delete api_v1_auth_logout_url
+
+    login_as users(:analyst)
+    assert_difference -> { AuditLog.where(event_type: "CASE_NARRATIVE").count }, 1 do
+      post "/api/v1/admin/review_queue/#{@held.id}/narrative"
+    end
+    assert_response :success
+    assert_equal "rules", body.dig("data", "source")
+    assert_includes body.dig("data", "summary"), "UNTRUSTED_DEVICE"
+    assert_equal "HELD", @held.reload.paypal_status
+
+    post "/api/v1/admin/review_queue/#{SecureRandom.uuid}/narrative"
+    assert_response :not_found
+  end
+
   test "a customer can neither list nor act" do
     login_as users(:one)
     get "/api/v1/admin/review_queue"

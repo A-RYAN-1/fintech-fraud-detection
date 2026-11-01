@@ -7,7 +7,7 @@ module Api
       class ReviewQueueController < BaseController
         include Idempotent
 
-        before_action :require_staff!, only: [ :index, :ring, :ask, :note, :propose ]
+        before_action :require_staff!, only: [ :index, :ring, :ask, :narrative, :note, :propose ]
         before_action :require_decider!, only: [ :approve, :void, :refund ]
         idempotent :approve, :void, :refund
 
@@ -44,6 +44,15 @@ module Api
 
           transaction = Transaction.includes(:user, :fraud_evaluation).find(params[:id])
           render_success(AskAnalyst.new(transaction).ask(question))
+        rescue ActiveRecord::RecordNotFound
+          render_error("Transaction not found", :not_found)
+        end
+
+        # POST /api/v1/admin/review_queue/:id/narrative  drafts the case narrative (summary, indicators, checks) from the
+        # same facts and saves it as an audit row. Never changes the decision (CaseNarrative).
+        def narrative
+          transaction = Transaction.includes(:user, :fraud_evaluation).find(params[:id])
+          render_success(CaseNarrative.new(transaction).draft!(actor: current_user))
         rescue ActiveRecord::RecordNotFound
           render_error("Transaction not found", :not_found)
         end

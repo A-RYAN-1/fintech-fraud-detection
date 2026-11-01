@@ -70,6 +70,29 @@ class AiAnalyst
     a reviewer could check (for example a trusted device, a lower amount, no linked accounts a person voided).
   TEXT
 
+  # Case narrative (CaseNarrative): a short regulator-style write-up of one stored case, from the same facts.
+  MAX_NARRATIVE_SUMMARY = 600
+  MAX_NARRATIVE_ITEM = 180
+  MAX_NARRATIVE_ITEMS = 5
+  NARRATIVE_SCHEMA = {
+    type: "OBJECT",
+    properties: {
+      summary: { type: "STRING" },
+      indicators: { type: "ARRAY", items: { type: "STRING" } },
+      reviewer_checks: { type: "ARRAY", items: { type: "STRING" } }
+    },
+    required: %w[summary indicators reviewer_checks]
+  }.freeze
+  NARRATIVE_SYSTEM = <<~TEXT.freeze
+    You are a payment risk analyst drafting the case narrative a reviewer attaches to a held payment, in the plain
+    style of a suspicious activity report: factual, no accusation, no speculation. You receive the structured facts
+    the verdict was based on. Use only those facts; do not invent data and do not give or change a decision.
+    summary: two or three sentences saying what was held and why, under 500 characters.
+    indicators: up to five short statements of the observed risk indicators, each grounded in one fact.
+    reviewer_checks: up to four things a person should verify before deciding (for example confirm the device with
+    the customer); they are checks, not decisions.
+  TEXT
+
   AMOUNT_BANDS = [ [ 50, "under 50" ], [ 250, "50 to 250" ], [ 1_000, "250 to 1,000" ], [ 5_000, "1,000 to 5,000" ] ].freeze
 
   def self.enabled?
@@ -132,7 +155,38 @@ class AiAnalyst
     nil
   end
 
+  # A case narrative from the facts. Returns { summary:, indicators:, reviewer_checks:, model: } or nil on any skip or failure.
+  def narrative(facts)
+    return nil unless @client || self.class.enabled?
+    return nil unless @guard.acquire == :ok
+
+    client = @client || GeminiClient.new
+    raw = generate_with_retry(client, "Case facts (JSON):\n#{facts.to_json}", system: NARRATIVE_SYSTEM, schema: NARRATIVE_SCHEMA)
+    parsed = parse_narrative(raw)
+    parsed && parsed.merge(model: client.model)
+  rescue GeminiClient::Error => e
+    @guard.failure(e.message)
+    Rails.logger.warn("AI analyst narrative skipped: #{e.message}")
+    nil
+  end
+
   private
+
+  def parse_narrative(raw)
+    return nil unless raw.is_a?(Hash)
+
+    summary = raw["summary"].to_s.squish
+    return nil if summary.blank?
+
+    { summary: summary.truncate(MAX_NARRATIVE_SUMMARY), indicators: narrative_items(raw["indicators"]),
+      reviewer_checks: narrative_items(raw["reviewer_checks"]) }
+  end
+
+  def narrative_items(raw)
+    return [] unless raw.is_a?(Array)
+
+    raw.filter_map { |item| item.is_a?(String) && item.squish.presence&.truncate(MAX_NARRATIVE_ITEM) }.first(MAX_NARRATIVE_ITEMS)
+  end
 
   # One call, plus at most MAX_RETRIES more for a quick retryable refusal; the guard sees one success or one failure.
   def generate_with_retry(client, prompt, system: SYSTEM, schema: SCHEMA)
