@@ -7,6 +7,7 @@ import { AccountRingPanel } from "./AccountRingPanel";
 import { AskAnalystPanel } from "./AskAnalystPanel";
 import { CaseNarrativePanel } from "./CaseNarrativePanel";
 import { SimilarCasesPanel } from "./SimilarCasesPanel";
+import { AgentContextPanel } from "./AgentContextPanel";
 import { holdExpiry } from "../utils/hold-expiry";
 import { ruleLabel } from "@/utils/ruleLabels";
 
@@ -77,6 +78,8 @@ export function ReviewCard({
               ": decide now, it is voided automatically before it lapses"}
           </p>
         )}
+
+        {payment.agent && <AgentContextPanel agent={payment.agent} />}
 
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800">
