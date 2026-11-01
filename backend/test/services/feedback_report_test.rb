@@ -113,6 +113,37 @@ class FeedbackReportTest < ActiveSupport::TestCase
     assert_equal 1, report.disagreements(signal: "ai").size
   end
 
+  test "rule precision counts false alarms per rule, recent against earlier, and flags a noisy rule" do
+    now = Time.current
+    fire = lambda do |label, rules, at|
+      payment = labelled(label, status: "FLAGGED", ml_score: 0.0, at: at)
+      payment.fraud_evaluation.update!(rules_triggered: rules)
+    end
+    4.times { fire.call("approve", "UNTRUSTED_DEVICE,RAPID_MEDIUM_AMOUNT", now - 1.day) }
+    2.times { fire.call("block", "UNTRUSTED_DEVICE", now - 20.days) }
+    fire.call("block", "RAPID_MEDIUM_AMOUNT", now - 2.days)
+
+    rows = FeedbackReport.new.rule_precision(now: now).index_by { |row| row[:rule] }
+    device = rows.fetch("UNTRUSTED_DEVICE")
+    assert_equal [ 6, 4, 0.667 ], device.values_at(:fired, :human_approved, :false_alarm_rate)
+    assert_equal({ fired: 4, human_approved: 4, false_alarm_rate: 1.0 }, device[:recent])
+    assert_equal({ fired: 2, human_approved: 0, false_alarm_rate: 0.0 }, device[:earlier])
+    assert device[:noisy]
+
+    rapid = rows.fetch("RAPID_MEDIUM_AMOUNT")
+    assert_equal [ 5, 4 ], rapid.values_at(:fired, :human_approved)
+    assert rapid[:noisy], "five decided payments, four approved"
+    assert_equal %w[RAPID_MEDIUM_AMOUNT UNTRUSTED_DEVICE], rows.keys.sort
+    assert_equal rows.keys.first, FeedbackReport.new.rule_precision(now: now).first[:rule], "most fired first"
+  end
+
+  test "a rule with too few decided payments is never noisy" do
+    labelled("approve", status: "FLAGGED", ml_score: 0.0).fraud_evaluation.update!(rules_triggered: "UNTRUSTED_DEVICE")
+    row = FeedbackReport.new.rule_precision.sole
+    assert_equal 1.0, row[:false_alarm_rate]
+    assert_not row[:noisy]
+  end
+
   test "unlabelled payments are not in the report" do
     held_payment
     assert_equal 0, FeedbackReport.new.summary[:labelled]

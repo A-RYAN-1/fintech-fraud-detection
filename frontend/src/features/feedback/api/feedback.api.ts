@@ -35,12 +35,29 @@ export interface Disagreement {
   disagreeing: FeedbackSignal[];
 }
 
+export interface RuleWindow {
+  fired: number;
+  human_approved: number;
+  false_alarm_rate: number | null;
+}
+
+export interface RulePrecision {
+  rule: string;
+  fired: number;
+  human_approved: number;
+  false_alarm_rate: number | null;
+  recent: RuleWindow;
+  earlier: RuleWindow;
+  noisy: boolean;
+}
+
 export interface FeedbackResponse {
   labelled: number;
   human_approve: number;
   human_block: number;
   signals: Record<FeedbackSignal, SignalStats>;
   daily: DailyAgreement[];
+  rule_precision: RulePrecision[];
   disagreements: Disagreement[];
   meta: PaginationMeta;
 }
