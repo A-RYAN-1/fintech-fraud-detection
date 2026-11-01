@@ -19,6 +19,7 @@ class Rack::Attack
     ask_analyst: { limit: 6, period: 1.minute }
   }.freeze
 
+  WEBHOOK_PATH = "/api/v1/paypal/webhooks".freeze
   PAYMENT_PATH = %r{\A/api/v1/paypal/orders(/[^/]+/authorize)?\z}
   SCORING_PATHS = %w[/api/v1/transactions /api/v1/payments/simulate].freeze
   ASK_PATH = %r{\A/api/v1/admin/review_queue/[^/]+/(ask|narrative)\z}
@@ -44,7 +45,7 @@ class Rack::Attack
     throttle(name.to_s, limit: rule[:limit], period: rule[:period]) { |req| yield(req) }
   end
 
-  throttle_rule(:general) { |req| client_ip(req) unless req.path == "/up" }
+  throttle_rule(:general) { |req| client_ip(req) unless [ "/up", WEBHOOK_PATH ].include?(req.path) }
 
   throttle_rule(:login_ip) { |req| client_ip(req) if req.post? && req.path == "/api/v1/auth/login" }
   throttle_rule(:login_email) do |req|

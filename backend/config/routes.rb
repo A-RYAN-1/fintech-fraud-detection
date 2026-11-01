@@ -73,6 +73,7 @@ Rails.application.routes.draw do
 
       post "payments/simulate", to: "paypal_orders#simulate"
       post "paypal/orders", to: "paypal_orders#create"
+      post "paypal/webhooks", to: "paypal_webhooks#create"
       post "paypal/orders/:order_id/authorize", to: "paypal_orders#authorize"
 
       resources :transactions, only: [ :index, :create ] do
