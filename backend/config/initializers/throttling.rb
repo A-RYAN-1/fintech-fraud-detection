@@ -21,7 +21,7 @@ class Rack::Attack
 
   PAYMENT_PATH = %r{\A/api/v1/paypal/orders(/[^/]+/authorize)?\z}
   SCORING_PATHS = %w[/api/v1/transactions /api/v1/payments/simulate].freeze
-  ASK_PATH = %r{\A/api/v1/admin/review_queue/[^/]+/ask\z}
+  ASK_PATH = %r{\A/api/v1/admin/review_queue/[^/]+/(ask|narrative)\z}
   ADMIN_ACTION_PATH = %r{\A/api/v1/admin/review_queue/[^/]+/(approve|void|refund)\z}
 
   self.cache.store = ActiveSupport::Cache::MemoryStore.new(size: 4.megabytes)

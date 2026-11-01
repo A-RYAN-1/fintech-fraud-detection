@@ -48,6 +48,17 @@ export function useAnalystAnswer(id: string, question: AnalystQuestion) {
   });
 }
 
+// Drafting a narrative saves an audit row, so it is requested once per case and kept for the session; a second
+// click on the button only hides or shows the same draft.
+export function useCaseNarrative(id: string) {
+  return useQuery({
+    queryKey: [REVIEW_QUEUE_QUERY_KEY, "narrative", id],
+    queryFn: () => reviewApi.narrative(id),
+    staleTime: Infinity,
+    retry: false,
+  });
+}
+
 const settleKeys = createKeyStore();
 
 export function useSettleRequest() {

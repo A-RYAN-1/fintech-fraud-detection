@@ -98,7 +98,23 @@ export interface AnalystAnswer {
   model: string | null;
 }
 
+export interface CaseNarrative {
+  summary: string;
+  indicators: string[];
+  reviewer_checks: string[];
+  source: "ai" | "rules";
+  model: string | null;
+  created_at: string;
+}
+
 export const reviewApi = {
+  narrative: async (id: string): Promise<CaseNarrative> => {
+    const response = await apiClient.post<ApiResponse<CaseNarrative>>(
+      `/admin/review_queue/${id}/narrative`,
+    );
+    return response.data.data;
+  },
+
   ask: async (
     id: string,
     question: AnalystQuestion,

@@ -9,6 +9,7 @@ export {
   type ReviewAction,
   type AccountRing,
   type AnalystAnswer,
+  type CaseNarrative,
   type AnalystQuestion,
   type RingMember,
 } from "./review.api";
