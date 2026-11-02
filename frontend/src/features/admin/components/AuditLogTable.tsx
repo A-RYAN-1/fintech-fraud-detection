@@ -38,9 +38,15 @@ function getEventBadgeVariant(eventType: string) {
   return "default";
 }
 
+// A nested value (a grounding result, a list) is shown as JSON; String() would print "[object Object]".
+function formatValue(value: unknown): string {
+  if (value !== null && typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
 function formatState(state: Record<string, unknown>) {
   return Object.entries(state)
-    .map(([key, value]) => `${key}=${String(value)}`)
+    .map(([key, value]) => `${key}=${formatValue(value)}`)
     .join(" ");
 }
 
