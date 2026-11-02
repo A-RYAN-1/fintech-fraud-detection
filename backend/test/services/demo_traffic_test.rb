@@ -6,7 +6,7 @@ class DemoTrafficTest < ActiveSupport::TestCase
   def run_traffic(**options)
     # A real PayPal client must never be built: demo traffic is simulated end to end.
     replace_class_method(PaypalClient, :new, ->(*) { raise "PayPal must not be called" }) do
-      DemoTraffic.new(**{ seed: 7, customers: 8, days: 7, leave_open: 2 }.merge(options)).run
+      DemoTraffic.new(**{ seed: 7, customers: 8, days: 7, leave_open: 2, agents: false }.merge(options)).run
     end
   end
 
@@ -100,5 +100,47 @@ class DemoTrafficTest < ActiveSupport::TestCase
     assert paypal.all?(&:simulated?)
     assert_equal({ "CAPTURED" => 6, "HELD" => 1, "VOIDED" => 1 }, paypal.group(:paypal_status).count)
     assert_equal 0, DemoTraffic.seed_customer!(user), "a second run adds nothing"
+  end
+
+  test "the agent persona has mandates, payments inside, refusals outside and one payment held on a new agent device" do
+    report = run_traffic(agents: true)
+    owner = User.find_by!(email: DemoTraffic::AGENT_OWNER)
+    mandates = owner.agent_mandates.index_by(&:label)
+
+    assert_equal 4, report.mandates
+    assert_equal 4, report.refused
+    assert_equal demo_payments.count, report.created
+    assert demo_payments.all?(&:simulated?)
+    assert_equal 4, AuditLog.where(event_type: "MANDATE_REFUSED").count
+    assert_equal %w[merchant_not_allowed mandate_revoked over_per_payment_cap over_total_cap].sort,
+                 AuditLog.where(event_type: "MANDATE_REFUSED").pluck(:reason).sort
+    assert mandates.fetch("Gadget agent").revoked?
+    assert_operator mandates.fetch("Travel agent").remaining, :<=, 20
+    assert_operator mandates.fetch("Groceries agent").transactions.where(paypal_status: "CAPTURED").count, :>=, 3
+
+    held = mandates.fetch("Deal hunter agent").transactions
+    assert_equal [ "HELD" ], held.pluck(:paypal_status), "the new-device agent payment is held for a reviewer"
+    assert_operator report.left_open, :>=, 1
+  end
+
+  test "clean removes the agent persona, its mandates and the mandate audit rows" do
+    run_traffic(agents: true)
+    assert_operator AgentMandate.count, :>=, 4
+
+    DemoTraffic.clean!
+
+    assert_equal 0, AgentMandate.count
+    assert_equal 0, AuditLog.where(entity_type: "AgentMandate").count
+    assert_equal 0, Transaction.where.not(agent_mandate_id: nil).count
+    assert_nil User.find_by(email: DemoTraffic::AGENT_OWNER)
+  end
+
+  test "the agent persona does not change the plan of the other customers" do
+    without = run_traffic(agents: false).to_h
+    DemoTraffic.clean!
+    with = run_traffic(agents: true).to_h
+
+    assert_equal without[:decided], with[:decided]
+    assert_equal without[:voided], with[:voided]
   end
 end

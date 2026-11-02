@@ -11,15 +11,20 @@ require "securerandom"
 #               (rules right, but the shared device is a signal only a cross-customer view sees); `rings` sets how many
 #   blocked     a much larger amount on a new device: blocked and voided by the rules
 #   leave_open  the last held payments of the run stay held for a live demo
+#   agents      one customer who owns four agent mandates (see AGENT_OWNER): payments inside a mandate, a nearly spent
+#               mandate, a revoked one, refusals outside a mandate (audited MANDATE_REFUSED) and one payment held on a
+#               new agent device, left open so a reviewer sees "Paid by an agent"; `agents: false` skips it
 # Same seed gives the same plan.
 class DemoTraffic
   DOMAIN = "demo.sentrix.test".freeze
   RING_DEVICE = "demo-ring-1".freeze
   RING_SIZE = 4
+  AGENT_OWNER = "demo.agentowner@#{DOMAIN}".freeze
 
-  Report = Struct.new(:created, :captured, :held, :voided, :decided, :left_open, :users, keyword_init: true)
+  Report = Struct.new(:created, :captured, :held, :voided, :decided, :left_open, :users, :mandates, :refused, keyword_init: true)
 
-  def initialize(seed: 42, customers: 16, days: 14, leave_open: 3, ai_last: 0, rings: 1)
+  def initialize(seed: 42, customers: 16, days: 14, leave_open: 3, ai_last: 0, rings: 1, agents: true)
+    @agents = agents
     @rng = Random.new(seed)
     @customers = customers
     @days = days
@@ -35,6 +40,8 @@ class DemoTraffic
   def self.clean!
     users = User.where("email LIKE ?", "%@#{DOMAIN}")
     ids = Transaction.where(user_id: users.select(:id)).pluck(:id)
+    mandate_ids = AgentMandate.where(user_id: users.select(:id)).pluck(:id)
+    AuditLog.where(entity_type: "AgentMandate", entity_id: mandate_ids.map(&:to_s)).delete_all
     ApprovalRequest.where(payment_id: ids).delete_all
     AuditLog.where(entity_type: "Transaction", entity_id: ids.map(&:to_s)).delete_all
     AuditLog.where(entity_type: "User", entity_id: users.pluck(:id).map(&:to_s)).delete_all
@@ -76,11 +83,70 @@ class DemoTraffic
 
     left = held.shuffle(random: @rng).first(@leave_open)
     (held - left).each { |transaction, step| decide(transaction, step, reviewer, analyst) }
+    agent_persona if @agents
     Report.new(created: @counts[:created], captured: @counts[:captured], held: @counts[:held], voided: @counts[:voided],
-               decided: @counts[:decided], left_open: left.size, users: people.size + 2)
+               decided: @counts[:decided], left_open: left.size + @counts[:agent_held], users: people.size + 2 + (@agents ? 1 : 0),
+               mandates: @counts[:mandates], refused: @counts[:refused])
   end
 
   private
+
+  # One customer, four agents. Uses its own Random so the plan of the other customers is unchanged. Amounts stay inside
+  # what the owner's own history makes normal, except the last payment (a device the owner has not used, an untrusted device), which the rules hold. Agents that run on the owner's device keep it trusted.
+  def agent_persona
+    rng = Random.new(@rng.seed + 1)
+    owner = User.find_or_create_by!(email: AGENT_OWNER) do |u|
+      u.password = @password
+      u.first_name = "Priya"
+      u.last_name = "Agents"
+    end
+    home = "demo-agent-home"
+    6.times { pay({ user: owner, device: home, amount: (30 + rng.rand(30)).to_f, scenario: :normal }, ai_on: false) }
+
+    groceries = mandate(owner, "Groceries agent", "Fresh Basket", per: 80, total: 400, days: 20)
+    flights = mandate(owner, "Travel agent", "Skyline Air", per: 60, total: 120, days: 12)
+    gadgets = mandate(owner, "Gadget agent", "Gadget Hub", per: 80, total: 300, days: 25)
+    deals = mandate(owner, "Deal hunter agent", "Fresh Basket", per: 500, total: 800, days: 7)
+    @counts[:mandates] = 4
+
+    3.times { agent_pay(groceries, 35 + rng.rand(30), "Fresh Basket", home, "weekly groceries") }
+    agent_pay(flights, 55, "Skyline Air", home, "seat upgrade")
+    agent_pay(flights, 50, "Skyline Air", home, "extra bag")
+    agent_pay(gadgets, 40, "Gadget Hub", home, "phone case")
+    gadgets.revoke!(by: owner)
+
+    agent_pay(groceries, 45, "Gadget Hub", home, "outside the merchant")
+    agent_pay(groceries, 250, "Fresh Basket", home, "above the per-payment cap")
+    agent_pay(gadgets, 30, "Gadget Hub", home, "after the owner revoked it")
+    agent_pay(flights, 40, "Skyline Air", home, "past the total cap")
+
+    held = agent_pay(deals, 130, "Fresh Basket", "demo-agent-new-device", "bulk order from a new device")
+    @counts[:agent_held] += 1 if held&.transaction&.paypal_status == "HELD"
+    @counts[:created] += 6 + @counts[:agent_payments]
+  end
+
+  def mandate(owner, label, merchant, per:, total:, days:)
+    AgentMandate.issue!(user: owner, label: label, merchant: merchant, per_payment_cap: per, total_cap: total, expires_at: days.days.from_now).first
+  end
+
+  # Returns the AgentPayment result, or nil when the mandate refused it (the refusal is audited by AgentPayment).
+  def agent_pay(mandate, amount, merchant, device, purpose)
+    result = AgentPayment.new(mandate: mandate, client: @client).call(amount: amount, merchant: merchant, device_id: device,
+                                                                      ip_address: "198.51.100.#{(mandate.user_id % 200) + 1}", purpose: purpose)
+    @counts[:agent_payments] += 1
+    @counts[result.transaction.paypal_status.downcase.to_sym] += 1
+    stagger(result.transaction, mandate)
+    result
+  rescue AgentMandate::Refused
+    @counts[:refused] += 1
+    nil
+  end
+
+  # Agent payments are recent (inside the mandate's life); the held one stays the newest.
+  def stagger(transaction, mandate)
+    at = Time.current - (transaction.paypal_status == "HELD" ? 1 : 2 + mandate.id % 5).hours
+    transaction.update_columns(created_at: at, updated_at: at, paypal_authorized_at: at)
+  end
 
   def staff(name, role)
     User.find_or_create_by!(email: "demo.#{name}@#{DOMAIN}") do |u|

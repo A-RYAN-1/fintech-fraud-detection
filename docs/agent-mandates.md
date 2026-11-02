@@ -31,6 +31,10 @@ An agent cannot click through the PayPal approval popup, so agent payments use t
 - The caps are enforced by this service. PayPal does not know about the mandate.
 - Tokens are bearer secrets: whoever holds one can spend within the caps until it is revoked or expires.
 
+## Demo data
+
+`bin/rails demo:traffic` (and `AGENTS=0` to skip) seeds one customer, Priya Agents (`demo.agentowner@demo.sentrix.test`), who owns four mandates: a groceries agent with three captured payments, a travel agent nearly out of cap, a gadget agent the owner revoked, and a deal hunter agent whose payment from a device the owner has not used is held for a reviewer. Four attempts outside a mandate (wrong merchant, above the per-payment cap, after revocation, past the total cap) are refused and audited as `MANDATE_REFUSED`. Everything is simulated; `bin/rails demo:clean` removes the customer, the mandates, their payments and the mandate audit rows.
+
 ## Tests
 
-`test/models/agent_mandate_test.rb` (token stored as a digest, caps, expiry, reserve and release, exhaustion), `test/integration/agent_payments_test.rb` (inside the mandate, each refusal code, void gives the cap back, wrong or missing token, a session is not a token, suspended owner, idempotent retry, amount validation, throttle) and `test/integration/agent_mandates_test.rb` (create, token shown once, ownership, revoke, staff view).
+`test/models/agent_mandate_test.rb` (token stored as a digest, caps, expiry, reserve and release, exhaustion), `test/integration/agent_payments_test.rb` (inside the mandate, each refusal code, void gives the cap back, wrong or missing token, a session is not a token, suspended owner, idempotent retry, amount validation, throttle) and `test/integration/agent_mandates_test.rb` (create, token shown once, ownership, revoke, staff view) and, for the demo persona, `test/services/demo_traffic_test.rb`.
