@@ -8,8 +8,8 @@
 <h1 align="center">Fintech Fraud Detection</h1>
 
 <p align="center">
-  Real-time, explainable risk scoring for payments.<br>
-  Every transaction is scored by rules as it arrives and comes back <b>approved</b>, <b>flagged</b> or <b>blocked</b>, with the reasons listed.
+  PayPal payments, judged by AI before the money moves.<br>
+  Rules, a trained model and an AI analyst check every authorized payment: safe ones are <b>captured</b>, doubtful ones wait for a <b>person</b>, the rest are <b>voided</b>, and every decision is on record.
 </p>
 
 <p align="center">
@@ -44,12 +44,13 @@
   </a>
 </p>
 
-<p align="center"><sub>Last updated: 2026-10-15 &middot; Live on free tiers (Vercel, Render, Neon)</sub></p>
+<p align="center"><sub>Last updated: 2026-11-02 &middot; Live on free tiers (Vercel, Render, Neon)</sub></p>
 
 ---
 
 ## Contents
 
+- [What changed for the PayPal AI Hackathon](#what-changed-for-the-paypal-ai-hackathon)
 - [About](#about)
 - [Try it live](#try-it-live)
 - [Features](#features)
@@ -61,6 +62,26 @@
 - [Deployment](#deployment)
 - [Status and roadmap](#status-and-roadmap)
 - [Credits](#credits)
+
+## What changed for the PayPal AI Hackathon
+
+This project began before the hackathon period as a rules-based risk-scoring app, built with a collaborator who wrote its original frontend. At the start of the period (2026-10-01) the backend had no PayPal code. Everything below was built and merged between 2026-10-21 and 2026-11-02 by one person; each row links to its pull requests. The PayPal sandbox is used throughout, so no real money moves. Agent payments use a simulated PayPal client (an agent cannot click through PayPal's approval window); the decision path is the real one.
+
+| Area | What was added | Pull requests |
+|---|---|---|
+| PayPal | Orders create, authorize, capture, void and refund behind the risk gate; hold expiry and partial refunds; idempotency keys; a signature-verified webhook receiver | [#33](../../pull/33), [#44](../../pull/44), [#45](../../pull/45), [#42](../../pull/42), [#81](../../pull/81) |
+| AI analyst | Bounded verdict that can escalate but never release; evidence timeline; token bucket, circuit breaker and retry; ask the analyst; case narrative; a grounding check on every AI text | [#35](../../pull/35), [#40](../../pull/40), [#43](../../pull/43), [#74](../../pull/74), [#79](../../pull/79), [#87](../../pull/87), [#90](../../pull/90) |
+| Scoring and feedback | Explainable second score; editable rules; reviewer decisions as labels; per-rule false alarms; agent-drafted rule changes replayed over stored payments | [#30](../../pull/30), [#32](../../pull/32), [#49](../../pull/49), [#80](../../pull/80), [#64](../../pull/64) |
+| Agentic commerce | Agent mandates (merchant, per-payment cap, total cap, expiry, revoke), agent context on a case, owner notices, a demo agent persona | [#86](../../pull/86), [#89](../../pull/89), [#91](../../pull/91) |
+| Review and roles | Review queue and limits; analyst, reviewer and admin roles; four-eyes approval for over-limit decisions and refunds; customer status and note | [#36](../../pull/36), [#37](../../pull/37), [#46](../../pull/46), [#47](../../pull/47), [#88](../../pull/88) |
+| Reading a case | Account and device ring graph; similar past cases with pgvector | [#73](../../pull/73), [#82](../../pull/82) |
+| Operations | Rate limits, deep health, JSON logs, indexes and keyset pages, incident digest, a load test with measured numbers | [#38](../../pull/38), [#66](../../pull/66), [#70](../../pull/70), [#71](../../pull/71), [#72](../../pull/72) |
+
+Measured, with the source page for each: the AI analyst agrees with the label in 27 of 30 offline cases against 20 of 30 for the rules alone ([docs/ai-evaluation.md](docs/ai-evaluation.md)); the grounding check accepted 10 of 10 faithful texts and rejected 12 of 12 planted fabrications in its synthetic corpus ([docs/analyst-grounding.md](docs/analyst-grounding.md)); list and staff pages stay flat to 40 requests a second at 0.5 CPU with no server errors ([docs/performance.md](docs/performance.md)). Not claimed: a live rejection rate for the AI, an accuracy gain from similar cases (equal to the baseline on 9 cases), or any figure from the demo reviewer decisions, which are scripted.
+
+To try it: the sign-in page has Customer, Reviewer and Admin sandbox logins that fill the form. As Admin, open Agents for four mandates and Review Queue for a payment an agent made from an unused device. `bin/rails demo:traffic` seeds that data locally and `bin/rails demo:clean` removes it.
+
+---
 
 ## About
 
