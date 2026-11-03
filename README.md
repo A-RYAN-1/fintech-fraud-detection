@@ -15,6 +15,8 @@
 <p align="center">
   <a href="https://fintech-fraud-detection-aryan.vercel.app"><strong>Live demo</strong></a>
   &middot;
+  <a href="https://youtu.be/i2tTB4IEENQ">Demo video</a>
+  &middot;
   <a href="#try-it-live">Demo login</a>
   &middot;
   <a href="#how-it-works">How it works</a>
@@ -39,6 +41,13 @@
   <a href="https://fintech-fraud-detection-aryan.vercel.app">
     <img src="docs/images/sentrix-case.png" width="90%" alt="A held payment in the review queue: rules, model and AI analyst side by side, the analyst's answer to Why this verdict, and capture or void buttons">
   </a>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/i2tTB4IEENQ">
+    <img src="https://img.youtube.com/vi/i2tTB4IEENQ/hqdefault.jpg" width="40%" alt="Watch the 2 minute 17 second demo video on YouTube">
+  </a>
+  <br><sub>Demo video, 2:17: one purchase through a customer, a reviewer and an admin, on the PayPal sandbox. Synthetic voice.</sub>
 </p>
 
 <p align="center"><sub>Last updated: 2026-11-03 &middot; Live on free tiers (Vercel, Render, Neon)</sub></p>
