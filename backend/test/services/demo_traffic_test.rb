@@ -90,8 +90,11 @@ class DemoTrafficTest < ActiveSupport::TestCase
 
   test "seed_customer! gives a shared login a history once and never calls PayPal" do
     user = users(:one)
-    added = replace_class_method(PaypalClient, :new, ->(*) { raise "PayPal must not be called" }) do
-      DemoTraffic.seed_customer!(user)
+    # The model scores 00:00 to 06:00 UTC as night-time; pin the clock so this does not depend on when CI runs.
+    added = travel_to(Time.utc(2026, 11, 3, 12, 0, 0)) do
+      replace_class_method(PaypalClient, :new, ->(*) { raise "PayPal must not be called" }) do
+        DemoTraffic.seed_customer!(user)
+      end
     end
 
     paypal = user.transactions.where.not(paypal_status: [ nil, *HomeSummary::NOT_AUTHORIZED ])
