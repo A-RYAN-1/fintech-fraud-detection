@@ -37,3 +37,7 @@ A09 and R10 are the cases built to be over-flagged by the rules; the analyst rep
 - 30 cases written by one person is a smoke test of behaviour, not a benchmark of fraud detection accuracy; the labels encode our rubric.
 - The analyst is advisory. Its verdict is stored next to the rules decision and shown to a reviewer; it never changes a payment status in this layer. Any failure (no key, timeout, 429, malformed JSON) returns nothing and the rules decision stands alone.
 - Free tier: `gemini-2.5-flash` returns 404 for keys created after its cutoff and `gemini-3-flash-preview` answers 429 after a handful of calls a minute, so the default is the stable `gemini-3.1-flash-lite`, overridable with `GEMINI_MODEL`.
+
+## Production model note (2026-11-03)
+
+The evaluation above was run on `gemini-3.1-flash-lite`. Production now runs `gemini-3-flash-preview`, set through `GEMINI_MODEL`, because that model answered a structured request in about 2.9 s (3 of 3 calls) while `gemini-3.5-flash-lite` took about 15 s (3 of 3), longer than the analyst's 8 second timeout. This evaluation was not re-run on `gemini-3-flash-preview`, so the 27 of 30 figure is claimed only for the model it was measured on.

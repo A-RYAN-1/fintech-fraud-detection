@@ -37,14 +37,11 @@
 
 <p align="center">
   <a href="https://fintech-fraud-detection-aryan.vercel.app">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/images/dashboard-dark.png">
-      <img src="docs/images/dashboard-light.png" width="90%" alt="Dashboard: transaction counts by outcome, volume over time, risk distribution and a risk heatmap">
-    </picture>
+    <img src="docs/images/sentrix-case.png" width="90%" alt="A held payment in the review queue: rules, model and AI analyst side by side, the analyst's answer to Why this verdict, and capture or void buttons">
   </a>
 </p>
 
-<p align="center"><sub>Last updated: 2026-11-02 &middot; Live on free tiers (Vercel, Render, Neon)</sub></p>
+<p align="center"><sub>Last updated: 2026-11-03 &middot; Live on free tiers (Vercel, Render, Neon)</sub></p>
 
 ---
 
@@ -124,8 +121,8 @@ Things to try in the first two minutes:
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/transactions.png" alt="Transaction list with status and risk score per payment"><p align="center"><sub>Every payment with its outcome and risk score</sub></p></td>
-    <td width="50%"><img src="docs/images/risk-analysis.png" alt="Risk analysis: counts, score distribution and status breakdown"><p align="center"><sub>Risk analysis by period, status and method</sub></p></td>
+    <td width="50%"><img src="docs/images/sentrix-history.png" alt="Payment history with status, rules score, model score, AI verdict and action taken per payment"><p align="center"><sub>Every payment with its outcome, scores and the decision taken</sub></p></td>
+    <td width="50%"><img src="docs/images/sentrix-audit.png" alt="Audit log: a capture with the reviewer note, the hold and the flag, each with before and after state"><p align="center"><sub>The audit log: who decided, what PayPal was told</sub></p></td>
   </tr>
 </table>
 
