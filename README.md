@@ -481,3 +481,7 @@ Built by two people:
 - **Tanmay Tambat** ([OldStager01](https://github.com/OldStager01)): the frontend and the original deployment. The
   original repository is
   [OldStager01/fintech-fraud-detection](https://github.com/OldStager01/fintech-fraud-detection).
+
+## License
+
+Released under the [MIT License](LICENSE). Copyright (c) 2026 Aryan Deshmukh and contributors.
