@@ -147,7 +147,7 @@ export default function HomePage() {
   const scope =
     data?.scope === "own"
       ? "Counts over your own payments."
-      : `Counts over every payment of the last ${data?.window_days ?? 7} days.`;
+      : `Counts over every payment of the last ${data?.window_days ?? 60} days.`;
 
   return (
     <PageTransition>

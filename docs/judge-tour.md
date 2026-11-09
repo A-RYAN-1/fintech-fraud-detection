@@ -4,7 +4,7 @@
 
 What it shows, top to bottom:
 
-1. What Sentrix is, with live counts from the demo (last 7 days) and a drawn example of a reviewer's case card.
+1. What Sentrix is, with live counts from the demo (last 60 days) and a drawn example of a reviewer's case card.
 2. Why it exists: three problems, in plain words.
 3. How a payment is decided: the six steps from `config/pipeline.ts`, each with its live count.
 4. What the AI analyst may and may never do.
@@ -14,6 +14,6 @@ What it shows, top to bottom:
 
 ## Live counts
 
-`GET /api/v1/public/pipeline` (no sign-in) returns `window_days` and the same `pipeline` counts staff see on Home, over every payment of the last 7 days (`HomeSummary.public_pipeline`). It returns counts only: no amounts, people, emails or ids. The answer is cached for one minute and falls under the general per-address rate limit.
+`GET /api/v1/public/pipeline` (no sign-in) returns `window_days` and the same `pipeline` counts staff see on Home, over every payment of the last 60 days (`HomeSummary.public_pipeline`). It returns counts only: no amounts, people, emails or ids. The answer is cached for one minute and falls under the general per-address rate limit.
 
 The two drawn examples (case card, mandate) are illustrations and say so on the page; every number that is live is labelled live.

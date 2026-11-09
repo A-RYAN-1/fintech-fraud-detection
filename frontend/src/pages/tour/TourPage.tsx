@@ -296,7 +296,7 @@ function LiveStats() {
         </span>
         {isError
           ? "Live counts are waking up; the free API can take a minute"
-          : `Live from the demo, last ${data?.window_days ?? 7} days`}
+          : `Live from the demo, last ${data?.window_days ?? 60} days`}
       </p>
       <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([label, value]) => (
