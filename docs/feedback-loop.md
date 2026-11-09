@@ -41,3 +41,7 @@ How to read it: the rules hold travellers on a new device (5 false alarms, nothi
 ## Tests
 
 `FeedbackReportTest` (labels set by a person's capture and void, not by the agent, not when the payment was not held, refund turns approve into block, partial refund does not; agreement, false alarms and misses on fixed fixtures; daily grouping; disagreement filter) and `FeedbackTest` (401, 403 for a customer, staff summary, signal filter, 422 for an unknown signal). Frontend: `FeedbackPage.test.tsx`.
+
+## Small samples
+
+A signal with fewer than five answered decisions shows "Too few to score" and how many it read instead of a percentage: one read that disagreed would otherwise show as 0%, which says more than the data does. The analyst column is the one this affects in the demo, because the generator seeds with the analyst off.

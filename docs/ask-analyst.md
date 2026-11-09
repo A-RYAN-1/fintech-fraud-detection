@@ -37,3 +37,7 @@ If the analyst is off, the circuit is open, the bucket is empty, the call fails 
 - `test/services/ask_analyst_test.rb`: facts only (no identifiers in the prompt), open circuit falls back without a model call, model failure and empty answer fall back, unknown question never reaches the model, asking changes nothing.
 - `test/integration/review_queue_test.rb`: staff only, 422 on a bad question, 404 on an unknown case.
 - `AskAnalystPanel.test.tsx`: no request until clicked, answer shown with the advice line, rules-only label, error text.
+
+## Reading held payments the analyst skipped
+
+`bin/rails analyst:backfill_held` (`LIMIT`, `PAUSE`; `CONFIRM=yes` in production) has the analyst read every held payment that has no verdict, for example the ones `demo:traffic` seeded with the analyst off. It sends the same facts-only payload as Ask the analyst, paced at one call every 7 seconds for the free tier, and stores the verdict with `read_after_hold: true` and `read_at`, so it is never mistaken for the read taken at payment time. It changes no status, hold or decision; a skipped or failed read is left for the next run.
