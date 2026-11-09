@@ -5,3 +5,4 @@ export {
   type HomePipeline,
   type HomeNextStep,
 } from "./home.api";
+export { countsFor } from "./pipelineCounts";

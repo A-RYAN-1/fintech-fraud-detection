@@ -7,6 +7,12 @@ class HomeSummary
   # A PayPal order the buyer never approved: no money was authorized, so it is not a payment yet.
   NOT_AUTHORIZED = %w[CREATED].freeze
 
+  # The staff-wide pipeline counts with no user: what the public tour page shows. Counts only,
+  # no amounts, people or ids.
+  def self.public_pipeline(now: Time.current)
+    new(nil, now: now).pipeline
+  end
+
   def initialize(user, now: Time.current)
     @user = user
     @now = now
@@ -24,7 +30,7 @@ class HomeSummary
   private
 
   def customer?
-    @user.customer?
+    @user&.customer? || false
   end
 
   # Payments that went through PayPal (live or simulated sandbox), not the legacy scored-only rows.
@@ -38,6 +44,8 @@ class HomeSummary
   def with_evaluation
     payments.joins(:fraud_evaluation)
   end
+
+  public
 
   def pipeline
     ml_flagged = with_evaluation.where(status: "FLAGGED").where("fraud_evaluations.rules_triggered LIKE ?", "%ML_RISK_SCORE%").count
@@ -55,6 +63,8 @@ class HomeSummary
       refunded: payments.where(paypal_status: "REFUNDED").count
     }
   end
+
+  private
 
   def next_step
     case @user.role

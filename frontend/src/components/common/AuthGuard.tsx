@@ -38,8 +38,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     return <LoadingScreen />;
   }
 
-  // Redirect to login if not authenticated
+  // A guest opening the site's root sees the tour; any other page asks them to sign in.
   if (!isAuthenticated) {
+    if (location.pathname === "/") return <Navigate to="/tour" replace />;
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
