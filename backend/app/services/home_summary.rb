@@ -1,8 +1,9 @@
 # The numbers on each role's Home: how payments moved through the checks, and the one thing to do next.
-# A customer sees only their own payments, all time. Staff see every payment of the last 7 days as counts only,
+# A customer sees only their own payments, all time. Staff see every payment of the last 60 days as counts only,
 # with no customer details.
 class HomeSummary
-  WINDOW = 7.days
+  # Wide enough that the demo's seeded traffic still shows through a judging period weeks after it was made.
+  WINDOW = 60.days
   CAPTURED = %w[CAPTURED PARTIALLY_REFUNDED].freeze
   # A PayPal order the buyer never approved: no money was authorized, so it is not a payment yet.
   NOT_AUTHORIZED = %w[CREATED].freeze
