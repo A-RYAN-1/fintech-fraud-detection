@@ -3,27 +3,21 @@ import {
   ArrowRight,
   Bot,
   Check,
-  CircleCheck,
-  Cpu,
   ExternalLink,
   Github,
-  ListChecks,
   PlayCircle,
   ShieldCheck,
   Sparkles,
-  UserCheck,
-  Wallet,
   X,
-  type LucideIcon,
 } from "lucide-react";
 import ThemeToggle from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui";
 import {
   demoAccounts,
   homePathFor,
+  pipelineIcons,
   pipelineSteps,
   type DemoAccount,
-  type PipelineStep,
 } from "@/config";
 import { useAuth, useLogin } from "@/features/auth/hooks";
 import { countsFor } from "@/features/home";
@@ -33,15 +27,6 @@ import { cn } from "@/utils";
 
 export const VIDEO_URL = "https://youtu.be/i2tTB4IEENQ";
 export const REPO_URL = "https://github.com/A-RYAN-1/fintech-fraud-detection";
-
-const STEP_ICONS: Record<PipelineStep["key"], LucideIcon> = {
-  paypal: Wallet,
-  rules: ListChecks,
-  model: Cpu,
-  ai: Sparkles,
-  human: UserCheck,
-  result: CircleCheck,
-};
 
 const NAV = [
   { href: "#how", label: "How it works" },
@@ -347,7 +332,7 @@ function PipelineFlow() {
         <div className="h-px w-1/3 bg-gradient-to-r from-transparent via-primary-400 to-transparent motion-safe:animate-flow" />
       </div>
       {pipelineSteps.map((step, i) => {
-        const Icon = STEP_ICONS[step.key];
+        const Icon = pipelineIcons[step.key];
         return (
           <li key={step.key} className={cn(PANEL, "relative p-5")}>
             <div className="flex items-center gap-3">

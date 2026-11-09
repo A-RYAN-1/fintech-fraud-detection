@@ -7,7 +7,8 @@ import {
   FileText,
 } from "lucide-react";
 import { Badge, Skeleton } from "@/components/ui";
-import { formatShortDateTime, formatRelativeTime } from "@/utils";
+import { useState } from "react";
+import { cn, formatShortDateTime, formatRelativeTime } from "@/utils";
 import type { AuditLog } from "../api";
 
 interface AuditLogTableProps {
@@ -50,6 +51,36 @@ function formatState(state: Record<string, unknown>) {
     .join(" ");
 }
 
+// Long states (a case narrative, a grounding result) are folded to two lines until asked for.
+const LONG = 160;
+
+function StateLine({ label, text }: { label: string; text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > LONG;
+  return (
+    <span className="block w-full">
+      <span
+        className={cn(
+          "block font-mono [overflow-wrap:anywhere]",
+          long && !open && "line-clamp-2",
+        )}
+      >
+        {label} {text}
+      </span>
+      {long && (
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          className="mt-0.5 text-xs font-medium text-primary-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-primary-300"
+        >
+          {open ? "Show less" : "Show all"}
+        </button>
+      )}
+    </span>
+  );
+}
+
 export default function AuditLogTable({
   logs,
   isLoading = false,
@@ -89,7 +120,7 @@ export default function AuditLogTable({
       {logs.map((log) => (
         <div
           key={log.id}
-          className="flex items-start gap-4 p-4 rounded-lg border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
+          className="flex items-start gap-4 rounded-xl border border-neutral-200 p-4 transition-colors hover:bg-neutral-50 dark:border-white/[0.06] dark:hover:bg-white/[0.03]"
         >
           <div className="shrink-0 h-9 w-9 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
             {getEventIcon(log.event_type)}
@@ -118,14 +149,10 @@ export default function AuditLogTable({
                   </span>
                 )}
                 {log.before && (
-                  <span className="font-mono">
-                    before {formatState(log.before)}
-                  </span>
+                  <StateLine label="before" text={formatState(log.before)} />
                 )}
                 {log.after && (
-                  <span className="font-mono">
-                    after {formatState(log.after)}
-                  </span>
+                  <StateLine label="after" text={formatState(log.after)} />
                 )}
               </div>
             )}

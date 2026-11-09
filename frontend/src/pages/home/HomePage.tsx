@@ -10,7 +10,7 @@ import {
   CardTitle,
   Skeleton,
 } from "@/components/ui";
-import { pipelineSteps, roleGuides } from "@/config";
+import { pipelineIcons, pipelineSteps, roleGuides } from "@/config";
 import { useAuth } from "@/features/auth/hooks";
 import { countsFor } from "@/features/home/pipelineCounts";
 import {
@@ -92,37 +92,45 @@ function Pipeline({
       </CardHeader>
       <CardContent>
         <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {pipelineSteps.map((step, i) => (
-            <li
-              key={step.key}
-              className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
-            >
-              <p className="text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                Step {i + 1}
-              </p>
-              <p className="mt-1 font-medium text-neutral-900 dark:text-neutral-100">
-                {step.title}
-              </p>
-              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-                {step.line}
-              </p>
-              <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-                {countsFor(step.key, pipeline).map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="flex flex-row-reverse items-baseline justify-end gap-1"
-                  >
-                    <dt className="text-sm text-neutral-500 dark:text-neutral-400">
-                      {label}
-                    </dt>
-                    <dd className="text-lg font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
-                      {value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </li>
-          ))}
+          {pipelineSteps.map((step, i) => {
+            const Icon = pipelineIcons[step.key];
+            return (
+              <li
+                key={step.key}
+                className="rounded-xl border border-neutral-200 bg-neutral-50/60 p-4 dark:border-white/[0.06] dark:bg-white/[0.02]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-gradient text-white">
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                  <p className="text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                    Step {i + 1}
+                  </p>
+                </div>
+                <p className="mt-1 font-medium text-neutral-900 dark:text-neutral-100">
+                  {step.title}
+                </p>
+                <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+                  {step.line}
+                </p>
+                <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+                  {countsFor(step.key, pipeline).map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex flex-row-reverse items-baseline justify-end gap-1"
+                    >
+                      <dt className="text-sm text-neutral-500 dark:text-neutral-400">
+                        {label}
+                      </dt>
+                      <dd className="text-lg font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </li>
+            );
+          })}
         </ol>
       </CardContent>
     </Card>

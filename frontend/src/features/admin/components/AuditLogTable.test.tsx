@@ -21,7 +21,9 @@ describe("AuditLogTable", () => {
   it("shows a nested value as JSON, never as [object Object]", () => {
     renderWithProviders(
       <AuditLogTable
-        logs={[log({ source: "ai", grounding: { status: "passed", cited: 3 } })]}
+        logs={[
+          log({ source: "ai", grounding: { status: "passed", cited: 3 } }),
+        ]}
       />,
     );
 
@@ -33,8 +35,26 @@ describe("AuditLogTable", () => {
   });
 
   it("keeps plain values as they were", () => {
-    renderWithProviders(<AuditLogTable logs={[log({ decision: "held", n: 2 })]} />);
+    renderWithProviders(
+      <AuditLogTable logs={[log({ decision: "held", n: 2 })]} />,
+    );
 
     expect(screen.getByText("after decision=held n=2")).toBeInTheDocument();
+  });
+});
+
+describe("AuditLogTable long states", () => {
+  it("folds a long state to two lines and opens it on request", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    renderWithProviders(
+      <AuditLogTable logs={[log({ summary: "x".repeat(300) })]} />,
+    );
+    const toggle = screen.getByRole("button", { name: "Show all" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "Show less" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
   });
 });

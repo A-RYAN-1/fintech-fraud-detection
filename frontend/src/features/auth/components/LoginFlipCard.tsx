@@ -2,29 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Shield,
-  Wallet,
-  ListChecks,
-  Cpu,
-  Sparkles,
-  UserCheck,
-  CircleCheck,
   ArrowRight,
   ArrowLeft,
-  type LucideIcon,
 } from "lucide-react";
 import ThemeToggle from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui";
-import { pipelineSteps, type PipelineStep } from "@/config";
+import { pipelineIcons, pipelineSteps } from "@/config";
 import LoginForm from "./LoginForm";
 
-const ICONS: Record<PipelineStep["key"], LucideIcon> = {
-  paypal: Wallet,
-  rules: ListChecks,
-  model: Cpu,
-  ai: Sparkles,
-  human: UserCheck,
-  result: CircleCheck,
-};
 
 const FACE =
   "col-start-1 row-start-1 rounded-2xl border border-neutral-200 bg-white p-5 shadow-soft [backface-visibility:hidden] dark:border-neutral-800 dark:bg-neutral-900 sm:p-6";
@@ -83,7 +68,7 @@ export default function LoginFlipCard() {
               className="mt-5 grid grid-cols-2 gap-2"
             >
               {pipelineSteps.map((step, i) => {
-                const Icon = ICONS[step.key];
+                const Icon = pipelineIcons[step.key];
                 return (
                   <li
                     key={step.key}
