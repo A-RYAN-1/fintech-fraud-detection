@@ -15,7 +15,7 @@
 <p align="center">
   <a href="https://fintech-fraud-detection-aryan.vercel.app/tour"><strong>Live demo</strong></a>
   &middot;
-  <a href="https://youtu.be/i2tTB4IEENQ">Demo video</a>
+  <a href="https://youtu.be/UKqsBzFi81M">Demo video</a>
   &middot;
   <a href="#try-it-live">Demo login</a>
   &middot;
@@ -50,10 +50,10 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/i2tTB4IEENQ">
-    <img src="https://img.youtube.com/vi/i2tTB4IEENQ/hqdefault.jpg" width="40%" alt="Watch the 2 minute 17 second demo video on YouTube">
+  <a href="https://youtu.be/UKqsBzFi81M">
+    <img src="https://img.youtube.com/vi/UKqsBzFi81M/hqdefault.jpg" width="40%" alt="Watch the 3 minute demo video on YouTube">
   </a>
-  <br><sub>Demo video, 2:17: one purchase through a customer, a reviewer and an admin, on the PayPal sandbox. Synthetic voice.</sub>
+  <br><sub>Demo video, 3:00: one purchase through a customer, a reviewer and an admin on the PayPal sandbox, then agents, rule changes and the feedback loop. Synthetic voice.</sub>
 </p>
 
 <p align="center"><sub>Last updated: 2026-11-09 &middot; Live on free tiers (Vercel, Render, Neon)</sub></p>
