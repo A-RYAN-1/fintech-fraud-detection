@@ -11,7 +11,7 @@ export default function Header() {
   const dispatch = useAppDispatch();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200 bg-white/80 backdrop-blur-sm px-4 dark:border-neutral-800 dark:bg-neutral-900/80">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200/80 bg-white/70 px-4 backdrop-blur-xl backdrop-saturate-150 dark:border-white/[0.06] dark:bg-neutral-950/60">
       <div className="flex min-w-0 items-center gap-4">
         {/* Mobile menu button */}
         <Button

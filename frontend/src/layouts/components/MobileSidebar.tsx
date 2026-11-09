@@ -96,7 +96,7 @@ export default function MobileSidebar() {
       />
 
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-neutral-900 lg:hidden animate-slide-up">
+      <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-neutral-925 lg:hidden animate-slide-up">
         <div className="flex h-full flex-col">
           {/* Header */}
           <div className="flex h-20 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 px-6 py-6">

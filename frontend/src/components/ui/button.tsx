@@ -4,15 +4,15 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-offset-neutral-900',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-offset-neutral-900',
   {
     variants: {
       variant: {
-        default: 'bg-primary-700 text-white hover:bg-primary-800 dark:bg-primary-700 dark:hover:bg-primary-800',
+        default: 'bg-primary-700 text-white shadow-sm shadow-primary-900/20 hover:bg-primary-800 dark:bg-primary-700 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)] dark:hover:bg-primary-800',
         destructive: 'bg-danger-600 text-white hover:bg-danger-700',
-        outline: 'border border-neutral-300 bg-transparent hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800',
+        outline: 'border border-neutral-300 bg-white/50 hover:border-neutral-400 hover:bg-neutral-100 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-white/20 dark:hover:bg-white/[0.06]',
         secondary: 'bg-neutral-200 text-neutral-900 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600',
-        ghost: 'hover:bg-neutral-100 dark:hover:bg-neutral-800',
+        ghost: 'hover:bg-neutral-100 dark:hover:bg-white/[0.06]',
         link: 'text-primary-600 underline-offset-4 hover:underline dark:text-primary-400',
       },
       size: {

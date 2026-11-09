@@ -36,10 +36,10 @@ function NavItemComponent({
     <Link
       to={item.href}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-        "hover:bg-neutral-100 dark:hover:bg-neutral-800",
+        "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+        "hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-white/[0.05] dark:hover:text-neutral-100",
         isActive
-          ? "bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300"
+          ? "bg-primary-50 text-primary-700 before:absolute before:inset-y-1.5 before:-left-3 before:w-[3px] before:rounded-r-full before:bg-brand-gradient dark:bg-primary-500/10 dark:text-primary-300"
           : "text-neutral-600 dark:text-neutral-400",
         collapsed && "justify-center px-2",
       )}
@@ -86,7 +86,7 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 transition-all duration-300",
+        "fixed left-0 top-0 z-40 h-screen border-r border-neutral-200 bg-white dark:border-white/[0.06] dark:bg-neutral-925 transition-all duration-300",
         collapsed ? "w-16" : "w-64",
       )}
     >
@@ -94,7 +94,7 @@ export default function Sidebar() {
         {/* Logo */}
         <div
           className={cn(
-            "flex h-16 items-center border-b border-neutral-200 dark:border-neutral-800 px-8 py-8",
+            "flex h-16 items-center border-b border-neutral-200 dark:border-white/[0.06] px-8 py-8",
             collapsed && "justify-center px-2",
           )}
         >
@@ -124,7 +124,7 @@ export default function Sidebar() {
             {filteredNavigation.map((section, index) => (
               <div key={index}>
                 {section.title && !collapsed && (
-                  <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                  <h3 className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
                     {section.title}
                   </h3>
                 )}
@@ -145,7 +145,7 @@ export default function Sidebar() {
         {/* Shared group: the same for every role */}
         <nav
           aria-label="Account"
-          className="space-y-1 border-t border-neutral-200 px-3 py-3 dark:border-neutral-800"
+          className="space-y-1 border-t border-neutral-200 px-3 py-3 dark:border-white/[0.06]"
         >
           {accountNavigation.map((item) => (
             <NavItemComponent key={item.href} item={item} collapsed={collapsed} />
@@ -153,7 +153,7 @@ export default function Sidebar() {
         </nav>
 
         {/* Collapse Toggle */}
-        <div className="border-t border-neutral-200 dark:border-neutral-800 p-3">
+        <div className="border-t border-neutral-200 dark:border-white/[0.06] p-3">
           <Button
             variant="ghost"
             size="sm"
