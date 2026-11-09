@@ -233,4 +233,23 @@ class AiAnalystTest < ActiveSupport::TestCase
     assert_nil analyst(client, guard: guard).verdict(FACTS)
     assert_equal 1, client.calls
   end
+
+  test "the verdict keeps the short timeout; ask and narrative, started by a reviewer, get the interactive one" do
+    timeouts = []
+    factory = lambda do |**options|
+      timeouts << options[:timeout]
+      FakeClient.new({ "action" => "review", "confidence" => 0.5, "explanation" => "Rules decision review.", "answer" => "Rules decision review.",
+                       "summary" => "Held for review.", "indicators" => [], "reviewer_checks" => [] })
+    end
+    previous = ENV["GEMINI_API_KEY"]
+    ENV["GEMINI_API_KEY"] = "test-key"
+    analyst = AiAnalyst.new(guard: AnalystGuard.new, client_factory: factory)
+    analyst.verdict(FACTS)
+    analyst.answer(FACTS, "why")
+    analyst.narrative(FACTS)
+
+    assert_equal [ nil, AiAnalyst::INTERACTIVE_TIMEOUT, AiAnalyst::INTERACTIVE_TIMEOUT ], timeouts
+  ensure
+    ENV["GEMINI_API_KEY"] = previous
+  end
 end
