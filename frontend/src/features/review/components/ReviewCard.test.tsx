@@ -39,10 +39,16 @@ describe("ReviewCard evidence", () => {
       />,
     );
 
-    expect(screen.getByText("Rules: score 45")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Rules" })).toHaveTextContent(
+      "score 45",
+    );
     expect(screen.getByText("New or untrusted device")).toBeInTheDocument();
-    expect(screen.getByText("Model: 40% risk")).toBeInTheDocument();
-    expect(screen.getByText(/AI analyst: review \(70%\)/)).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Model" })).toHaveTextContent(
+      "40% risk",
+    );
+    const analyst = screen.getByRole("region", { name: "AI analyst" });
+    expect(analyst).toHaveTextContent("review");
+    expect(analyst).toHaveTextContent("70% confident");
   });
 
   it("says when the analyst's wording was replaced because it cited something outside the facts", () => {
