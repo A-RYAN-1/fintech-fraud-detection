@@ -2,7 +2,9 @@ require "net/http"
 require "json"
 
 # Thin client for the Gemini generateContent API with a JSON response schema. Configured only from the
-# environment: GEMINI_API_KEY, GEMINI_MODEL (default below). The model is pinned here because Google retires
+# environment: GEMINI_API_KEY, GEMINI_MODEL (default below) and GEMINI_FALLBACK_MODELS (comma separated, optional).
+# Free-tier quotas are per model and per day, so when a model refuses a call for quota or overload (FALLBACK_STATUSES)
+# the same request goes to the next model on the list; #model then names the model that answered. The model is pinned here because Google retires
 # models for new keys without notice (gemini-2.5-flash already answers 404 to keys created after its cutoff),
 # and the preview models are throttled to a handful of calls a minute on the free tier.
 class GeminiClient
@@ -25,29 +27,46 @@ class GeminiClient
 
     # A quick HTTP refusal that may pass on a second try. A timeout is not retried: the time is already spent.
     def retryable? = RETRYABLE_STATUSES.include?(status)
+
+    # Refusals that say "not this model right now" (quota, overload, retired), so another model may answer.
+    FALLBACK_STATUSES = [ 404, 429, 503 ].freeze
+    def model_refused? = FALLBACK_STATUSES.include?(status)
   end
 
   def self.configured?
     ENV["GEMINI_API_KEY"].present?
   end
 
-  attr_reader :model
-
-  def initialize(api_key: ENV["GEMINI_API_KEY"], model: ENV.fetch("GEMINI_MODEL", DEFAULT_MODEL), timeout: 8)
+  def initialize(api_key: ENV["GEMINI_API_KEY"], model: ENV.fetch("GEMINI_MODEL", DEFAULT_MODEL),
+                 fallback_models: ENV.fetch("GEMINI_FALLBACK_MODELS", ""), timeout: 8)
     raise Error, "Gemini is not configured" if api_key.blank?
 
     @api_key = api_key
-    @model = model
+    @models = [ model, *fallback_models.to_s.split(",").map(&:strip) ].reject(&:blank?).uniq
+    @model = @models.first
     @timeout = timeout
   end
 
+  # The model that answered the last call (the first model before any call).
+  attr_reader :model
+
   # Returns the parsed JSON object the model produced for the given schema.
   def generate_json(system:, prompt:, schema:)
-    response = post("#{BASE_URL}/models/#{@model}:generateContent", {
+    body = {
       systemInstruction: { parts: [ { text: system } ] },
       contents: [ { parts: [ { text: prompt } ] } ],
       generationConfig: { responseMimeType: "application/json", responseSchema: schema, temperature: 0 }
-    })
+    }
+    response = nil
+    @models.each_with_index do |name, index|
+      response = post("#{BASE_URL}/models/#{name}:generateContent", body)
+      @model = name
+      break
+    rescue Error => e
+      raise unless e.model_refused? && index < @models.size - 1
+
+      Rails.logger.info("Gemini #{name} refused (#{e.status}); trying #{@models[index + 1]}")
+    end
     text = JSON.parse(response.body).dig("candidates", 0, "content", "parts")&.map { |p| p["text"] }&.compact&.join
     raise Error, "Gemini returned no text" if text.blank?
 
