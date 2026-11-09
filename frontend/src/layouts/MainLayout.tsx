@@ -4,7 +4,7 @@ import { useGlobalShortcuts } from "@/hooks";
 import { useNotificationPolling } from "@/features/notifications";
 import { SkipLink } from "@/components/common";
 import { cn } from "@/utils";
-import { Sidebar, Header, MobileSidebar } from "./components";
+import { Sidebar, Header, MobileSidebar, GuideStrip } from "./components";
 
 export default function MainLayout() {
   const sidebarCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
@@ -36,6 +36,7 @@ export default function MainLayout() {
         )}
       >
         <Header />
+        <GuideStrip />
         <main
           id="main-content"
           className="ambient-glow min-h-[calc(100vh-4rem)] bg-no-repeat p-4 md:p-6 lg:p-8"
