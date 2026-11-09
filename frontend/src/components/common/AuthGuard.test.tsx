@@ -8,6 +8,8 @@ vi.mock("@/features/auth/hooks", () => ({
   useAuth: vi.fn(),
 }));
 
+let mockPath = "/protected";
+
 // Mock Navigate
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
@@ -16,7 +18,7 @@ vi.mock("react-router-dom", async () => {
     Navigate: ({ to }: { to: string }) => (
       <div data-testid="navigate" data-to={to} />
     ),
-    useLocation: () => ({ pathname: "/protected", state: null }),
+    useLocation: () => ({ pathname: mockPath, state: null }),
   };
 });
 
@@ -67,6 +69,27 @@ describe("AuthGuard", () => {
     );
 
     expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/login");
+  });
+
+  it("sends a guest at the site root to the public tour", () => {
+    mockPath = "/";
+    mockUseAuth.mockReturnValue({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      isInitialized: true,
+      checkSession: mockCheckSession,
+      logout: vi.fn(),
+    });
+
+    renderWithProviders(
+      <AuthGuard>
+        <div>Protected Content</div>
+      </AuthGuard>,
+    );
+
+    expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/tour");
+    mockPath = "/protected";
   });
 
   it("renders children when authenticated", () => {

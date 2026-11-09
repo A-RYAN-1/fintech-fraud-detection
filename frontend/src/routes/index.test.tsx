@@ -41,6 +41,7 @@ vi.mock("@/pages", () => {
     RuleProposalsPage: page("rules"),
     IncidentsPage: page("incidents"),
     AgentsPage: page("agents"),
+    TourPage: page("tour"),
   };
 });
 
@@ -58,6 +59,15 @@ function visit(role: UserRole, path: string) {
 
 describe("route access per role", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it.each(["customer", "reviewer", "admin"] as UserRole[])(
+    "shows %s the public tour without leaving it",
+    (role) => {
+      const router = visit(role, "/tour");
+      expect(router.state.location.pathname).toBe("/tour");
+      expect(screen.getByText("page:tour")).toBeInTheDocument();
+    },
+  );
 
   it.each(["customer", "analyst", "reviewer", "admin"] as UserRole[])(
     "lands %s on Home",

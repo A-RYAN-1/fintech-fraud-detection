@@ -10,8 +10,9 @@ import {
   CardTitle,
   Skeleton,
 } from "@/components/ui";
-import { pipelineSteps, roleGuides, type PipelineStep } from "@/config";
+import { pipelineSteps, roleGuides } from "@/config";
 import { useAuth } from "@/features/auth/hooks";
+import { countsFor } from "@/features/home/pipelineCounts";
 import {
   useHomeSummary,
   type HomeNextStep,
@@ -20,40 +21,6 @@ import {
 import type { UserRole } from "@/types";
 import { formatDateTime } from "@/utils";
 import { formatMoney } from "@/utils/money";
-
-/** The counts shown under each pipeline step. */
-function countsFor(
-  key: PipelineStep["key"],
-  p: HomePipeline,
-): [string, number][] {
-  switch (key) {
-    case "paypal":
-      return [["authorized", p.authorized]];
-    case "rules":
-      return [
-        ["blocked", p.rules_blocked],
-        ["held", p.rules_flagged],
-      ];
-    case "model":
-      return [["held", p.model_flagged]];
-    case "ai":
-      return [
-        ["read", p.ai_read],
-        ["escalated", p.ai_escalated],
-      ];
-    case "human":
-      return [
-        ["decided", p.human_decided],
-        ["waiting", p.held],
-      ];
-    case "result":
-      return [
-        ["captured", p.captured],
-        ["voided", p.voided],
-        ["refunded", p.refunded],
-      ];
-  }
-}
 
 interface StartHere {
   title: string;

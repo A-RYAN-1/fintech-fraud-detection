@@ -7,4 +7,5 @@ export { default as NotFoundPage } from "./NotFoundPage";
 export * from "./admin";
 export * from "./agents";
 export { default as HomePage } from "./home/HomePage";
+export * from "./tour";
 export { default as ProfilePage } from "./profile/ProfilePage";

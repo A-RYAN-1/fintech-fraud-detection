@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Shield,
   Wallet,
@@ -107,6 +108,9 @@ export default function LoginFlipCard() {
             >
               Continue to sign in
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+            </Button>
+            <Button asChild variant="outline" className="mt-2 w-full">
+              <Link to="/tour">Take the two-minute tour</Link>
             </Button>
             <p className="mt-3 text-center text-xs text-neutral-500 dark:text-neutral-400">
               Demo on the PayPal sandbox. No real money moves.

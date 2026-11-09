@@ -26,9 +26,13 @@ import {
   IncidentsPage,
   FeedbackPage,
   AgentsPage,
+  TourPage,
 } from "@/pages";
 
 export const routes: RouteObject[] = [
+  // The public tour: what Sentrix is, for anyone, signed in or not.
+  { path: "/tour", element: <TourPage /> },
+
   // Public routes (guest only)
   {
     path: "/login",

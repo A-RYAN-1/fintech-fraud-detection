@@ -19,6 +19,7 @@ Rails.application.routes.draw do
       get "analytics", to: "analytics#show"
       get "payment_limits", to: "payment_limits#show"
       get "home", to: "home#show"
+      get "public/pipeline", to: "public_pipeline#show"
       get "spending", to: "spending#show"
 
       namespace :admin do
