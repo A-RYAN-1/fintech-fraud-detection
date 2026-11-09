@@ -20,3 +20,7 @@ State lives in the Puma process (one Render free instance), guarded by a mutex. 
 ## Fallback model
 
 The Gemini free tier counts requests per model per day (20 a day for the preview models), so one busy day can use up a model. `GEMINI_FALLBACK_MODELS` (comma separated) lists models to try, in order, when the main model (`GEMINI_MODEL`) refuses a call with 429, 503 or 404. The same facts-only request goes to the next model, and the verdict, answer or narrative records the model that answered. A timeout or any other error does not move to the next model; when every model refuses, the analyst is skipped as before and the rules decision stands alone.
+
+## Timeouts
+
+The verdict is part of the payment path, so its Gemini call keeps the 8 second timeout. Ask the analyst and the case narrative run only when a reviewer clicks and write longer text, so they may wait up to 20 seconds (`AiAnalyst::INTERACTIVE_TIMEOUT`) before the page shows the rules-only text instead.

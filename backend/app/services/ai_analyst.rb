@@ -104,8 +104,14 @@ class AiAnalyst
     "5,000 and above"
   end
 
-  def initialize(client: nil, guard: AnalystGuard.instance, sleeper: ->(seconds) { sleep(seconds) })
+  # The verdict sits in the payment path, so its call keeps GeminiClient's short timeout. Ask the analyst and the case
+  # narrative run only when a reviewer clicks and write longer text, so they may wait up to INTERACTIVE_TIMEOUT seconds.
+  INTERACTIVE_TIMEOUT = 20
+
+  def initialize(client: nil, guard: AnalystGuard.instance, sleeper: ->(seconds) { sleep(seconds) },
+                 client_factory: ->(**options) { GeminiClient.new(**options) })
     @client = client
+    @client_factory = client_factory
     @guard = guard
     @sleeper = sleeper
   end
@@ -120,7 +126,7 @@ class AiAnalyst
       return nil
     end
 
-    client = @client || GeminiClient.new
+    client = @client || @client_factory.call
     payload = facts.to_json
     raw = generate_with_retry(client, "Transaction facts (JSON):\n#{payload}")
     result = parse(raw, client.model)
@@ -143,7 +149,7 @@ class AiAnalyst
     return nil unless @client || self.class.enabled?
     return nil unless @guard.acquire == :ok
 
-    client = @client || GeminiClient.new
+    client = @client || @client_factory.call(timeout: INTERACTIVE_TIMEOUT)
     prompt = "Question: #{question}\nCase facts (JSON):\n#{facts.to_json}"
     raw = generate_with_retry(client, prompt, system: ASK_SYSTEM, schema: ASK_SCHEMA)
     text = raw.is_a?(Hash) ? raw["answer"].to_s.squish : ""
@@ -161,7 +167,7 @@ class AiAnalyst
     return nil unless @client || self.class.enabled?
     return nil unless @guard.acquire == :ok
 
-    client = @client || GeminiClient.new
+    client = @client || @client_factory.call(timeout: INTERACTIVE_TIMEOUT)
     raw = generate_with_retry(client, "Case facts (JSON):\n#{facts.to_json}", system: NARRATIVE_SYSTEM, schema: NARRATIVE_SCHEMA)
     parsed = parse_narrative(raw)
     parsed && parsed.merge(model: client.model)
