@@ -23,6 +23,9 @@ import {
 
 const SIGNALS: FeedbackSignal[] = ["rules", "ml", "ai"];
 
+// Below this many answered decisions a percentage says more than the data does (0 of 1 reads as "always wrong").
+const MIN_SCORED = 5;
+
 function DisagreementRow({ row }: { row: Disagreement }) {
   return (
     <div className="space-y-2 rounded-md border border-neutral-200 p-4 dark:border-neutral-800">
@@ -109,13 +112,27 @@ export default function FeedbackPage() {
                     <Skeleton className="h-16 w-full" />
                   ) : (
                     <>
-                      <div className="text-3xl font-bold">
-                        {formatRate(stats.agreement_rate)}
-                      </div>
-                      <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                        agrees with the human ({stats.agree} of {stats.answered}
-                        )
-                      </div>
+                      {stats.answered > 0 && stats.answered < MIN_SCORED ? (
+                        <>
+                          <div className="text-xl font-semibold leading-9">
+                            Too few to score
+                          </div>
+                          <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                            read {stats.answered} of {data.labelled} decided
+                            payments; a rate is shown from {MIN_SCORED}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-3xl font-bold">
+                            {formatRate(stats.agreement_rate)}
+                          </div>
+                          <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                            agrees with the human ({stats.agree} of{" "}
+                            {stats.answered})
+                          </div>
+                        </>
+                      )}
                       <div className="text-sm text-neutral-500 dark:text-neutral-400">
                         {stats.false_alarms} false alarms, {stats.misses} misses
                       </div>

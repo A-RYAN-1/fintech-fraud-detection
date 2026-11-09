@@ -5,20 +5,20 @@ import { feedbackApi } from "@/features/feedback";
 import FeedbackPage from "./FeedbackPage";
 
 const response: FeedbackResponse = {
-  labelled: 4,
-  human_approve: 2,
-  human_block: 2,
+  labelled: 8,
+  human_approve: 4,
+  human_block: 4,
   signals: {
     rules: {
-      answered: 4,
-      agree: 3,
+      answered: 8,
+      agree: 6,
       agreement_rate: 0.75,
       false_alarms: 1,
       misses: 0,
     },
     ml: {
-      answered: 4,
-      agree: 2,
+      answered: 8,
+      agree: 4,
       agreement_rate: 0.5,
       false_alarms: 1,
       misses: 1,
@@ -81,6 +81,29 @@ describe("FeedbackPage", () => {
     expect(screen.getAllByText("n/a").length).toBeGreaterThan(0);
     expect(screen.getByText("New device.")).toBeInTheDocument();
     expect(screen.getByText("Rules and model disagreed")).toBeInTheDocument();
+  });
+
+  it("does not turn a handful of analyst reads into a percentage", async () => {
+    vi.spyOn(feedbackApi, "get").mockResolvedValue({
+      ...response,
+      signals: {
+        ...response.signals,
+        ai: {
+          answered: 1,
+          agree: 0,
+          agreement_rate: 0,
+          false_alarms: 1,
+          misses: 0,
+        },
+      },
+    });
+    renderWithProviders(<FeedbackPage />);
+
+    expect(await screen.findByText("Too few to score")).toBeInTheDocument();
+    expect(
+      screen.getByText(/read 1 of 8 decided payments; a rate is shown from 5/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("0%")).not.toBeInTheDocument();
   });
 
   it("lists each rule with its false alarms and flags a noisy one", async () => {
