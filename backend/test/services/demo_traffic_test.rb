@@ -90,8 +90,9 @@ class DemoTrafficTest < ActiveSupport::TestCase
 
   test "seed_customer! gives a shared login a history once and never calls PayPal" do
     user = users(:one)
-    # The model scores 00:00 to 06:00 UTC as night-time; pin the clock so this does not depend on when CI runs.
-    added = travel_to(Time.utc(2026, 11, 3, 12, 0, 0)) do
+    # The model scores 00:00 to 06:00 UTC as night-time, so pin the clock to midday. Keep it on today's date: the
+    # fixtures are stamped with the real time, and a fixed date drifts away from them and changes the history.
+    added = travel_to(Time.current.utc.change(hour: 12)) do
       replace_class_method(PaypalClient, :new, ->(*) { raise "PayPal must not be called" }) do
         DemoTraffic.seed_customer!(user)
       end

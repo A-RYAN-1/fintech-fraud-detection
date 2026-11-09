@@ -18,7 +18,7 @@ describe("Card components", () => {
 
     it("applies default styles", () => {
       render(<Card data-testid="card">Content</Card>);
-      expect(screen.getByTestId("card")).toHaveClass("rounded-xl", "border");
+      expect(screen.getByTestId("card")).toHaveClass("rounded-2xl", "border");
     });
 
     it("merges custom className", () => {

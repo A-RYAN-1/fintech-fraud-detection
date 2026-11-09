@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Pastel/Neutral Theme
+        // Brand: a clear sky blue, close to PayPal's own blue so the two sit well together.
         primary: {
           50: "#f0f9ff",
           100: "#e0f2fe",
@@ -19,18 +19,27 @@ export default {
           900: "#0c4a6e",
           950: "#082f49",
         },
+        // A second, cooler accent for the brand gradient and AI surfaces.
+        accent: {
+          300: "#a5b4fc",
+          400: "#818cf8",
+          500: "#6366f1",
+          600: "#4f46e5",
+        },
+        // Cool greys (zinc). Same lightness steps as before, so the contrast audit still holds.
         neutral: {
           50: "#fafafa",
-          100: "#f5f5f5",
-          200: "#e5e5e5",
-          300: "#d4d4d4",
-          400: "#a3a3a3",
-          500: "#737373",
-          600: "#525252",
-          700: "#404040",
-          800: "#262626",
-          900: "#171717",
-          950: "#0a0a0a",
+          100: "#f4f4f5",
+          200: "#e4e4e7",
+          300: "#d4d4d8",
+          400: "#a1a1aa",
+          500: "#71717a",
+          600: "#52525b",
+          700: "#3f3f46",
+          800: "#27272a",
+          900: "#18181b",
+          925: "#111113",
+          950: "#09090b",
         },
         success: {
           50: "#f0fdf4",
@@ -70,19 +79,21 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        sans: ["Geist", "Inter", "system-ui", "sans-serif"],
+        mono: ["Geist Mono", "JetBrains Mono", "monospace"],
       },
       boxShadow: {
-        soft: "0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)",
+        soft: "0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 4px 16px -4px rgba(0, 0, 0, 0.06)",
         "soft-lg":
           "0 10px 40px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+        // A one-pixel top highlight that lifts dark surfaces off the page.
+        "inset-hi": "inset 0 1px 0 0 rgba(255, 255, 255, 0.04)",
+        glow: "0 0 0 1px rgba(14, 165, 233, 0.25), 0 8px 32px -8px rgba(14, 165, 233, 0.45)",
       },
-      animation: {
-        "fade-in": "fadeIn 0.2s ease-out",
-        "slide-up": "slideUp 0.3s ease-out",
-        "slide-down": "slideDown 0.3s ease-out",
-        "pulse-soft": "pulseSoft 2s infinite",
+      backgroundImage: {
+        "brand-gradient": "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
+        "dot-grid":
+          "radial-gradient(circle at 1px 1px, rgba(127, 127, 127, 0.18) 1px, transparent 0)",
       },
       keyframes: {
         fadeIn: {
@@ -101,12 +112,17 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.5" },
         },
+        flow: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "fade-in": "fadeIn 0.2s ease-out",
         "slide-up": "slideUp 0.3s ease-out",
         "slide-down": "slideDown 0.3s ease-out",
         "pulse-soft": "pulseSoft 2s infinite",
+        flow: "flow 2.4s ease-in-out infinite",
         in: "fadeIn 0.2s ease-out",
         "slide-in-from-top-2": "slideDownAndFade 0.3s ease-out",
         "slide-in-from-bottom-2": "slideUpAndFade 0.3s ease-out",

@@ -36,7 +36,11 @@ export default function MainLayout() {
         )}
       >
         <Header />
-        <main id="main-content" className="p-4 md:p-6 lg:p-8" tabIndex={-1}>
+        <main
+          id="main-content"
+          className="ambient-glow min-h-[calc(100vh-4rem)] bg-no-repeat p-4 md:p-6 lg:p-8"
+          tabIndex={-1}
+        >
           <Outlet />
         </main>
       </div>
