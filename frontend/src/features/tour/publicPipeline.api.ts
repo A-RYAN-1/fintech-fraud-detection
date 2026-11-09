@@ -8,7 +8,7 @@ export interface PublicPipeline {
   pipeline: HomePipeline;
 }
 
-/** Last 7 days of pipeline counts; public, counts only. */
+/** The staff window of pipeline counts (HomeSummary::WINDOW); public, counts only. */
 export async function getPublicPipeline(): Promise<PublicPipeline> {
   const response =
     await apiClient.get<ApiResponse<PublicPipeline>>("/public/pipeline");
