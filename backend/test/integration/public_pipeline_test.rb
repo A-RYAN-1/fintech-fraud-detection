@@ -10,16 +10,16 @@ class PublicPipelineTest < ActionDispatch::IntegrationTest
     t
   end
 
-  test "anyone gets the last 7 days of pipeline counts without signing in" do
+  test "anyone gets the last 60 days of pipeline counts without signing in" do
     payment(status: "SUCCESS", paypal: "CAPTURED")
     payment(status: "FLAGGED", paypal: "HELD")
-    payment(status: "SUCCESS", paypal: "CAPTURED", at: 10.days.ago)
+    payment(status: "SUCCESS", paypal: "CAPTURED", at: 70.days.ago)
 
     get "/api/v1/public/pipeline"
 
     assert_response :success
     data = JSON.parse(response.body)["data"]
-    assert_equal 7, data["window_days"]
+    assert_equal 60, data["window_days"]
     assert_equal 2, data["pipeline"]["authorized"]
     assert_equal 1, data["pipeline"]["captured"]
     assert_equal 1, data["pipeline"]["held"]

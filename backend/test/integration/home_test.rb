@@ -29,7 +29,7 @@ class HomeTest < ActionDispatch::IntegrationTest
     payment(@customer, status: "FLAGGED", paypal: "HELD", rules: "UNTRUSTED_DEVICE", at: 3.hours.ago, amount: 1100)
     payment(@other, status: "FLAGGED", paypal: "CAPTURED", rules: "ML_RISK_SCORE", label: "approve")
     payment(@other, status: "SUCCESS", paypal: "HELD", ai: "review", at: 2.hours.ago)
-    payment(@other, status: "SUCCESS", paypal: "REFUNDED", at: 10.days.ago)
+    payment(@other, status: "SUCCESS", paypal: "REFUNDED", at: 70.days.ago)
     Transaction.create!(user: @customer, amount: 5, status: "PENDING", paypal_status: "CREATED", device_id: "d1") # never approved
   end
 
@@ -60,7 +60,7 @@ class HomeTest < ActionDispatch::IntegrationTest
     login_as users(:reviewer)
     get api_v1_home_url
     assert_equal "all", data["scope"]
-    assert_equal 7, data["window_days"]
+    assert_equal 60, data["window_days"]
     pipeline = data["pipeline"]
     assert_equal 5, pipeline["authorized"], "the 10-day-old refund is outside the window"
     assert_equal 1, pipeline["model_flagged"]
