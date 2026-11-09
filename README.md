@@ -88,7 +88,8 @@ This project began before the hackathon period as a rules-based risk-scoring app
 | Review and roles | Review queue and limits; analyst, reviewer and admin roles; four-eyes approval for over-limit decisions and refunds; customer status and note | [#36](../../pull/36), [#37](../../pull/37), [#46](../../pull/46), [#47](../../pull/47), [#88](../../pull/88) |
 | Reading a case | Account and device ring graph; similar past cases with pgvector | [#73](../../pull/73), [#82](../../pull/82) |
 | Operations | Rate limits, deep health, JSON logs, indexes and keyset pages, incident digest, a load test with measured numbers | [#38](../../pull/38), [#66](../../pull/66), [#70](../../pull/70), [#71](../../pull/71), [#72](../../pull/72) |
-| Product and UX | A public tour with live counts and one-click sandbox sign-in, a guided path through the demo for each role, a redesigned case card (signal cards, tabbed investigation, decision bar), and a design pass over the whole app | [#99](../../pull/99), [#100](../../pull/100), [#101](../../pull/101), [#102](../../pull/102), [#104](../../pull/104) |
+| Product and UX | A public tour with live counts and one-click sandbox sign-in, a guided path through the demo for each role, a redesigned case card (signal cards, tabbed investigation, decision bar), and a design pass over the whole app | [#99](../../pull/99), [#100](../../pull/100), [#101](../../pull/101), [#102](../../pull/102), [#103](../../pull/103), [#104](../../pull/104) |
+| AI resilience | Fallback Gemini models when one is out of quota or busy, a 20 s wait for reviewer-started calls, the analyst's read of held demo cases, no rate on the Feedback page below 5 decisions | [#106](../../pull/106), [#107](../../pull/107), [#108](../../pull/108) |
 
 Measured, with the source page for each: the AI analyst agrees with the label in 27 of 30 offline cases against 20 of 30 for the rules alone ([docs/ai-evaluation.md](docs/ai-evaluation.md)); the grounding check accepted 10 of 10 faithful texts and rejected 12 of 12 planted fabrications in its synthetic corpus ([docs/analyst-grounding.md](docs/analyst-grounding.md)); list and staff pages stay flat to 40 requests a second at 0.5 CPU with no server errors ([docs/performance.md](docs/performance.md)). Not claimed: a live rejection rate for the AI, an accuracy gain from similar cases (equal to the baseline on 9 cases), or any figure from the demo reviewer decisions, which are scripted.
 
@@ -98,16 +99,30 @@ To try it: open the [tour](https://fintech-fraud-detection-aryan.vercel.app/tour
 
 ## About
 
-A payment app has to decide in the moment whether a transaction looks like its owner. This project
-does that with a small rules engine: each new transaction is compared with the customer's own history
-(their average amount, how many payments they made in the last minute, the device they normally use)
-and every rule that fires adds points to a risk score. At 30 points the transaction is **flagged**, at
-70 it is **blocked**, and the response says exactly which rules fired, so a support agent or the
-customer can see why.
+Sentrix sits between PayPal's authorize and capture. When a buyer approves a payment in PayPal's window,
+PayPal holds the money and nothing is taken yet; Sentrix judges the payment in that window and then tells
+PayPal to capture it or void it.
 
-Behind it sit the parts a real system needs around a decision: a per-customer baseline that only
-learns from approved payments, notifications and an email on every block, an audit log of every
-decision, customer feedback on each verdict, and an analytics dashboard.
+Each payment goes through six steps, all on record:
+
+1. **PayPal checkout.** The buyer approves in PayPal's own window (sandbox). PayPal authorizes; nothing is captured.
+2. **Risk rules.** The amount against the buyer's usual spend, payment speed and a new or missing device add up a
+   score. An admin edits the rules; 70 or more blocks, 30 or more holds.
+3. **Model score.** A small logistic regression gives a second score with its top reasons. It can ask for a hold,
+   never a block.
+4. **AI analyst.** Gemini reads a facts-only summary (bands, flags, rule names; no ids, emails, IPs or device ids)
+   and returns approve, review or block with an explanation. It can escalate a payment to a person but never void
+   or release one, and every text it writes is checked against the facts before it is shown.
+5. **Human gate.** A reviewer sees the three signals side by side and decides within a limit; above it, or for a
+   refund, an admin settles it.
+6. **Capture or void.** Sentrix calls PayPal. Idempotency keys make a repeated click safe.
+
+Around that core: shopping agents that pay only inside a written mandate, reviewer decisions that become labels,
+rule changes an agent drafts and replays over stored payments, and a customer who is told why a payment is held
+and can answer.
+
+The project started as a rules-only risk-scoring app (still the base of steps 2 and the baseline below); see
+[What changed for the PayPal AI Hackathon](#what-changed-for-the-paypal-ai-hackathon) for what was added since.
 
 ## Try it live
 
@@ -128,8 +143,8 @@ Things to try in the first two minutes (the guide bar at the top of each page fo
 
 1. As the **reviewer**, open **Review Queue**. Each card is a payment PayPal has authorized but not captured: why it
    was held, the rules score, the model score and the AI analyst's verdict side by side.
-2. Ask the analyst **Why this verdict?**, then open **Similar cases**. The answer is checked against the case facts
-   before it is shown and never changes the decision.
+2. Ask the analyst **Why this verdict?**, then open the **Similar cases**, **Case narrative** and **Linked accounts**
+   tabs. The answer is checked against the case facts before it is shown and never changes the decision.
 3. **Capture at PayPal** or **Void at PayPal**: a real call to PayPal's sandbox, written to the audit log.
 4. As the **admin**, open **Agents** for the agent mandates and **Rule Changes** for an agent-drafted rule change with
    its replay over stored payments.
@@ -143,6 +158,50 @@ Things to try in the first two minutes (the guide bar at the top of each page fo
 </table>
 
 ## Features
+
+**Payments and decisions**
+
+- **PayPal Orders v2 (sandbox)**: create, authorize, capture, void and refund behind the risk gate; hold expiry,
+  partial refunds, idempotency keys and a signature-verified webhook receiver with event-id dedupe
+  ([docs/paypal-webhooks.md](docs/paypal-webhooks.md)).
+- **AI analyst** on Gemini: a bounded verdict, "Why this verdict?" and "What would change it?" answers, and a
+  drafted case narrative saved to the audit trail. A grounding check replaces any text that names a number, rule or
+  identifier not in the facts. Behind a token bucket, a circuit breaker, one retry and fallback models; the payment
+  verdict waits at most 8 s, a reviewer's question 20 s, and a failure falls back to rules only
+  ([docs/analyst-resilience.md](docs/analyst-resilience.md), [docs/ask-analyst.md](docs/ask-analyst.md)).
+- **Review queue and roles**: a case card per held payment (signal cards, tabs for asking the analyst, similar cases,
+  the narrative and linked accounts, a decision bar); analyst, reviewer and admin roles with decision limits;
+  four-eyes approval above a limit and for refunds.
+- **Similar cases** with pgvector (nearest decided payments and what a person did) and **linked accounts** that
+  share a device.
+- **Customer side**: a held payment says in plain words what is happening, and the customer can send the reviewer
+  one note (never sent to the AI).
+
+**Agents and feedback**
+
+- **Agent mandates**: a customer gives a shopping agent one merchant, a cap per payment, a cap in total and an end
+  date, revocable at any time. The agent's token is stored only as a digest; a payment outside the mandate is
+  refused and audited, and one inside it is still judged by the rules, the model and the analyst. Agent payments use
+  a simulated PayPal client ([docs/agent-mandates.md](docs/agent-mandates.md)).
+- **Reviewer decisions as labels**: the Feedback page scores the rules, the model and the analyst against them and
+  lists each rule's false alarms; below 5 answered decisions it says "Too few to score"
+  ([docs/feedback-loop.md](docs/feedback-loop.md)).
+- **Rule changes with a replay**: when people keep overriding a rule, an agent drafts one change and replays it over
+  every stored payment (false alarms, misses, held counts before and after). Only an admin accepting it changes
+  the live rule.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/sentrix-agents.png" alt="Agent mandates: merchant, caps, end date and status for each agent"><p align="center"><sub>Agent mandates with caps, end dates and revocation</sub></p></td>
+    <td width="50%"><img src="docs/images/sentrix-rule-change.png" alt="An agent-drafted rule change with its replay over stored payments, waiting for an admin"><p align="center"><sub>A drafted rule change, replayed over stored payments</sub></p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/images/sentrix-narrative.png" alt="A case narrative drafted by the AI analyst on the case card"><p align="center"><sub>A case narrative drafted by the analyst</sub></p></td>
+    <td width="50%"><img src="docs/images/sentrix-feedback.png" alt="Feedback page: rules, model and analyst scored against reviewer decisions"><p align="center"><sub>Rules, model and analyst scored against reviewer decisions</sub></p></td>
+  </tr>
+</table>
+
+**The base app (before the hackathon)**
 
 - **Rule-based risk scoring** on every new transaction, synchronous: the API answers with the
   outcome, the score and the rules that fired (see [the rules](#the-rules)).
@@ -409,6 +468,7 @@ Local runs need nothing beyond the defaults above: `compose.yaml` sets the backe
 |---|---|---|
 | `VITE_API_BASE_URL` | Base URL of the backend API (`/api/v1` on Vercel) | `http://localhost:3000/api/v1` |
 | `VITE_APP_NAME` | Name shown in the UI | `Fintech Risk Engine` |
+| `VITE_PAYPAL_CLIENT_ID` | PayPal sandbox client id for the checkout buttons on Pay | optional |
 
 **Backend** (see `backend/.env.development.example` and `backend/.env.production.example`)
 
@@ -420,6 +480,11 @@ Local runs need nothing beyond the defaults above: `compose.yaml` sets the backe
 | `FRONTEND_URL` | Frontend origin: allowed by CORS and by host authorization (it proxies `/api`) | always |
 | `APP_HOST` | The API's own host: host authorization and links in emails | always |
 | `ML_SCORE_ENABLED` | `false` switches the second score off; default on | optional |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_BASE_URL` | PayPal REST app (sandbox) for orders, capture, void and refund | for PayPal |
+| `PAYPAL_WEBHOOK_ID` | Webhook id used to verify PayPal's signature on incoming events | for webhooks |
+| `GEMINI_API_KEY` | Gemini API key; without it the analyst is off and the rules decide alone | for the analyst |
+| `GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS` | Main model (default `gemini-3.1-flash-lite`) and a comma-separated list tried in order when a model refuses | optional |
+| `AI_ANALYST_ENABLED` | `false` switches the analyst off | optional |
 | `SOLID_QUEUE_IN_PUMA` | `true` runs background jobs inside the web process | optional |
 | `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` | Mail server for the emails; without `SMTP_USERNAME` mail is skipped | optional |
 | `RAILS_LOG_LEVEL` | Log level | optional |
@@ -469,7 +534,11 @@ free tiers since 2026-10-15. Checked live that day: sign-in, session cookie, tra
   minute.
 - The live demo sends no email (no mail server is configured), so block alerts and weekly reports
   appear only as in-app notifications and audit entries.
-- The admin pages are in the frontend code but not linked from the navigation yet; the admin API behind them is live. There is no screen for the editable risk rules yet, only the API.
+- Agent payments use a simulated PayPal client: an agent cannot click through PayPal's approval window.
+- The demo reviewer decisions are scripted, so the Feedback page figures are not real-world rates.
+- The PayPal webhook receiver is tested, but production has not yet recorded a signed live delivery.
+- The Gemini free tier has a small daily quota per model; when every model refuses, the analyst falls back to the
+  rules-only text and says so.
 - CI runs the tests and the build only; lint, Brakeman and bundler-audit join once their existing findings are fixed.
 - Ruby 3.2 is past end of life, and `bundler-audit` reports advisories in the locked gems.
 
