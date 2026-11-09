@@ -28,7 +28,7 @@ export default function ReviewQueuePage() {
 
   return (
     <PageTransition>
-      <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6">
         <PageHeader
           title="Review queue"
           description={`Payments held for a person. Each card shows the rules, the model and the AI analyst side by side; capture or void is a PayPal call and is written to the audit log.${

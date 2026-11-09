@@ -22,13 +22,13 @@ export function AccountRingPanel({ paymentId }: AccountRingPanelProps) {
         {open ? "Hide linked accounts" : "Linked accounts"}
       </Button>
 
-      {open && <RingList paymentId={paymentId} />}
+      {open && <LinkedAccountsList paymentId={paymentId} />}
     </div>
   );
 }
 
 // Mounted only when opened, so a closed panel (and every list of cases) makes no request.
-function RingList({ paymentId }: AccountRingPanelProps) {
+export function LinkedAccountsList({ paymentId }: AccountRingPanelProps) {
   const { data, isLoading, isError } = useAccountRing(paymentId, true);
 
   return (

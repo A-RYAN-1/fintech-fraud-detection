@@ -22,12 +22,12 @@ export function SimilarCasesPanel({ paymentId }: SimilarCasesPanelProps) {
       >
         {open ? "Hide similar past cases" : "Similar past cases"}
       </Button>
-      {open && <Matches paymentId={paymentId} />}
+      {open && <SimilarCasesList paymentId={paymentId} />}
     </div>
   );
 }
 
-function Matches({ paymentId }: SimilarCasesPanelProps) {
+export function SimilarCasesList({ paymentId }: SimilarCasesPanelProps) {
   const { data, isLoading, isError } = useSimilarCases(paymentId);
 
   return (
