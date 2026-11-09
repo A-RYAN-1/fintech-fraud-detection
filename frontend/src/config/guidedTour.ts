@@ -39,7 +39,7 @@ export const guidedTour: Record<UserRole, GuideStep[]> = {
     {
       href: "/home",
       title: "Home",
-      line: "How many payments wait for a person, and how the checks split the last 7 days.",
+      line: "How many payments wait for a person, and how the checks split recent payments.",
     },
     {
       href: "/admin/review",
@@ -61,7 +61,7 @@ export const guidedTour: Record<UserRole, GuideStep[]> = {
     {
       href: "/home",
       title: "Home",
-      line: "How many payments wait for a person, and how the checks split the last 7 days.",
+      line: "How many payments wait for a person, and how the checks split recent payments.",
     },
     {
       href: "/admin/review",
@@ -78,7 +78,7 @@ export const guidedTour: Record<UserRole, GuideStep[]> = {
     {
       href: "/home",
       title: "Home",
-      line: "What waits for you first, and how the checks split the last 7 days.",
+      line: "What waits for you first, and how the checks split recent payments.",
     },
     {
       href: "/admin/review",
