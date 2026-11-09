@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://fintech-fraud-detection-aryan.vercel.app"><strong>Live demo</strong></a>
+  <a href="https://fintech-fraud-detection-aryan.vercel.app/tour"><strong>Live demo</strong></a>
   &middot;
   <a href="https://youtu.be/i2tTB4IEENQ">Demo video</a>
   &middot;
@@ -38,7 +38,13 @@
 </p>
 
 <p align="center">
-  <a href="https://fintech-fraud-detection-aryan.vercel.app">
+  <a href="https://fintech-fraud-detection-aryan.vercel.app/tour">
+    <img src="docs/images/sentrix-tour.png" width="90%" alt="The public tour: PayPal payments checked before the money moves, live counts from the demo and an example of a held payment">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://fintech-fraud-detection-aryan.vercel.app/tour">
     <img src="docs/images/sentrix-case.png" width="90%" alt="A held payment in the review queue: rules, model and AI analyst side by side, the analyst's answer to Why this verdict, and capture or void buttons">
   </a>
 </p>
@@ -50,7 +56,7 @@
   <br><sub>Demo video, 2:17: one purchase through a customer, a reviewer and an admin, on the PayPal sandbox. Synthetic voice.</sub>
 </p>
 
-<p align="center"><sub>Last updated: 2026-11-03 &middot; Live on free tiers (Vercel, Render, Neon)</sub></p>
+<p align="center"><sub>Last updated: 2026-11-09 &middot; Live on free tiers (Vercel, Render, Neon)</sub></p>
 
 ---
 
@@ -71,7 +77,7 @@
 
 ## What changed for the PayPal AI Hackathon
 
-This project began before the hackathon period as a rules-based risk-scoring app, built with a collaborator who wrote its original frontend. At the start of the period (2026-10-01) the backend had no PayPal code. Everything below was built and merged between 2026-10-21 and 2026-11-02 by one person; each row links to its pull requests. The PayPal sandbox is used throughout, so no real money moves. Agent payments use a simulated PayPal client (an agent cannot click through PayPal's approval window); the decision path is the real one.
+This project began before the hackathon period as a rules-based risk-scoring app, built with a collaborator who wrote its original frontend. At the start of the period (2026-10-01) the backend had no PayPal code. Everything below was built and merged between 2026-10-21 and 2026-11-09 by one person; each row links to its pull requests. The PayPal sandbox is used throughout, so no real money moves. Agent payments use a simulated PayPal client (an agent cannot click through PayPal's approval window); the decision path is the real one.
 
 | Area | What was added | Pull requests |
 |---|---|---|
@@ -82,10 +88,11 @@ This project began before the hackathon period as a rules-based risk-scoring app
 | Review and roles | Review queue and limits; analyst, reviewer and admin roles; four-eyes approval for over-limit decisions and refunds; customer status and note | [#36](../../pull/36), [#37](../../pull/37), [#46](../../pull/46), [#47](../../pull/47), [#88](../../pull/88) |
 | Reading a case | Account and device ring graph; similar past cases with pgvector | [#73](../../pull/73), [#82](../../pull/82) |
 | Operations | Rate limits, deep health, JSON logs, indexes and keyset pages, incident digest, a load test with measured numbers | [#38](../../pull/38), [#66](../../pull/66), [#70](../../pull/70), [#71](../../pull/71), [#72](../../pull/72) |
+| Product and UX | A public tour with live counts and one-click sandbox sign-in, a guided path through the demo for each role, a redesigned case card (signal cards, tabbed investigation, decision bar), and a design pass over the whole app | [#99](../../pull/99), [#100](../../pull/100), [#101](../../pull/101), [#102](../../pull/102), [#104](../../pull/104) |
 
 Measured, with the source page for each: the AI analyst agrees with the label in 27 of 30 offline cases against 20 of 30 for the rules alone ([docs/ai-evaluation.md](docs/ai-evaluation.md)); the grounding check accepted 10 of 10 faithful texts and rejected 12 of 12 planted fabrications in its synthetic corpus ([docs/analyst-grounding.md](docs/analyst-grounding.md)); list and staff pages stay flat to 40 requests a second at 0.5 CPU with no server errors ([docs/performance.md](docs/performance.md)). Not claimed: a live rejection rate for the AI, an accuracy gain from similar cases (equal to the baseline on 9 cases), or any figure from the demo reviewer decisions, which are scripted.
 
-To try it: the sign-in page has Customer, Reviewer and Admin sandbox logins that fill the form. As Admin, open Agents for four mandates and Review Queue for a payment an agent made from an unused device. `bin/rails demo:traffic` seeds that data locally and `bin/rails demo:clean` removes it.
+To try it: open the [tour](https://fintech-fraud-detection-aryan.vercel.app/tour) and sign in as the customer, reviewer or admin with one click; a guide bar then walks each role through the app page by page. As Admin, open Agents for four mandates and Review Queue for a payment an agent made from an unused device. `bin/rails demo:traffic` seeds that data locally and `bin/rails demo:clean` removes it.
 
 ---
 
@@ -104,7 +111,7 @@ decision, customer feedback on each verdict, and an analytics dashboard.
 
 ## Try it live
 
-Open **https://fintech-fraud-detection-aryan.vercel.app** and sign in:
+Open **https://fintech-fraud-detection-aryan.vercel.app/tour** and pick a role, or sign in on the sign-in page:
 
 | Role | Email | Password |
 |---|---|---|
@@ -117,21 +124,21 @@ These are public sandbox accounts (PayPal sandbox, no real money); the sign-in p
 anyone an admin; `rake demo:judges` creates and resets all three. The API runs on a free instance that sleeps after 15
 minutes without traffic, so the first sign-in can take about a minute.
 
-Things to try in the first two minutes:
+Things to try in the first two minutes (the guide bar at the top of each page follows the same path):
 
-1. Open the **dashboard**: payment counts by outcome, volume over time, risk distribution and a risk
-   heatmap by day and hour.
-2. Create a small card payment. Your browser is a device this account has never used, so it comes
-   back **flagged** with `UNTRUSTED_DEVICE`.
-3. Create a 95,000 card payment. It comes back **blocked**, with the rules that fired listed (for
-   example `AMOUNT_DEVIATION_HIGH` and `UNTRUSTED_DEVICE`).
-4. Open **Risk Analysis** to see score ranges, the most-triggered rules and the high-risk payments.
-5. Open the bell: each flagged or blocked payment raised a notification.
+1. As the **reviewer**, open **Review Queue**. Each card is a payment PayPal has authorized but not captured: why it
+   was held, the rules score, the model score and the AI analyst's verdict side by side.
+2. Ask the analyst **Why this verdict?**, then open **Similar cases**. The answer is checked against the case facts
+   before it is shown and never changes the decision.
+3. **Capture at PayPal** or **Void at PayPal**: a real call to PayPal's sandbox, written to the audit log.
+4. As the **admin**, open **Agents** for the agent mandates and **Rule Changes** for an agent-drafted rule change with
+   its replay over stored payments.
+5. As the **customer**, pay with PayPal's sandbox buttons on **Pay**, then open **History**.
 
 <table>
   <tr>
     <td width="50%"><img src="docs/images/sentrix-history.png" alt="Payment history with status, rules score, model score, AI verdict and action taken per payment"><p align="center"><sub>Every payment with its outcome, scores and the decision taken</sub></p></td>
-    <td width="50%"><img src="docs/images/sentrix-audit.png" alt="Audit log: a capture with the reviewer note, the hold and the flag, each with before and after state"><p align="center"><sub>The audit log: who decided, what PayPal was told</sub></p></td>
+    <td width="50%"><img src="docs/images/sentrix-audit.png" alt="Audit log: drafted case narratives and a capture, each with who did it and the state before and after"><p align="center"><sub>The audit log: who decided, what PayPal was told</sub></p></td>
   </tr>
 </table>
 
